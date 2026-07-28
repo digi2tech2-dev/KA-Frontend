@@ -1,4 +1,5 @@
 import React from 'react';
+import { CircleAlert } from 'lucide-react';
 import { cn } from './Button';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -54,7 +55,10 @@ const Input = React.forwardRef(({ className, label, error, icon, suffix, variant
         )}
       </div>
       {error && (
-        <p className="mt-1 text-xs text-[var(--color-error)]">{error}</p>
+        <p role="alert" className="mt-2 flex items-start gap-1.5 rounded-lg border border-rose-400/25 bg-rose-500/[0.07] px-2.5 py-2 text-xs font-semibold leading-5 text-rose-700 dark:text-rose-300">
+          <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>{error}</span>
+        </p>
       )}
     </div>
   );

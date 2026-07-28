@@ -1,7 +1,7 @@
 import buyCardsImage from '../assets/slide-1.webp';
 import chatAppsImage from '../assets/slide-2.webp';
 import gamesChargingImage from '../assets/slide-3.webp';
-import brandIconImage from '../assets/logo.webp';
+import brandIconImage from '../assets/logo.PNG';
 import { calculateProductPrice } from './pricing';
 import { formatNumber } from './intl';
 import { getMoneyFormatOptions, toFiniteMoneyNumber } from './money';
@@ -78,6 +78,10 @@ export const getStorefrontLanguage = (i18n) =>
 export const sanitizeStorefrontQuery = (value) => normalizeSearchToken(value);
 
 const shouldKeepUnavailableProductVisible = (product = {}) => {
+  if (product?.deletedAt || product?.isDeleted === true || product?.isVisibleInStore === false) {
+    return false;
+  }
+
   const status = String(product?.status || '').trim().toLowerCase();
   const productStatus = String(product?.productStatus || '').trim().toLowerCase();
   const stoppedStatuses = new Set([
@@ -88,7 +92,6 @@ const shouldKeepUnavailableProductVisible = (product = {}) => {
     'stop',
     'paused',
     'pause',
-    'hidden',
     'unavailable',
     'not_available',
     'not-available',

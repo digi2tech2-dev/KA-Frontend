@@ -558,7 +558,7 @@ const AdminSuppliers = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[1.35rem] border border-amber-200/70 bg-[radial-gradient(circle_at_top_left,rgba(201,147,26,0.16),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(250,245,255,0.92))] p-3 shadow-[0_24px_70px_-46px_rgba(147,51,234,0.55)] dark:border-amber-500/20 dark:bg-[radial-gradient(circle_at_top_left,rgba(201,147,26,0.16),transparent_36%),linear-gradient(135deg,rgba(17,24,39,0.96),rgba(30,27,75,0.82))]">
+      <section className="overflow-hidden rounded-[1.35rem] border border-amber-200/70 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.16),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(250,245,255,0.92))] p-3 shadow-[0_24px_70px_-46px_rgba(147,51,234,0.55)] dark:border-amber-500/20 dark:bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.16),transparent_36%),linear-gradient(135deg,rgba(17,24,39,0.96),rgba(30,27,75,0.82))]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <Badge variant="premium" className="w-fit">بحث منتجات الموردين</Badge>
@@ -571,7 +571,7 @@ const AdminSuppliers = () => {
             type="button"
             onClick={searchAllSupplierProducts}
             disabled={allProductsLoading}
-            className="h-10 shrink-0 rounded-xl bg-gradient-to-r from-teal-700 via-amber-600 to-amber-500 px-4 text-white shadow-[0_18px_38px_-24px_rgba(201,147,26,0.8)] hover:brightness-105"
+            className="h-10 shrink-0 rounded-xl bg-gradient-to-r from-indigo-700 via-amber-600 to-amber-500 px-4 text-white shadow-[0_18px_38px_-24px_rgba(168,85,247,0.8)] hover:brightness-105"
           >
             <Search className="h-4 w-4" />
             {allProductsLoading ? 'جاري البحث...' : 'بحث كل المنتجات'}

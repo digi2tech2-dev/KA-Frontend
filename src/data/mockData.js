@@ -1,12 +1,12 @@
-import chatAppsImage from '../assets/سلايد 1.jpg';
-import gamesChargingImage from '../assets/سلايد 2.jpg';
-import buyCardsImage from '../assets/سلايد 3.jpg';
+import chatAppsImage from '../assets/slide-1.webp';
+import gamesChargingImage from '../assets/slide-2.webp';
+import buyCardsImage from '../assets/slide-3.webp';
 
 export const mockUsers = [
   {
     id: 'u1',
-    name: 'COINS STORES Admin',
-    email: 'admin@COINSSTORE.com',
+    name: 'KANZ COINS Admin',
+    email: 'admin@kanz-coins.com',
     password: 'REDACTED',
     role: 'admin',
     status: 'approved',
@@ -56,7 +56,7 @@ export const mockUsers = [
   {
     id: 'u4',
     name: 'Operations Manager',
-    email: 'manager@COINSSTORE.com',
+    email: 'manager@kanz-coins.com',
     password: 'REDACTED',
     role: 'manager',
     status: 'approved',
@@ -114,7 +114,7 @@ export const mockSuppliers = [
     bearerToken: '',
     username: '',
     password: '',
-    customHeaders: [{ key: 'X-Client', value: 'coins-store' }],
+    customHeaders: [{ key: 'X-Client', value: 'kanz-coins' }],
     timeoutMs: 8000,
     webhookUrl: '',
     webhookSecret: '',

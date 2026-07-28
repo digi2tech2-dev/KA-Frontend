@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CalendarRange, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { CalendarRange, ChevronDown, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
 import Button, { cn } from '../ui/Button';
 
 const parseDateValue = (value) => {
@@ -194,7 +194,7 @@ const DashboardDateRangeFilter = ({
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
-                {isArabic ? 'اختيار المدة' : 'Pick range'}
+                {isArabic ? 'فلترة التاريخ' : 'Date filter'}
               </p>
               <p className="mt-0.5 text-sm font-bold text-[var(--color-text)]">{monthLabel}</p>
             </div>
@@ -338,12 +338,12 @@ const DashboardDateRangeFilter = ({
   );
 
   return (
-    <div ref={rootRef} className={cn('relative', className)}>
+    <div ref={rootRef} className={cn('relative flex w-full flex-wrap items-stretch gap-2 sm:w-auto', className)}>
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
         className={cn(
-          'inline-flex min-w-[220px] max-w-full items-center gap-2.5 rounded-[0.95rem] border border-[color:rgb(var(--color-border-rgb)/0.92)] bg-[color:rgb(var(--color-card-rgb)/0.96)] px-3.5 py-2 text-start shadow-[var(--shadow-subtle)] transition-all duration-200 hover:border-[color:rgb(var(--color-primary-rgb)/0.28)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.06)]',
+          'inline-flex min-w-[220px] flex-1 items-center gap-2.5 rounded-[0.95rem] border border-[color:rgb(var(--color-border-rgb)/0.92)] bg-[color:rgb(var(--color-card-rgb)/0.96)] px-3.5 py-2 text-start shadow-[var(--shadow-subtle)] transition-all duration-200 hover:border-[color:rgb(var(--color-primary-rgb)/0.28)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.06)] sm:flex-none',
           buttonClassName
         )}
         aria-expanded={isOpen}
@@ -363,6 +363,16 @@ const DashboardDateRangeFilter = ({
 
         <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 text-[var(--color-text-secondary)] transition-transform duration-200', isOpen && 'rotate-180')} />
       </button>
+
+      <Button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="h-auto min-h-[3.25rem] shrink-0 rounded-[0.95rem] px-4"
+        aria-label={isArabic ? 'فتح فلترة التاريخ' : 'Open date filter'}
+      >
+        <Filter className="h-4 w-4" />
+        <span>{isArabic ? 'فلتره' : 'Filter'}</span>
+      </Button>
 
       {typeof document !== 'undefined' ? createPortal(popupContent, document.body) : null}
     </div>

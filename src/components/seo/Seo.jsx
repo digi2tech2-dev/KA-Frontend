@@ -51,7 +51,7 @@ const Seo = ({
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
 
-    const safeTitle = title || 'COINS STORES';
+    const safeTitle = title || 'KANZ COINS';
     document.title = safeTitle;
     document.documentElement.lang = language === 'ar' ? 'ar' : 'en';
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';

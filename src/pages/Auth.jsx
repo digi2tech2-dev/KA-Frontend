@@ -10,6 +10,7 @@ import {
   Globe,
   Lock,
   Mail,
+  TicketCheck,
   User,
 } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
@@ -18,10 +19,12 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher';
+import SiteCopyrightFooter from '../components/layout/SiteCopyrightFooter';
 import OtpInput from '../components/account/OtpInput';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../components/ui/Toast';
 import useSystemStore from '../store/useSystemStore';
+import apiClient from '../services/client';
 import { useTranslation } from 'react-i18next';
 import {
   validateEmail,
@@ -31,7 +34,7 @@ import {
 import { COUNTRY_CATALOG } from '../data/countryCatalog';
 import { getDefaultRouteForRole } from '../utils/authRoles';
 import { getAccountAccessRoute, normalizeAccountStatus } from '../utils/accountStatus';
-import brandIconImage from '../assets/logo.webp';
+import brandIconImage from '../assets/logo.PNG';
 import styles from './Auth.module.css';
 
 const GoogleMark = () => (
@@ -90,9 +93,11 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [name, setName] = useState('');
   const [country, setCountry] = useState('US');
   const [currency, setCurrency] = useState('USD');
+  const [referralCode, setReferralCode] = useState(() => new URLSearchParams(location.search).get('ref') || '');
   const [countries] = useState(COUNTRY_CATALOG);
   const [errors, setErrors] = useState({});
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
@@ -101,6 +106,11 @@ const Auth = () => {
   const [registerStep, setRegisterStep] = useState(1);
   const [twoFactorChallenge, setTwoFactorChallenge] = useState(null);
   const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [googleSetupPending, setGoogleSetupPending] = useState(() => (
+    typeof window !== 'undefined'
+    && Boolean(new URLSearchParams(window.location.search).get('token'))
+    && window.sessionStorage.getItem('auth:google-signup-intent') === '1'
+  ));
 
 const countryOptions = useMemo(() => {
     const source = countries.length ? countries : fallbackCountries;
@@ -137,6 +147,9 @@ const countryOptions = useMemo(() => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const mode = String(params.get('mode') || '').toLowerCase();
+    const codeFromLink = String(params.get('ref') || '').trim();
+
+    if (codeFromLink) setReferralCode(codeFromLink.toUpperCase());
 
     if (mode === 'signup') {
       setIsLogin(false);
@@ -183,6 +196,8 @@ const countryOptions = useMemo(() => {
     const normalizedStatus = normalizeAccountStatus(user?.status || blockedStatus);
     const blockedRoute = getAccountAccessRoute(normalizedStatus);
 
+    if (googleSetupPending) return;
+
     if (blockedRoute && (isAuthenticated || blockedStatus)) {
       navigate(blockedRoute, { replace: true });
       return;
@@ -191,7 +206,7 @@ const countryOptions = useMemo(() => {
     if (isAuthenticated && user) {
       navigate(getDefaultRouteForRole(user?.role), { replace: true });
     }
-  }, [blockedStatus, isAuthenticated, location.search, navigate, user]);
+  }, [blockedStatus, googleSetupPending, isAuthenticated, location.search, navigate, user]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -203,6 +218,18 @@ const countryOptions = useMemo(() => {
 
     const handleGoogleCallback = async () => {
       const result = await loginWithGoogle();
+
+      const signupIntent = window.sessionStorage.getItem('auth:google-signup-intent') === '1';
+      if (result?.user && signupIntent) {
+        setGoogleSetupPending(true);
+        setIsLogin(false);
+        setRegisterStep(2);
+        setName(result.user.name || '');
+        setEmail(result.user.email || '');
+        setCountry(result.user.country || 'US');
+        setCurrency(result.user.currency || 'USD');
+        return;
+      }
 
       if (result?.redirectTo) {
         if (result?.status === 'legacy_pending') {
@@ -396,6 +423,38 @@ const countryOptions = useMemo(() => {
       return;
     }
 
+    if (googleSetupPending) {
+      if (!country || !currency) {
+        addToast('اختر الدولة والعملة لإكمال حساب Google.', 'error');
+        return;
+      }
+
+      try {
+        const updatedUser = await apiClient.users.updateProfile(
+          user?.id || user?._id,
+          {
+            country,
+            currency,
+            referralCode: referralCode.trim().toUpperCase(),
+          },
+          user
+        );
+        useAuthStore.getState().updateUserSession({
+          ...(updatedUser || {}),
+          country,
+          currency,
+          ...(referralCode.trim() ? { referredByCode: referralCode.trim().toUpperCase() } : {}),
+        });
+        window.sessionStorage.removeItem('auth:google-signup-intent');
+        setGoogleSetupPending(false);
+        addToast('تم استكمال إعداد حساب Google بنجاح.', 'success');
+        navigate(getDefaultRouteForRole((updatedUser || user)?.role), { replace: true });
+      } catch (error) {
+        addToast(error?.message || 'تعذر حفظ إعدادات حساب Google. حاول مرة أخرى.', 'error');
+      }
+      return;
+    }
+
     const result = isLogin
       ? await login(email, password)
       : await signup({
@@ -405,6 +464,7 @@ const countryOptions = useMemo(() => {
           country,
           currency,
           signupMethod: 'email',
+          referralCode: referralCode.trim().toUpperCase(),
         });
 
     if (isLogin && result?.requires2FA) {
@@ -444,6 +504,10 @@ const countryOptions = useMemo(() => {
   };
 
   const handleGoogleAuth = async () => {
+    if (typeof window !== 'undefined') {
+      if (isLogin) window.sessionStorage.removeItem('auth:google-signup-intent');
+      else window.sessionStorage.setItem('auth:google-signup-intent', '1');
+    }
     const result = await loginWithGoogle();
     if (!result) return;
     consumeAuthResult(result, { source: 'google', mode: isLogin ? 'login' : 'signup' });
@@ -527,11 +591,9 @@ const countryOptions = useMemo(() => {
         heading: t('auth.login', {
           defaultValue: dir === 'rtl' ? 'تسجيل الدخول' : 'Sign in',
         }),
-        description: t('auth.globalSignInDescription', {
-          defaultValue: dir === 'rtl'
-            ? 'بوابتك العالمية إلى COINS STORES. سجّل الدخول بأمان من أي مكان، وتابع رصيدك وطلباتك بعملتك المفضلة.'
-            : 'Your global gateway to COINS STORES. Sign in securely from anywhere, then manage your balance and orders in your preferred currency.',
-        }),
+        description: dir === 'rtl'
+          ? 'سجّل الدخول للوصول إلى حسابك ومتابعة طلباتك'
+          : 'Sign in to access your account and track your orders.',
         pills: [],
       }
     : {
@@ -561,9 +623,12 @@ const countryOptions = useMemo(() => {
         <div className={styles.topControlsInner}>
           <LanguageSwitcher
             variant="glass"
-            showIcon
-            className="h-8 min-w-[4.6rem] gap-1.5 rounded-full px-2.5 py-1 text-[0.58rem] tracking-[0.12em] sm:h-9 sm:min-w-[5rem] sm:px-3 sm:text-[0.62rem]"
+            className="h-8 min-w-[5.5rem] gap-2 rounded-full !border-0 !bg-transparent px-3 py-1 text-[0.62rem] tracking-[0.14em] sm:h-9 sm:min-w-[6rem] sm:text-[0.68rem]"
           />
+        </div>
+      </div>
+      <div className={styles.themeControl} data-auth-no-sparkle>
+        <div className={styles.topControlsInner}>
           <ThemeToggle
             variant="glass"
             compact
@@ -583,53 +648,44 @@ const countryOptions = useMemo(() => {
             <div className={styles.brandIcon}>
               <img
                 src={brandIconImage}
-                alt="COINS STORES"
+                alt="KANZ COINS"
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
               />
             </div>
-            <div>
-              <span className={styles.eyebrow}>{isLogin ? t('auth.login') : t('auth.register')}</span>
-              <h1 className={styles.formTitle}>{modeConfig.heading}</h1>
-              <p className={styles.formSubtitle}>{modeConfig.description}</p>
-            </div>
-          </div>
-
-          <div className={styles.modeToggle} data-auth-no-sparkle>
-            {[
-              { key: 'login', active: isLogin, label: t('auth.login'), onClick: () => !isLogin && toggleMode() },
-              { key: 'register', active: !isLogin, label: t('auth.register'), onClick: () => isLogin && toggleMode() },
-            ].map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={item.onClick}
-                className={cn(
-                  'relative overflow-hidden rounded-[0.9rem] px-3 py-2 text-[0.82rem] font-semibold transition',
-                  item.active
-                    ? 'text-[var(--color-button-text)] shadow-[0_18px_36px_-26px_rgb(var(--color-primary-rgb)/0.55)]'
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
-                )}
-              >
-                {item.active && (
-                  <motion.span
-                    layoutId="auth-mode-toggle"
-                    className={styles.modeToggleActive}
-                    transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-10">{item.label}</span>
-              </button>
-            ))}
+            <h1 className={styles.brandName}><span>KANZ</span> COINS</h1>
+            <div className={styles.brandDivider}><span /></div>
           </div>
 
           <section className={styles.formCard} data-auth-no-sparkle>
+            <div className={styles.formIntro}>
+              <div className={styles.formLogo}><img src={brandIconImage} alt="" /></div>
+              <span className={styles.eyebrow}>{isLogin ? t('auth.login') : t('auth.register')}</span>
+              <h2 className={styles.formTitle}>
+                {isLogin
+                  ? (dir === 'rtl' ? <>مرحبًا بك <span>مجددًا</span></> : <>Welcome <span>back</span></>)
+                  : modeConfig.heading}
+              </h2>
+              <p className={styles.formSubtitle}>{modeConfig.description}</p>
+            </div>
+
+            <div className={styles.modeToggle} data-auth-no-sparkle>
+              {[
+                { key: 'login', active: isLogin, label: t('auth.login'), onClick: () => !isLogin && toggleMode() },
+                { key: 'register', active: !isLogin, label: t('auth.register'), onClick: () => isLogin && toggleMode() },
+              ].map((item) => (
+                <button key={item.key} type="button" onClick={item.onClick} className={cn(styles.modeButton, item.active && styles.modeButtonActive)}>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
             <form onSubmit={handleSubmit} onKeyDown={handleAuthFormKeyDown} className={styles.formStack}>
               {!isLogin && (
                 <div className={styles.stepProgress} aria-label="تقدم التسجيل">
                   {[
-                    { index: 1, label: 'البيانات الأساسية' },
+                    { index: 1, label: googleSetupPending ? 'Google' : 'البيانات الأساسية' },
                     { index: 2, label: 'إعداد الحساب' },
                   ].map((step) => (
                     <div
@@ -691,6 +747,16 @@ const countryOptions = useMemo(() => {
                         </button>
                       )}
                     />
+
+                    <div className={styles.loginOptions}>
+                      <label className={styles.rememberOption}>
+                        <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} />
+                        <span>{dir === 'rtl' ? 'تذكرني' : 'Remember me'}</span>
+                      </label>
+                      <button type="button" onClick={() => setForgotModalOpen(true)} className={styles.forgotLink}>
+                        {t('auth.forgotPassword')}
+                      </button>
+                    </div>
                   </motion.div>
                 ) : registerStep === 1 ? (
                   <StepOne>
@@ -776,7 +842,7 @@ const countryOptions = useMemo(() => {
                         </select>
                         <Globe className={`pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)] ${dir === 'rtl' ? 'right-3' : 'left-3'}`} />
                       </div>
-                      {errors.country && <p className="mt-1.5 text-xs text-[var(--color-error)]">{errors.country}</p>}
+                      {errors.country && <p role="alert" className="mt-2 flex items-center gap-1.5 rounded-lg border border-rose-400/25 bg-rose-500/[0.07] px-2.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.country}</p>}
                     </div>
 
                     <div>
@@ -798,8 +864,26 @@ const countryOptions = useMemo(() => {
                           </option>
                         ))}
                       </select>
-                      {errors.currency && <p className="mt-1.5 text-xs text-[var(--color-error)]">{errors.currency}</p>}
+                      {errors.currency && <p role="alert" className="mt-2 flex items-center gap-1.5 rounded-lg border border-rose-400/25 bg-rose-500/[0.07] px-2.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300"><AlertCircle className="h-3.5 w-3.5 shrink-0" />{errors.currency}</p>}
                     </div>
+
+                    <Input
+                      label={dir === 'rtl' ? 'كود الدعوة (اختياري)' : 'Invitation code (optional)'}
+                      type="text"
+                      value={referralCode}
+                      onChange={(event) => setReferralCode(event.target.value.toUpperCase())}
+                      placeholder={dir === 'rtl' ? 'أدخل كود الدعوة إن وجد' : 'Enter an invitation code'}
+                      autoComplete="off"
+                      maxLength={32}
+                      className={styles.authInput}
+                      prefix={<TicketCheck className="h-4 w-4" />}
+                    />
+                    {new URLSearchParams(location.search).get('ref') && referralCode ? (
+                      <p className="-mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        <TicketCheck className="h-3.5 w-3.5" />
+                        {dir === 'rtl' ? 'تمت إضافة كود الدعوة تلقائيًا من الرابط.' : 'The invitation code was added automatically from the link.'}
+                      </p>
+                    ) : null}
                   </StepTwo>
                 ) : null}
               </AnimatePresence>
@@ -874,7 +958,7 @@ const countryOptions = useMemo(() => {
                 </Button>
               ) : (
                 <div className={styles.stepActions}>
-                  <Button
+                  {!googleSetupPending && <Button
                     type="button"
                     variant="secondary"
                     className={styles.secondaryStepButton}
@@ -882,7 +966,7 @@ const countryOptions = useMemo(() => {
                     disabled={isLoading}
                   >
                     السابق
-                  </Button>
+                  </Button>}
                   <Button
                     type="submit"
                     className={styles.primaryButton}
@@ -894,7 +978,7 @@ const countryOptions = useMemo(() => {
                 </div>
               )}
 
-              {!twoFactorChallenge && (
+              {!twoFactorChallenge && !googleSetupPending && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(212,175,55,0.3)] to-transparent" />
@@ -912,7 +996,7 @@ const countryOptions = useMemo(() => {
                   whileTap={reduceMotion ? undefined : { scale: 0.99 }}
                   onClick={handleGoogleAuth}
                   disabled={isLoading}
-                  className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-blue-400/20 bg-[linear-gradient(135deg,rgba(66,133,244,0.13),rgba(255,255,255,0.94)_34%,rgba(251,188,5,0.16)_68%,rgba(52,168,83,0.13))] px-4 py-3 text-sm font-semibold text-[var(--color-text)] shadow-[0_18px_42px_-28px_rgba(66,133,244,0.38),0_18px_44px_-34px_rgba(52,168,83,0.32)] transition-all hover:border-green-400/25 hover:shadow-[0_22px_48px_-28px_rgba(66,133,244,0.5),0_22px_52px_-34px_rgba(251,188,5,0.38)] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[linear-gradient(135deg,rgba(66,133,244,0.16),rgba(17,19,26,0.96)_34%,rgba(251,188,5,0.12)_68%,rgba(52,168,83,0.14))]"
+                  className={styles.googleButton}
                 >
                   <span className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/80 bg-white shadow-[0_10px_22px_-14px_rgba(66,133,244,0.75)]">
                     <GoogleMark />
@@ -927,16 +1011,6 @@ const countryOptions = useMemo(() => {
               )}
 
               <div className="mt-6 space-y-2 text-center">
-                {isLogin && (
-                  <button
-                    type="button"
-                    onClick={() => setForgotModalOpen(true)}
-                    className="w-full rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-primary)] transition hover:bg-[color:rgb(var(--color-primary-rgb)/0.08)] hover:text-[var(--color-primary-hover)]"
-                  >
-                    {t('auth.forgotPassword')}
-                  </button>
-                )}
-
                 <span className="block text-sm text-[var(--color-text-secondary)]">
                   {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}{' '}
                   <button
@@ -947,84 +1021,23 @@ const countryOptions = useMemo(() => {
                     {isLogin ? t('auth.signUp') : t('auth.signIn')}
                   </button>
                 </span>
+                <p className="pt-1 text-[0.7rem] font-semibold leading-5 text-[var(--color-text-secondary)] sm:text-xs">
+                  {dir === 'rtl' ? 'بمجرد التسجيل، فإنك توافق على ' : 'By registering, you agree to the '}
+                  <button
+                    type="button"
+                    onClick={() => setPrivacyModalOpen(true)}
+                    className="font-black text-[var(--color-primary)] underline decoration-[color:rgb(var(--color-primary-rgb)/0.38)] underline-offset-4 transition-colors hover:text-[var(--color-primary-hover)]"
+                  >
+                    {dir === 'rtl' ? 'الشروط والأحكام' : 'Terms and Conditions'}
+                  </button>
+                </p>
               </div>
             </form>
           </section>
         </motion.div>
-
-        <aside className={styles.visualPane} aria-hidden="true">
-          <div className={styles.visualGlowOne} />
-          <div className={styles.visualGlowTwo} />
-          <div className={styles.goldLines} />
-          <div className={styles.visualContent}>
-            <div className={styles.visualLogo}>
-              <img src={brandIconImage} alt="" />
-            </div>
-            <span className={styles.visualKicker}>COINS STORES</span>
-            <h2>
-              {isLogin
-                ? t('auth.globalSignInTitle', {
-                    defaultValue: dir === 'rtl' ? 'بوابتك العالمية إلى COINS STORES' : 'Your global gateway to COINS STORES',
-                  })
-                : modeConfig.heading}
-            </h2>
-          </div>
-        </aside>
       </main>
 
-      {isLogin && (
-        <>
-          <div className={`${styles.globalAccessBar} ${styles.footerAccessBar}`} data-auth-no-sparkle>
-            {[
-              {
-                icon: Globe,
-                label: t('auth.worldwideAccess', {
-                  defaultValue: dir === 'rtl' ? 'وصول عالمي' : 'Worldwide access',
-                }),
-              },
-              {
-                icon: Lock,
-                label: t('auth.secureAccountAccess', {
-                  defaultValue: dir === 'rtl' ? 'حساب آمن' : 'Secure account',
-                }),
-              },
-              {
-                icon: Mail,
-                label: t('auth.fastVerification', {
-                  defaultValue: dir === 'rtl' ? 'تحقق سريع' : 'Fast verification',
-                }),
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <span key={item.label} className={styles.globalAccessItem}>
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </span>
-              );
-            })}
-          </div>
-
-          <div className={styles.privacyStrip} data-auth-no-sparkle>
-            <div>
-              {dir === 'rtl'
-                ? 'بتسجيل الدخول إلى COINS STORES، فأنت تقر بأنك اطلعت على '
-                : 'By signing in to COINS STORES, you acknowledge our '}
-              <button
-                type="button"
-                onClick={() => setPrivacyModalOpen(true)}
-                className="font-semibold text-[var(--color-primary)] underline underline-offset-4 transition hover:text-[var(--color-primary-hover)]"
-              >
-                {dir === 'rtl' ? 'سياسة الخصوصية' : 'Privacy Policy'}
-              </button>
-              {dir === 'rtl'
-                ? ' وتفهم كيفية استخدام البيانات اللازمة لحماية الحساب وتحسين الخدمة.'
-                : ' and understand how the data required to secure your account and improve the service is used.'}
-            </div>
-          </div>
-        </>
-      )}
+      <SiteCopyrightFooter isArabic={dir === 'rtl'} />
 
       <Modal
         isOpen={forgotModalOpen}
@@ -1060,7 +1073,7 @@ const countryOptions = useMemo(() => {
       <Modal
         isOpen={privacyModalOpen}
         onClose={() => setPrivacyModalOpen(false)}
-        title={dir === 'rtl' ? 'سياسة الخصوصية' : 'Privacy Policy'}
+        title={dir === 'rtl' ? 'الشروط والأحكام' : 'Terms and Conditions'}
         footer={(
           <div className="flex justify-end">
             <Button onClick={() => setPrivacyModalOpen(false)}>
@@ -1072,18 +1085,18 @@ const countryOptions = useMemo(() => {
         <div className="space-y-3 text-sm leading-7 text-[var(--color-text-secondary)]">
           <p>
             {dir === 'rtl'
-              ? 'تحترم COINS STORES خصوصيتك، وتستخدم بيانات تسجيل الدخول وبيانات الجلسة والمعلومات الأمنية الأساسية بالقدر اللازم فقط لتوثيق الحساب، حمايته، ومنع إساءة الاستخدام.'
-              : 'COINS STORES respects your privacy and uses sign-in details, session data, and essential security information only as needed to authenticate your account, protect it, and prevent misuse.'}
+              ? 'باستخدام KANZ COINS، فإنك توافق على إدخال بيانات صحيحة والحفاظ على سرية حسابك وعدم استخدام المنصة في أي نشاط مخالف.'
+              : 'By using KANZ COINS, you agree to provide accurate information, protect your account, and avoid any prohibited activity.'}
           </p>
           <p>
             {dir === 'rtl'
-              ? 'قد تتم معالجة البيانات المرتبطة بالحساب لتحسين الاعتمادية، دعم تسجيل الدخول، متابعة الطلبات، وتقديم تجربة أكثر أمانًا واستقرارًا داخل المنصة.'
-              : 'Account-related data may be processed to improve reliability, support sign-in, follow order activity, and provide a more secure and stable experience across the platform.'}
+              ? 'يرجى مراجعة تفاصيل الطلب بعناية قبل الدفع، فالمنتجات الرقمية لا يمكن استردادها بعد تأكيد التحويل وبدء تنفيذ الطلب.'
+              : 'Please review order details before payment. Digital products cannot be refunded after payment is confirmed and fulfillment begins.'}
           </p>
           <p>
             {dir === 'rtl'
-              ? 'باستمرارك في تسجيل الدخول، فإنك توافق على هذه المعالجة الأساسية ضمن حدود تشغيل الخدمة وسياسات الحماية المعمول بها داخل المنصة.'
-              : 'By continuing to sign in, you agree to this essential processing within the scope of operating the service and the platform’s applicable protection policies.'}
+              ? 'يُعد إكمال التسجيل موافقة منك على هذه الشروط وعلى سياسات الحماية والتشغيل المعمول بها داخل المنصة.'
+              : 'Completing registration confirms your acceptance of these terms and the platform’s applicable operation and protection policies.'}
           </p>
         </div>
       </Modal>

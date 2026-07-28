@@ -6,7 +6,7 @@ const dataProvider = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase(
 const isRealProvider = dataProvider === 'real';
 let hasFetchedGroupsFromBackendThisSession = false;
 
-const GROUPS_CACHE_KEY = 'coins:groups-cache:v1';
+const GROUPS_CACHE_KEY = 'kanz-coins:groups-cache:v1';
 const GROUPS_CACHE_TTL = isRealProvider ? 30 * 1000 : 3 * 60 * 1000;
 
 let groupsRequest = null;

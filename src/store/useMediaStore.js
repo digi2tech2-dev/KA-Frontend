@@ -5,42 +5,54 @@ import apiClient from '../services/client';
 const dataProvider = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase();
 const isRealProvider = dataProvider === 'real';
 
-const MEDIA_CACHE_KEY = 'coins:media-cache:v2';
-const PRODUCTS_CACHE_TTL = 5 * 60 * 1000; // keep storefront data stable while users scroll
+const CATEGORIES_CACHE_KEY = 'kanz-coins:categories-cache:v1';
+const LEGACY_PRODUCT_CACHE_KEYS = [
+  'coins:media-cache:v2',
+  'kanz-coins:media-cache:v2',
+];
+const PRODUCTS_CACHE_TTL = 5 * 60 * 1000;
 let productsRequest = null;
-let hasFetchedFromBackendThisSession = false;
+
+const clearLegacyProductCaches = () => {
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
+  try {
+    LEGACY_PRODUCT_CACHE_KEYS.forEach((key) => window.sessionStorage.removeItem(key));
+  } catch {
+    // Best effort; legacy snapshots are ignored even if removal is blocked.
+  }
+};
 
 const readSessionCache = () => {
   if (typeof window === 'undefined' || !window.sessionStorage) return null;
   try {
-    const raw = window.sessionStorage.getItem(MEDIA_CACHE_KEY);
+    const raw = window.sessionStorage.getItem(CATEGORIES_CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    const products = Array.isArray(parsed?.products) ? parsed.products : null;
     const categories = Array.isArray(parsed?.categories) ? parsed.categories : null;
     const lastLoadedAt = Number(parsed?.lastLoadedAt || 0);
-    if (!products || !categories || !Number.isFinite(lastLoadedAt)) return null;
-    return { products, categories, lastLoadedAt };
+    if (!categories || !Number.isFinite(lastLoadedAt)) return null;
+    return { categories, lastLoadedAt };
   } catch {
     return null;
   }
 };
 
-const writeSessionCache = ({ products, categories, lastLoadedAt }) => {
+const writeSessionCache = ({ categories, lastLoadedAt }) => {
   if (typeof window === 'undefined' || !window.sessionStorage) return;
   try {
     window.sessionStorage.setItem(
-      MEDIA_CACHE_KEY,
-      JSON.stringify({ products, categories, lastLoadedAt })
+      CATEGORIES_CACHE_KEY,
+      // Product availability must always come from the API. Persisting product
+      // snapshots can leave a stopped product looking active for several minutes.
+      JSON.stringify({ categories, lastLoadedAt })
     );
   } catch {
     // Best-effort cache only.
   }
 };
 
-const writeMediaSnapshotCache = ({ products, categories, lastLoadedAt = Date.now() }) => {
+const writeCategorySnapshotCache = ({ categories, lastLoadedAt = Date.now() }) => {
   writeSessionCache({
-    products: Array.isArray(products) ? products : [],
     categories: Array.isArray(categories) ? categories : [],
     lastLoadedAt,
   });
@@ -49,7 +61,8 @@ const writeMediaSnapshotCache = ({ products, categories, lastLoadedAt = Date.now
 const clearSessionCache = () => {
   if (typeof window === 'undefined' || !window.sessionStorage) return;
   try {
-    window.sessionStorage.removeItem(MEDIA_CACHE_KEY);
+    window.sessionStorage.removeItem(CATEGORIES_CACHE_KEY);
+    LEGACY_PRODUCT_CACHE_KEYS.forEach((key) => window.sessionStorage.removeItem(key));
   } catch {
     // Best effort.
   }
@@ -238,14 +251,22 @@ const normalizeProductRecord = (product = {}, categories = mockCategories) => {
   const rawPayload = product.rawPayload && typeof product.rawPayload === 'object' ? product.rawPayload : {};
   const explicitProductStatus = String(product.productStatus || '').trim().toLowerCase();
   const rawStatus = String(product.status || '').trim().toLowerCase();
-  const hasExplicitStatus = ['active', 'inactive'].includes(rawStatus);
   const hasExplicitIsActive = product.isActive !== undefined && product.isActive !== null;
-  const normalizedStatus = hasExplicitStatus
-    ? rawStatus
-    : hasExplicitIsActive
-      ? (product.isActive === false ? 'inactive' : 'active')
-      : (explicitProductStatus === 'unavailable' ? 'inactive' : 'active');
-  const isStopped = normalizedStatus === 'inactive';
+  const explicitIsActiveValue = String(product.isActive ?? '').trim().toLowerCase();
+  const explicitlyInactive = hasExplicitIsActive && (
+    product.isActive === false
+    || product.isActive === 0
+    || explicitIsActiveValue === 'false'
+    || explicitIsActiveValue === '0'
+    || explicitIsActiveValue === 'inactive'
+  );
+  // Prefer the safest state when API fields disagree: stopped/unavailable wins.
+  const isStopped = explicitlyInactive
+    || rawStatus === 'inactive'
+    || explicitProductStatus === 'unavailable';
+  const isExplicitlyHidden = rawStatus === 'hidden' || explicitProductStatus === 'hidden';
+  const isDeleted = Boolean(product.deletedAt || product.isDeleted === true);
+  const normalizedStatus = isStopped ? 'inactive' : 'active';
   const resolvedProductStatus = String(product.productStatus || '').trim().toLowerCase() === 'unavailable' || isStopped
     ? 'unavailable'
     : 'available';
@@ -279,7 +300,7 @@ const normalizeProductRecord = (product = {}, categories = mockCategories) => {
     category: resolveCategoryId(product.category, categories),
     status: normalizedStatus || 'active',
     productStatus: resolvedProductStatus,
-    isVisibleInStore: true,
+    isVisibleInStore: !isDeleted && !isExplicitlyHidden && product.isVisibleInStore !== false,
     showWhenUnavailable: product.showWhenUnavailable !== undefined
       ? Boolean(product.showWhenUnavailable)
       : resolvedProductStatus === 'unavailable',
@@ -410,13 +431,12 @@ const deriveCategoriesFromProducts = (products = []) => {
   return Array.from(unique.values());
 };
 
+clearLegacyProductCaches();
 const initialCache = isRealProvider ? readSessionCache() : null;
 const initialCategories = initialCache?.categories && initialCache.categories.length
   ? initialCache.categories
   : (isRealProvider ? [] : mockCategories);
-const initialProducts = initialCache?.products && initialCache.products.length
-  ? normalizeProducts(initialCache.products, initialCategories)
-  : (isRealProvider ? [] : normalizeProducts(mockProducts, mockCategories));
+const initialProducts = isRealProvider ? [] : normalizeProducts(mockProducts, mockCategories);
 const initialLastLoadedAt = initialCache?.lastLoadedAt && Number.isFinite(initialCache.lastLoadedAt)
   ? initialCache.lastLoadedAt
   : 0;
@@ -447,14 +467,16 @@ const useMediaStore = create((set, get) => ({
 
     // Serve cached data immediately when available and still fresh.
     // This keeps pages responsive even if callers pass force=true frequently.
-    if (!bypassCache && hasProducts && hasCategories && cacheIsFresh) {
+    const canUseProductsCache = !isRealProvider && !bypassCache;
+
+    if (canUseProductsCache && hasProducts && hasCategories && cacheIsFresh) {
       return Promise.resolve({
         products: state.products,
         categories: state.categories,
       });
     }
 
-    if (!bypassCache && !force && hasProducts && hasCategories) {
+    if (canUseProductsCache && !force && hasProducts && hasCategories) {
       return Promise.resolve({
         products: state.products,
         categories: state.categories,
@@ -527,14 +549,10 @@ const useMediaStore = create((set, get) => ({
             });
 
             writeSessionCache({
-              products: normalizedProducts,
               categories: safeCategories,
               lastLoadedAt: loadedAt,
             });
 
-            if (isRealProvider) {
-              hasFetchedFromBackendThisSession = true;
-            }
           })
           .catch((error) => {
             const { products, categories } = get();
@@ -571,7 +589,7 @@ const useMediaStore = create((set, get) => ({
             normalizeProductRecord(mergeSavedProductSnapshot(newProduct, created || {}), state.categories),
           ];
           const loadedAt = Date.now();
-          writeMediaSnapshotCache({ products: nextProducts, categories: state.categories, lastLoadedAt: loadedAt });
+          writeCategorySnapshotCache({ categories: state.categories, lastLoadedAt: loadedAt });
 
           return {
             products: nextProducts,
@@ -617,7 +635,7 @@ const useMediaStore = create((set, get) => ({
             p.id === id ? normalizedProduct : p
           ));
           const loadedAt = Date.now();
-          writeMediaSnapshotCache({ products: nextProducts, categories: state.categories, lastLoadedAt: loadedAt });
+          writeCategorySnapshotCache({ categories: state.categories, lastLoadedAt: loadedAt });
 
           return {
             products: nextProducts,
@@ -647,7 +665,7 @@ const useMediaStore = create((set, get) => ({
             p.id === id ? normalizedProduct : p
           ));
           const loadedAt = Date.now();
-          writeMediaSnapshotCache({ products: nextProducts, categories: state.categories, lastLoadedAt: loadedAt });
+          writeCategorySnapshotCache({ categories: state.categories, lastLoadedAt: loadedAt });
 
           return {
             products: nextProducts,
@@ -663,7 +681,7 @@ const useMediaStore = create((set, get) => ({
           set((state) => {
             const nextProducts = state.products.filter((p) => p.id !== id);
             const loadedAt = Date.now();
-            writeMediaSnapshotCache({ products: nextProducts, categories: state.categories, lastLoadedAt: loadedAt });
+            writeCategorySnapshotCache({ categories: state.categories, lastLoadedAt: loadedAt });
 
             return {
               products: nextProducts,
@@ -686,7 +704,7 @@ const useMediaStore = create((set, get) => ({
         set((state) => {
           const nextCategories = [...(Array.isArray(state.categories) ? state.categories : []), nextCategory];
           const loadedAt = Date.now();
-          writeMediaSnapshotCache({ products: state.products, categories: nextCategories, lastLoadedAt: loadedAt });
+          writeCategorySnapshotCache({ categories: nextCategories, lastLoadedAt: loadedAt });
 
           return {
             categories: nextCategories,
@@ -730,7 +748,7 @@ const useMediaStore = create((set, get) => ({
 
           const normalizedProducts = normalizeProducts(nextProducts, nextCategories);
           const loadedAt = Date.now();
-          writeMediaSnapshotCache({ products: normalizedProducts, categories: nextCategories, lastLoadedAt: loadedAt });
+          writeCategorySnapshotCache({ categories: nextCategories, lastLoadedAt: loadedAt });
 
           return {
             categories: nextCategories,
@@ -758,7 +776,7 @@ const useMediaStore = create((set, get) => ({
           const nextCategories = safeCategories.filter((c) => c.id !== id);
           const nextProducts = safeProducts.filter((p) => !shouldDeleteProduct(p));
           const loadedAt = Date.now();
-          writeMediaSnapshotCache({ products: nextProducts, categories: nextCategories, lastLoadedAt: loadedAt });
+          writeCategorySnapshotCache({ categories: nextCategories, lastLoadedAt: loadedAt });
 
           return {
             categories: nextCategories,

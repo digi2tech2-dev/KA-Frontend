@@ -32,7 +32,7 @@ const ProductCardSimple = React.memo(({
       aria-label={displayName}
     >
       {isUnavailable ? (
-        <span className="pointer-events-none absolute inset-0 z-10 rounded-[1.25rem] bg-[linear-gradient(180deg,rgb(255_255_255/0.14),rgb(240_200_90/0.08))] dark:bg-[linear-gradient(180deg,rgb(255_255_255/0.06),rgb(29_149_168/0.08))]" aria-hidden="true" />
+        <span className="pointer-events-none absolute inset-0 z-10 rounded-[1.25rem] bg-[linear-gradient(180deg,rgb(255_255_255/0.14),rgb(244_114_208/0.08))] dark:bg-[linear-gradient(180deg,rgb(255_255_255/0.06),rgb(124_58_237/0.08))]" aria-hidden="true" />
       ) : null}
       <div className="storefront-product-media relative overflow-hidden rounded-[1rem]">
         {resolvedImageSrc ? (
@@ -41,7 +41,7 @@ const ProductCardSimple = React.memo(({
             alt={displayName}
             loading="lazy"
             decoding="async"
-            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 24vw, 18vw"
+            sizes="(max-width: 640px) 32vw, (max-width: 1024px) 24vw, 18vw"
             className={cn(
               'relative block aspect-square h-full w-full bg-transparent object-contain object-center p-2 transition duration-500 group-hover:scale-[1.04]',
               isUnavailable && 'brightness-[0.92] saturate-[0.88]'

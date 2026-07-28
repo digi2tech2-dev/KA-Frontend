@@ -222,7 +222,7 @@ const AdminGroups = () => {
       icon: Users,
       label: tx('مجموعات بها أعضاء', 'Groups With Members'),
       value: groupsWithMembersCount,
-      toneClassName: 'from-sky-500/16 via-teal-500/10 to-transparent',
+      toneClassName: 'from-sky-500/16 via-indigo-500/10 to-transparent',
     },
     {
       id: 'groups-empty',

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, ShieldCheck } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useMediaStore from '../store/useMediaStore';
 import useGroupStore from '../store/useGroupStore';
@@ -9,12 +9,12 @@ import HeroSlider from '../components/home/HeroSlider';
 import CategoryCard from '../components/home/CategoryCard';
 import ProductSearchBar from '../components/products/ProductSearchBar';
 import ProductPurchaseDialog from '../components/products/ProductPurchaseDialog';
-import UnavailableLockOverlay from '../components/products/UnavailableLockOverlay';
 import slideOneHeroImage from '../assets/slide-1.webp';
 import slideTwoHeroImage from '../assets/slide-2.webp';
 import slideThreeHeroImage from '../assets/slide-3.webp';
-import targetBannerImage from '../assets/ترجتات.jpg';
-import coinsImage from '../assets/logo.webp';
+import slideFourHeroImage from '../assets/slide-4.webp';
+import targetBannerImage from '../assets/تارجت.jpg';
+import coinsImage from '../assets/logo.PNG';
 import { resolveImageUrl } from '../utils/imageUrl';
 import {
   createStorefrontCategories,
@@ -38,14 +38,31 @@ const Dashboard = () => {
   }, [refreshProfile]);
 
   useEffect(() => {
-    loadProducts({ force: false });
+    const refreshProducts = () => {
+      void loadProducts({ force: true, bypassCache: true });
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refreshProducts();
+    };
+
+    refreshProducts();
+    window.addEventListener('focus', refreshProducts);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    const refreshInterval = window.setInterval(refreshProducts, 30_000);
+
+    return () => {
+      window.removeEventListener('focus', refreshProducts);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      window.clearInterval(refreshInterval);
+    };
   }, [loadProducts]);
 
-  const whatsappChannelUrl = 'https://whatsapp.com/channel/0029Vb5xkFpFMqrUmvTSil0Q';
+  const slideTwoUrl = 'https://chat.whatsapp.com/FE7DF2bKaaWG3snAGaFjpg';
   const heroSlides = useMemo(() => ([
     { id: 'landing-slide-1', image: slideOneHeroImage, title: '' },
-    { id: 'landing-slide-2', image: slideTwoHeroImage, title: '', href: whatsappChannelUrl },
-    { id: 'landing-slide-3', image: slideThreeHeroImage, title: '' },
+    { id: 'landing-slide-2', image: slideTwoHeroImage, title: '', href: slideTwoUrl },
+    { id: 'landing-slide-3', image: slideThreeHeroImage, title: '', href: '/referral' },
+    { id: 'landing-slide-4', image: slideFourHeroImage, title: '' },
   ]), []);
 
   const storefrontProducts = useMemo(
@@ -151,26 +168,31 @@ const Dashboard = () => {
   return (
     <div className="space-y-5 pb-5 sm:space-y-6">
       {!isTwoFactorEnabled ? (
-        <section className="mx-auto w-full max-w-2xl overflow-hidden rounded-[1rem] border border-[color:rgb(var(--color-primary-rgb)/0.18)] bg-[linear-gradient(135deg,rgb(var(--color-primary-rgb)/0.09),rgb(var(--color-card-rgb)/0.62))] px-2.5 py-2 shadow-[0_18px_44px_-36px_rgb(var(--color-primary-rgb)/0.58)] backdrop-blur-xl sm:px-3 sm:py-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-primary-rgb)/0.12)] text-[var(--color-primary)] sm:h-8 sm:w-8">
-                <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <section className="group relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-400/20 bg-[linear-gradient(120deg,rgb(16_185_129/0.08),rgb(var(--color-card-rgb)/0.72)_48%,rgb(56_189_248/0.07))] p-2 shadow-[0_16px_40px_-34px_rgb(16_185_129/0.72)] backdrop-blur-xl sm:p-2.5">
+          <span className="pointer-events-none absolute -start-8 -top-10 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
+          <div className="relative flex items-center justify-between gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-emerald-300/25 bg-[linear-gradient(145deg,rgb(16_185_129/0.18),rgb(56_189_248/0.12))] text-emerald-500 shadow-[inset_0_1px_0_rgb(255_255_255/0.16)] sm:h-10 sm:w-10">
+                <span className="absolute end-0 top-0 h-2 w-2 -translate-y-1/4 translate-x-1/4 rounded-full border-2 border-[rgb(var(--color-card-rgb))] bg-emerald-400" />
+                <ShieldCheck className="h-4.5 w-4.5 sm:h-5 sm:w-5" strokeWidth={2.2} />
               </span>
-              <div className="min-w-0 truncate text-[0.72rem] font-semibold text-[var(--color-text-secondary)] sm:text-[0.82rem]">
-                {language === 'ar' ? (
-                  'حرصًا على أمان حسابك، فعّل المصادقة الثنائية.'
-                ) : (
-                  'For your account safety, enable two-factor authentication.'
-                )}
+              <div className="min-w-0 leading-tight">
+                <p className="truncate text-[0.75rem] font-bold text-[var(--color-text)] sm:text-[0.84rem]">
+                  {language === 'ar' ? 'حماية إضافية لحسابك' : 'Extra protection for your account'}
+                </p>
+                <p className="mt-0.5 truncate text-[0.64rem] font-medium text-[var(--color-text-secondary)] sm:text-[0.71rem]">
+                  {language === 'ar' ? 'فعّل المصادقة الثنائية في أقل من دقيقة.' : 'Enable two-factor authentication in under a minute.'}
+                </p>
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center">
-              <Link to="/account-security" className="inline-flex h-7 items-center justify-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.28)] bg-[color:rgb(var(--color-primary-rgb)/0.11)] px-2.5 text-[0.68rem] font-bold text-[var(--color-primary)] transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.44)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.16)] sm:h-8 sm:px-3 sm:text-[0.75rem]">
-                {language === 'ar' ? 'فعّل الآن' : 'Enable now'}
-              </Link>
-            </div>
+            <Link
+              to="/account-security"
+              className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-2.5 text-[0.66rem] font-extrabold text-emerald-500 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-400/40 hover:bg-emerald-500/16 hover:shadow-[0_10px_24px_-16px_rgb(16_185_129/0.9)] sm:h-9 sm:px-3 sm:text-[0.73rem]"
+            >
+              <span>{language === 'ar' ? 'تفعيل الحماية' : 'Protect now'}</span>
+              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.4} />
+            </Link>
           </div>
         </section>
       ) : null}
@@ -194,7 +216,7 @@ const Dashboard = () => {
         <div className="mx-auto w-full max-w-5xl px-0.5 sm:px-2">
           <Link
             to="/buy-target"
-            className="group mx-auto block w-full max-w-3xl overflow-hidden rounded-[1.1rem] border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-card-rgb)/0.72)] shadow-[0_18px_44px_-34px_rgb(var(--color-primary-rgb)/0.72)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.42)] hover:shadow-[0_22px_54px_-36px_rgb(var(--color-primary-rgb)/0.9)]"
+            className="group mx-auto block w-[21rem] max-w-full overflow-hidden rounded-[1rem] border border-[color:rgb(var(--color-primary-rgb)/0.28)] bg-[color:rgb(var(--color-card-rgb)/0.76)] shadow-[0_18px_42px_-30px_rgb(var(--color-primary-rgb)/0.82),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.46)] hover:shadow-[0_22px_48px_-30px_rgb(var(--color-primary-rgb)/0.9)] sm:w-[26rem]"
             aria-label={language === 'ar' ? 'بيع تارجت' : 'Sell Target'}
           >
             <span className="block overflow-hidden bg-black">
@@ -205,8 +227,8 @@ const Dashboard = () => {
                 loading="lazy"
               />
             </span>
-            <span className="block border-t border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(180deg,rgb(var(--color-card-rgb)/0.9),rgb(var(--color-surface-rgb)/0.68))] px-3 py-2 text-center">
-              <span className="text-sm font-extrabold text-[var(--color-text)] sm:text-base">
+            <span className="block border-t border-[color:rgb(var(--color-primary-rgb)/0.18)] bg-[linear-gradient(180deg,rgb(var(--color-card-rgb)/0.94),rgb(var(--color-primary-rgb)/0.08))] px-3 py-1.5 text-center">
+              <span className="text-xs font-extrabold text-[var(--color-text)] sm:text-sm">
                 {language === 'ar' ? 'بيع تارجت' : 'Sell Target'}
               </span>
             </span>
@@ -215,12 +237,15 @@ const Dashboard = () => {
       ) : null}
 
       {bestSellingProducts.length ? (
-        <section className="mx-auto w-full max-w-5xl space-y-3 px-0.5 sm:px-2" aria-labelledby="best-selling-title">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="best-selling-title" className="text-base font-black text-[var(--color-text)] sm:text-lg">
-              {language === 'ar' ? 'الأكثر مبيعا' : 'Best selling'}
-            </h2>
-            <Link to="/products" className="text-xs font-bold text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-hover)] sm:text-sm">
+        <section className="mx-auto w-full max-w-5xl overflow-hidden rounded-[1.35rem] border border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.9),rgb(var(--color-primary-rgb)/0.045))] p-3 shadow-[0_20px_55px_-45px_rgb(var(--color-primary-rgb)/0.65)] sm:p-5" aria-labelledby="best-selling-title">
+          <div className="mb-3.5 flex items-center justify-between gap-3 sm:mb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="h-7 w-1 rounded-full bg-[linear-gradient(180deg,var(--color-primary),rgb(var(--color-primary-rgb)/0.35))]" aria-hidden="true" />
+              <h2 id="best-selling-title" className="text-base font-black text-[var(--color-text)] sm:text-lg">
+                {language === 'ar' ? 'الأكثر مبيعًا' : 'Best sellers'}
+              </h2>
+            </div>
+            <Link to="/products" className="inline-flex min-h-8 items-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-3 text-[0.7rem] font-extrabold text-[var(--color-primary)] transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.13)] sm:text-xs">
               {language === 'ar' ? 'عرض الكل' : 'View all'}
             </Link>
           </div>
@@ -243,35 +268,25 @@ const Dashboard = () => {
                     if (!isUnavailable) openPurchaseDialog(product);
                   }}
                   disabled={isUnavailable}
-                  className={`group relative isolate flex min-w-[38%] snap-start flex-col rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.7)] bg-[color:rgb(var(--color-card-rgb)/0.76)] p-2 text-center shadow-[0_14px_34px_-30px_rgb(var(--color-primary-rgb)/0.7)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.32)] min-[430px]:min-w-[30%] sm:min-w-[22%] lg:min-w-[17%] ${isUnavailable ? 'cursor-not-allowed hover:translate-y-0' : ''}`}
+                  className={`group relative isolate min-w-[42%] snap-start overflow-hidden rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-card-rgb)/0.82)] p-2 text-start shadow-[0_14px_34px_-30px_rgb(var(--color-primary-rgb)/0.72)] transition-all hover:-translate-y-1 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:shadow-[0_20px_42px_-30px_rgb(var(--color-primary-rgb)/0.82)] min-[430px]:min-w-[32%] sm:min-w-[23%] sm:p-2.5 lg:min-w-[18%] ${isUnavailable ? 'cursor-not-allowed hover:translate-y-0' : ''}`}
                   aria-label={productName}
                 >
-                  {isUnavailable ? (
-                    <span className="pointer-events-none absolute inset-0 z-10 rounded-[1rem] bg-[linear-gradient(180deg,rgb(255_255_255/0.14),rgb(240_200_90/0.08))] dark:bg-[linear-gradient(180deg,rgb(255_255_255/0.06),rgb(29_149_168/0.08))]" aria-hidden="true" />
-                  ) : null}
-                  <span className="best-selling-media relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[0.85rem] bg-[color:rgb(var(--color-surface-rgb)/0.72)]">
+                  <span className="best-selling-media relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[0.78rem] border border-[color:rgb(var(--color-border-rgb)/0.45)] bg-[radial-gradient(circle_at_50%_36%,rgb(var(--color-primary-rgb)/0.09),rgb(var(--color-surface-rgb)/0.78))]">
                     <img
                       src={imageSrc}
                       alt={productName}
-                      className={`best-selling-image h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04] ${isUnavailable ? 'brightness-[0.92] saturate-[0.88]' : ''}`}
+                      className={`best-selling-image h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.06] ${isUnavailable ? 'opacity-45 grayscale-[0.35]' : ''}`}
                       loading="lazy"
                       decoding="async"
                     />
-                    {isUnavailable ? (
-                      <span className="absolute inset-0 z-20 bg-white/12 dark:bg-white/5">
-                        <UnavailableLockOverlay label="" size="sm" />
-                      </span>
-                    ) : null}
+                    {isUnavailable ? <span className="absolute inset-0 bg-[color:rgb(var(--color-card-rgb)/0.22)]" aria-hidden="true" /> : null}
                   </span>
-                  <span className="relative z-20 mt-2 flex min-h-[1.75rem] items-center justify-center">
-                    {isUnavailable ? (
-                      <span className="unavailable-status-badge inline-flex min-h-6 max-w-full items-center justify-center rounded-full px-2.5 py-1 text-[0.68rem] font-black leading-none">
-                        {unavailableLabel}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="relative z-20 mt-2 line-clamp-2 block min-h-[2.35rem] text-[0.72rem] font-bold leading-5 text-[var(--color-text)] sm:text-xs">
+                  <span className="mt-2.5 line-clamp-2 block min-h-10 text-[0.75rem] font-extrabold leading-5 text-[var(--color-text)] sm:text-[0.82rem]">
                     {productName}
+                  </span>
+                  <span className={`mt-1.5 inline-flex items-center gap-1.5 text-[0.65rem] font-bold sm:text-[0.7rem] ${isUnavailable ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${isUnavailable ? 'bg-rose-500' : 'bg-emerald-500'}`} aria-hidden="true" />
+                    {isUnavailable ? unavailableLabel : (language === 'ar' ? 'متوفر للطلب' : 'Available now')}
                   </span>
                 </button>
               );

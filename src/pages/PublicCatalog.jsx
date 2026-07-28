@@ -10,6 +10,9 @@ import {
   MessageCircle,
   ExternalLink,
   UserRound,
+  CircleAlert,
+  Info,
+  Check,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../store/useAuthStore';
@@ -24,7 +27,6 @@ import HeroSlider from '../components/home/HeroSlider';
 import CategoryCard from '../components/home/CategoryCard';
 import ProductSearchBar from '../components/products/ProductSearchBar';
 import ProductCardSimple from '../components/products/ProductCardSimple';
-import UnavailableLockOverlay from '../components/products/UnavailableLockOverlay';
 import ProductPurchaseDialog from '../components/products/ProductPurchaseDialog';
 import LoadingSkeleton from '../components/products/LoadingSkeleton';
 import EmptyState from '../components/products/EmptyState';
@@ -41,13 +43,15 @@ import { resolveImageUrl } from '../utils/imageUrl';
 import slideOneImage from '../assets/slide-1.webp';
 import slideTwoImage from '../assets/slide-2.webp';
 import slideThreeImage from '../assets/slide-3.webp';
-import targetSalesImage from '../assets/ترجتات.jpg';
-import coinsImage from '../assets/logo.webp';
+import slideFourImage from '../assets/slide-4.webp';
+import targetSalesImage from '../assets/تارجت.jpg';
+import coinsImage from '../assets/logo.PNG';
 
 const dataProvider = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase();
 const isRealProvider = dataProvider === 'real';
 const WHATSAPP_CHANNEL_URL = 'https://whatsapp.com/channel/0029Vb5xkFpFMqrUmvTSil0Q';
-const PUBLIC_NOTICES_SEEN_KEY = 'coins-stores-public-notices-seen-v1';
+const SLIDE_TWO_URL = 'https://chat.whatsapp.com/FE7DF2bKaaWG3snAGaFjpg';
+const PUBLIC_NOTICES_SEEN_KEY = 'kanz-coins-public-notices-seen-v1';
 const normalizeCategoryKey = (value) => String(value || '').trim().toLowerCase();
 
 const addCategoryAlias = (set, value) => {
@@ -55,35 +59,6 @@ const addCategoryAlias = (set, value) => {
   if (normalized) {
     set.add(normalized);
   }
-};
-
-const getRecordKey = (record) => String(
-  record?.id
-  || record?._id
-  || record?.slug
-  || record?.name
-  || record?.nameAr
-  || record?.title
-  || record?.titleAr
-  || ''
-).trim();
-
-const mergeRecordsByKey = (...sources) => {
-  const map = new Map();
-
-  sources.forEach((source) => {
-    (Array.isArray(source) ? source : []).forEach((record) => {
-      if (!record) return;
-      const key = getRecordKey(record);
-      if (!key) return;
-      map.set(key, {
-        ...(map.get(key) || {}),
-        ...record,
-      });
-    });
-  });
-
-  return Array.from(map.values());
 };
 
 const hasSeenPublicNotices = () => {
@@ -258,46 +233,58 @@ const PublicCatalog = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    loadProducts({ force: true, bypassCache: true });
-  }, [loadProducts]);
-
-  useEffect(() => {
     if (!isRealProvider) {
+      void loadProducts({ force: true, bypassCache: true });
       setIsPublicCatalogLoading(false);
       return undefined;
     }
 
     let isMounted = true;
-    setIsPublicCatalogLoading(true);
+    let refreshRequest = null;
 
-    Promise.resolve(apiClient.publicCatalog.fetch())
-      .then((catalog) => {
-        if (!isMounted || !catalog) return;
+    const refreshCatalog = ({ showLoading = false } = {}) => {
+      if (refreshRequest) return refreshRequest;
+      if (showLoading) setIsPublicCatalogLoading(true);
 
-        const nextCategories = Array.isArray(catalog.categories) ? catalog.categories : null;
-        const nextProducts = Array.isArray(catalog.products) ? catalog.products : null;
+      refreshRequest = Promise.resolve(apiClient.publicCatalog.fetch())
+        .then((catalog) => {
+          if (!isMounted || !catalog) return;
 
-        if (nextCategories || nextProducts) {
-          setPublicCatalog({
-            categories: nextCategories,
-            products: nextProducts,
-          });
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setPublicCatalog({ categories: null, products: null });
-        }
-        return loadProducts({ force: true, bypassCache: true });
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsPublicCatalogLoading(false);
-        }
-      });
+          const nextCategories = Array.isArray(catalog.categories) ? catalog.categories : null;
+          const nextProducts = Array.isArray(catalog.products) ? catalog.products : null;
+
+          if (nextCategories || nextProducts) {
+            setPublicCatalog({
+              categories: nextCategories,
+              products: nextProducts,
+            });
+          }
+        })
+        .catch(() => {
+          if (isMounted) setPublicCatalog({ categories: null, products: null });
+          return loadProducts({ force: true, bypassCache: true });
+        })
+        .finally(() => {
+          refreshRequest = null;
+          if (isMounted && showLoading) setIsPublicCatalogLoading(false);
+        });
+
+      return refreshRequest;
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void refreshCatalog();
+    };
+
+    void refreshCatalog({ showLoading: true });
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    const refreshInterval = window.setInterval(refreshWhenVisible, 30_000);
 
     return () => {
       isMounted = false;
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      window.clearInterval(refreshInterval);
     };
   }, [loadProducts]);
 
@@ -314,18 +301,21 @@ const PublicCatalog = () => {
   const heroSlides = useMemo(
     () => ([
       { id: 'landing-slide-1', image: slideOneImage, title: '' },
-      { id: 'landing-slide-2', image: slideTwoImage, title: '', href: WHATSAPP_CHANNEL_URL },
-      { id: 'landing-slide-3', image: slideThreeImage, title: '' },
+      { id: 'landing-slide-2', image: slideTwoImage, title: '', href: SLIDE_TWO_URL },
+      { id: 'landing-slide-3', image: slideThreeImage, title: '', href: '/referral' },
+      { id: 'landing-slide-4', image: slideFourImage, title: '' },
     ]),
     []
   );
 
   const catalogProducts = useMemo(
-    () => mergeRecordsByKey(products, publicCatalog.products),
+    // Use one authoritative availability source. Mixing two responses can let a
+    // stale `active` snapshot overwrite a freshly stopped product.
+    () => (Array.isArray(publicCatalog.products) ? publicCatalog.products : products),
     [products, publicCatalog.products]
   );
   const catalogCategories = useMemo(
-    () => mergeRecordsByKey(categories, publicCatalog.categories),
+    () => (Array.isArray(publicCatalog.categories) ? publicCatalog.categories : categories),
     [categories, publicCatalog.categories]
   );
   const publicPricingUser = useMemo(() => getPublicPricingGroup(groups), [groups]);
@@ -627,9 +617,10 @@ const PublicCatalog = () => {
         jsonLd={seoData.jsonLd}
       />
 
-      <header className="fixed inset-x-0 top-0 z-[90] border-b border-[color:rgb(var(--color-border-rgb)/0.32)] bg-[color:rgb(var(--color-background-rgb)/0.88)] shadow-[0_18px_44px_-34px_rgb(var(--color-primary-rgb)/0.36)] backdrop-blur-xl">
+      {typeof document !== 'undefined' && createPortal(
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-[90]">
         <div className="mx-auto max-w-[var(--shell-max-width)] px-3 py-2 sm:px-4 lg:px-6">
-          <div dir="ltr" className="coins-stores-panel grid min-h-[2.95rem] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-[20px] border px-2.5 py-1 sm:min-h-[3.25rem] sm:gap-5 sm:rounded-[28px] sm:px-5 sm:py-1.5">
+          <div dir="ltr" className="kanz-coins-panel pointer-events-auto grid min-h-[2.95rem] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-[20px] border px-2.5 py-1 sm:min-h-[3.25rem] sm:gap-5 sm:rounded-[28px] sm:px-5 sm:py-1.5">
             <div className="col-start-1 row-start-1 flex items-center gap-1 justify-self-start sm:gap-2">
               <ThemeToggle variant="glass" compact className="h-9 w-9 sm:h-10 sm:w-10" />
             </div>
@@ -642,7 +633,7 @@ const PublicCatalog = () => {
               <button
                 type="button"
                 onClick={handleLogin}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-200/20 bg-[linear-gradient(180deg,rgb(29_149_168/0.22),rgb(3_8_22/0.78))] text-cyan-50 shadow-[inset_0_0_18px_rgb(255_255_255/0.035),0_0_26px_-18px_rgb(29_149_168/0.9)] transition-all hover:-translate-y-0.5 hover:border-amber-200/30 hover:text-amber-100 sm:h-10 sm:w-10"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-violet-200/20 bg-[linear-gradient(180deg,rgb(124_58_237/0.22),rgb(3_8_22/0.78))] text-violet-50 shadow-[inset_0_0_18px_rgb(255_255_255/0.035),0_0_26px_-18px_rgb(124_58_237/0.9)] transition-all hover:-translate-y-0.5 hover:border-amber-200/30 hover:text-amber-100 sm:h-10 sm:w-10"
                 aria-label={isArabic ? 'تسجيل الدخول' : 'Login'}
               >
                 <UserRound className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
@@ -659,7 +650,9 @@ const PublicCatalog = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header>,
+      document.body
+      )}
 
       <PublicSidebar
         isOpen={isMenuOpen}
@@ -677,74 +670,72 @@ const PublicCatalog = () => {
       {typeof document !== 'undefined' && createPortal(
         <>
       {showServiceNotice && (
-        <div className="public-notice-overlay public-notice-overlay--service fixed inset-0 z-[90] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgb(240_200_90/0.14),rgb(29_149_168/0.18)_42%,rgb(0_0_0/0.88))] px-4 backdrop-blur-[4px]">
+        <div className="public-notice-overlay public-notice-overlay--service fixed inset-0 z-[90] flex items-center justify-center bg-[radial-gradient(circle_at_50%_15%,rgb(168_85_247/0.24),rgb(15_23_42/0.72)_48%,rgb(0_0_0/0.92))] px-4 backdrop-blur-md">
           <div
             dir="rtl"
-            className="public-notice-card public-notice-card--service coins-stores-panel relative w-full max-w-[18.75rem] overflow-hidden rounded-[1.35rem] border border-cyan-200/15 text-right shadow-[0_26px_78px_-44px_rgb(29_149_168/0.82)] backdrop-blur-xl"
+            className="public-notice-card public-notice-card--service kanz-coins-panel relative w-full max-w-[19.5rem] overflow-hidden rounded-[1.5rem] border border-violet-200/20 text-right shadow-[0_30px_86px_-46px_rgb(124_58_237/0.95)] backdrop-blur-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="service-notice-title"
             style={{ animation: 'page-fade-in 180ms ease-out both' }}
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#1d95a8,#f0c85a,#1d95a8,transparent)]" />
-            <div className="pointer-events-none absolute -top-16 left-1/2 h-24 w-44 -translate-x-1/2 rounded-full bg-[color:rgb(29_149_168/0.14)] blur-3xl" />
+            <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,#c084fc,#f472b6,#c084fc,transparent)]" />
+            <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-64 -translate-x-1/2 rounded-full bg-[color:rgb(124_58_237/0.2)] blur-3xl" />
 
             <button
               type="button"
               onClick={handleCloseServiceNotice}
-              className="absolute left-2.5 top-2.5 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-card-rgb)/0.78)] text-[var(--color-text-secondary)] transition-all hover:-translate-y-0.5 hover:text-[var(--color-primary)]"
+              className="absolute left-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:rgb(var(--color-border-rgb)/0.65)] bg-[color:rgb(var(--color-card-rgb)/0.72)] text-[var(--color-text-secondary)] shadow-sm transition-all hover:rotate-90 hover:border-[color:rgb(var(--color-primary-rgb)/0.35)] hover:text-[var(--color-primary)]"
               aria-label={isArabic ? 'إغلاق التنويه' : 'Close notice'}
             >
               <X className="h-4 w-4" />
             </button>
 
-            <div className="relative px-4 pb-4 pt-4">
-              <div dir="ltr" className="mb-3 flex justify-center pl-8">
+            <div className="relative px-4 pb-4 pt-3.5">
+              <div dir="ltr" className="flex h-8 justify-center pl-7">
                 <HeaderBrand
-                  className="scale-[0.74] justify-center"
-                  iconClassName="scale-[0.82]"
+                  className="origin-top scale-[0.58] justify-center"
+                  iconClassName="scale-[0.72]"
                   textClassName="text-center"
                 />
               </div>
 
-              <div className="mb-3 flex items-center justify-center gap-2">
-                <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgb(240_200_90/0.46))]" />
-                <h2 id="service-notice-title" className="shrink-0 bg-[linear-gradient(120deg,#f0c85a,#1d95a8,#f0c85a)] bg-clip-text text-base font-black leading-6 text-transparent">
-                  تنويه هام
+              <div className="mb-3 mt-1 text-center">
+                <span className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-amber-300/25 bg-[linear-gradient(145deg,rgb(251_191_36/0.2),rgb(244_114_182/0.1))] text-amber-400 shadow-[0_14px_34px_-22px_rgb(245_158_11/0.9)]">
+                  <CircleAlert className="h-5.5 w-5.5" strokeWidth={2.1} />
+                </span>
+                <h2 id="service-notice-title" className="mt-2.5 text-lg font-black text-[var(--color-text)]">
+                  تنبيه قبل الدفع
                 </h2>
-                <span className="h-px flex-1 bg-[linear-gradient(90deg,rgb(29_149_168/0.46),transparent)]" />
               </div>
 
-              <div className="public-notice-body space-y-2.5 rounded-[1rem] border border-cyan-200/15 bg-cyan-950/15 p-3">
-                <div className="flex gap-2.5">
-                  <span className="public-notice-dot public-notice-dot--warning mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-300/15 text-[0.62rem] font-black text-amber-200">
-                    !
+              <div className="space-y-2">
+                <div className="flex gap-2.5 rounded-2xl border border-amber-300/15 bg-[linear-gradient(135deg,rgb(245_158_11/0.1),rgb(var(--color-surface-rgb)/0.44))] p-3">
+                  <span className="public-notice-dot public-notice-dot--warning grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-400/15 text-amber-400">
+                    <CircleAlert className="h-3.5 w-3.5" />
                   </span>
-                  <p className="public-notice-text text-[0.78rem] font-extrabold leading-6 text-slate-50">
-                    لا يوجد استرداد أو استرجاع لأي منتج بعد إتمام عملية التحويل.
+                  <p className="public-notice-text text-[0.76rem] font-extrabold leading-5 text-[var(--color-text)]">
+                    المنتجات الرقمية لا تُسترد بعد تأكيد التحويل.
                   </p>
                 </div>
 
-                <div className="flex gap-2.5">
-                  <span className="public-notice-dot public-notice-dot--info mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-300/15 text-[0.62rem] font-black text-cyan-200">
-                    i
+                <div className="flex gap-2.5 rounded-2xl border border-violet-300/15 bg-[linear-gradient(135deg,rgb(124_58_237/0.1),rgb(var(--color-surface-rgb)/0.44))] p-3">
+                  <span className="public-notice-dot public-notice-dot--info grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-violet-400/15 text-violet-400">
+                    <Info className="h-3.5 w-3.5" />
                   </span>
-                  <p className="public-notice-muted text-[0.76rem] font-bold leading-6 text-cyan-50/80">
-                    يرجى قراءة شروط الخدمة جيدًا قبل إجراء أي عملية تحويل.
+                  <p className="public-notice-muted text-[0.75rem] font-bold leading-5 text-[var(--color-text-secondary)]">
+                    راجع تفاصيل طلبك جيدًا قبل الدفع.
                   </p>
                 </div>
               </div>
-
-              <p className="public-notice-thanks pt-3 text-center text-[0.78rem] font-extrabold text-slate-50">
-                شكراً لتفهمكم ❤️
-              </p>
 
               <button
                 type="button"
                 onClick={handleCloseServiceNotice}
-                className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-full border border-cyan-200/25 bg-[linear-gradient(135deg,#1d95a8,#c9931a_58%,#f0c85a)] px-4 text-sm font-black text-white shadow-[0_18px_38px_-24px_rgb(29_149_168/0.9)] transition-all hover:-translate-y-0.5 hover:brightness-105"
+                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-violet-200/20 bg-[linear-gradient(135deg,#6d28d9,#9333ea_52%,#ec4899)] px-4 text-[0.82rem] font-black text-white shadow-[0_16px_36px_-22px_rgb(124_58_237/0.95)] transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
-                موافق
+                <Check className="h-4 w-4" strokeWidth={2.5} />
+                متابعة
               </button>
             </div>
           </div>
@@ -752,23 +743,23 @@ const PublicCatalog = () => {
       )}
 
       {showWhatsAppNotice && (
-        <div className="public-notice-overlay public-notice-overlay--whatsapp fixed inset-0 z-[90] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgb(37_211_102/0.18),rgb(29_149_168/0.24)_40%,rgb(0_0_0/0.88))] px-4 backdrop-blur-[4px]">
+        <div className="public-notice-overlay public-notice-overlay--whatsapp fixed inset-0 z-[90] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgb(37_211_102/0.18),rgb(124_58_237/0.24)_40%,rgb(0_0_0/0.88))] px-4 backdrop-blur-[4px]">
           <div
             dir="rtl"
-            className="public-notice-card public-notice-card--whatsapp coins-stores-panel relative w-full max-w-[18.75rem] overflow-hidden rounded-[1.35rem] border border-emerald-300/20 text-right shadow-[0_26px_78px_-44px_rgb(37_211_102/0.88)] backdrop-blur-xl"
+            className="public-notice-card public-notice-card--whatsapp kanz-coins-panel relative w-full max-w-[18.75rem] overflow-hidden rounded-[1.35rem] border border-emerald-300/20 text-right shadow-[0_26px_78px_-44px_rgb(37_211_102/0.88)] backdrop-blur-xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="whatsapp-notice-title"
             style={{ animation: 'page-fade-in 180ms ease-out both' }}
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#25d366,#1d95a8,#f0c85a,transparent)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#25d366,#7c3aed,#f472d0,transparent)]" />
             <div className="pointer-events-none absolute -top-16 left-1/2 h-24 w-44 -translate-x-1/2 rounded-full bg-[color:rgb(37_211_102/0.16)] blur-3xl" />
 
             <button
               type="button"
               onClick={handleCloseWhatsAppNotice}
               className="absolute left-2.5 top-2.5 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-emerald-300/20 bg-[color:rgb(var(--color-card-rgb)/0.78)] text-[var(--color-text-secondary)] transition-all hover:-translate-y-0.5 hover:text-emerald-300"
-              aria-label={isArabic ? 'إغلاق تنويه القناة' : 'Close channel notice'}
+              aria-label={isArabic ? 'إغلاق تنويه المجتمع' : 'Close community notice'}
             >
               <X className="h-4 w-4" />
             </button>
@@ -784,10 +775,10 @@ const PublicCatalog = () => {
 
               <div className="mb-3 flex items-center justify-center gap-2">
                 <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgb(37_211_102/0.55))]" />
-                <h2 id="whatsapp-notice-title" className="shrink-0 bg-[linear-gradient(120deg,#25d366,#1d95a8,#f0c85a)] bg-clip-text text-base font-black leading-6 text-transparent">
-                  تنويه القناة
+                <h2 id="whatsapp-notice-title" className="shrink-0 bg-[linear-gradient(120deg,#25d366,#7c3aed,#f472d0)] bg-clip-text text-base font-black leading-6 text-transparent">
+                  تنويه المجتمع
                 </h2>
-                <span className="h-px flex-1 bg-[linear-gradient(90deg,rgb(29_149_168/0.55),transparent)]" />
+                <span className="h-px flex-1 bg-[linear-gradient(90deg,rgb(124_58_237/0.55),transparent)]" />
               </div>
 
               <div className="public-notice-body space-y-2.5 rounded-[1rem] border border-emerald-300/20 bg-emerald-950/20 p-3">
@@ -796,15 +787,15 @@ const PublicCatalog = () => {
                     <MessageCircle className="h-3.5 w-3.5" />
                   </span>
                   <p className="public-notice-text text-[0.78rem] font-extrabold leading-6 text-emerald-50">
-                    عدم متابعتك للقناة الخاصه بالوتساب مسؤوليتك الشخصية
+                    عدم متابعتك لمجتمع الواتساب مسؤوليتك الشخصية
                   </p>
                 </div>
 
                 <div className="flex gap-2.5">
-                  <span className="public-notice-dot public-notice-dot--info mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-[0.62rem] font-black text-cyan-200">
+                  <span className="public-notice-dot public-notice-dot--info mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/20 text-[0.62rem] font-black text-violet-200">
                     i
                   </span>
-                  <p className="public-notice-muted text-[0.76rem] font-bold leading-6 text-cyan-50/80">
+                  <p className="public-notice-muted text-[0.76rem] font-bold leading-6 text-violet-50/80">
                     واي اهمال في المتابعة تعرضك للمخاطر دون اي مسؤولية علينا
                   </p>
                 </div>
@@ -814,17 +805,17 @@ const PublicCatalog = () => {
                 href="https://whatsapp.com/channel/0029Vb5xkFpFMqrUmvTSil0Q"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-emerald-300/30 bg-[linear-gradient(135deg,#128c7e,#25d366_58%,#1d95a8)] px-4 text-sm font-black text-white shadow-[0_18px_38px_-24px_rgb(37_211_102/0.9)] transition-all hover:-translate-y-0.5 hover:brightness-105"
+                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-emerald-300/30 bg-[linear-gradient(135deg,#128c7e,#25d366_58%,#7c3aed)] px-4 text-sm font-black text-white shadow-[0_18px_38px_-24px_rgb(37_211_102/0.9)] transition-all hover:-translate-y-0.5 hover:brightness-105"
               >
                 <MessageCircle className="h-4 w-4" />
-                قناة الواتساب
+                مجتمع الواتساب
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
 
               <button
                 type="button"
                 onClick={handleCloseWhatsAppNotice}
-                className="public-notice-secondary-button mt-2 inline-flex h-10 w-full items-center justify-center rounded-full border border-cyan-200/25 bg-[color:rgb(var(--color-card-rgb)/0.72)] px-4 text-sm font-black text-cyan-50 shadow-[0_16px_34px_-26px_rgb(29_149_168/0.9)] transition-all hover:-translate-y-0.5 hover:border-emerald-300/30 hover:text-emerald-100"
+                className="public-notice-secondary-button mt-2 inline-flex h-10 w-full items-center justify-center rounded-full border border-violet-200/25 bg-[color:rgb(var(--color-card-rgb)/0.72)] px-4 text-sm font-black text-violet-50 shadow-[0_16px_34px_-26px_rgb(124_58_237/0.9)] transition-all hover:-translate-y-0.5 hover:border-emerald-300/30 hover:text-emerald-100"
               >
                 موافق
               </button>
@@ -838,7 +829,9 @@ const PublicCatalog = () => {
 
       <main className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-[var(--shell-max-width)] space-y-5 sm:space-y-6">
-          <HeroSlider slides={heroSlides} />
+          <section aria-label={isArabic ? 'العروض الرئيسية' : 'Featured offers'}>
+            <HeroSlider slides={heroSlides} />
+          </section>
 
           <section id="categories" className="scroll-mt-28 space-y-3 sm:space-y-3.5">
             <div className="relative z-10 mx-auto flex w-full max-w-5xl justify-center px-0.5 sm:px-2">
@@ -962,7 +955,7 @@ const PublicCatalog = () => {
               <button
                 type="button"
                 onClick={handleLogin}
-                className="group mx-auto block w-full max-w-3xl overflow-hidden rounded-[1.1rem] border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-card-rgb)/0.72)] text-start shadow-[0_18px_44px_-34px_rgb(var(--color-primary-rgb)/0.72)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.42)] hover:shadow-[0_22px_54px_-36px_rgb(var(--color-primary-rgb)/0.9)]"
+                className="group mx-auto block w-[21rem] max-w-full overflow-hidden rounded-[1rem] border border-[color:rgb(var(--color-primary-rgb)/0.28)] bg-[color:rgb(var(--color-card-rgb)/0.76)] text-start shadow-[0_18px_42px_-30px_rgb(var(--color-primary-rgb)/0.82),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.46)] hover:shadow-[0_22px_48px_-30px_rgb(var(--color-primary-rgb)/0.9)] sm:w-[26rem]"
                 aria-label={copy.targetTitle}
               >
                 <span className="block overflow-hidden bg-black">
@@ -974,8 +967,8 @@ const PublicCatalog = () => {
                     decoding="async"
                   />
                 </span>
-                <span className="block border-t border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(180deg,rgb(var(--color-card-rgb)/0.9),rgb(var(--color-surface-rgb)/0.68))] px-3 py-2 text-center">
-                  <span className="text-sm font-extrabold text-[var(--color-text)] sm:text-base">
+                <span className="block border-t border-[color:rgb(var(--color-primary-rgb)/0.18)] bg-[linear-gradient(180deg,rgb(var(--color-card-rgb)/0.94),rgb(var(--color-primary-rgb)/0.08))] px-3 py-1.5 text-center">
+                  <span className="text-xs font-extrabold text-[var(--color-text)] sm:text-sm">
                     {copy.targetTitle}
                   </span>
                 </span>
@@ -984,15 +977,18 @@ const PublicCatalog = () => {
           )}
 
           {!isInsideCategory && homepageProducts.length ? (
-            <section className="mx-auto w-full max-w-5xl space-y-3 px-0.5 sm:px-2" aria-labelledby="public-best-selling-title">
-              <div className="flex items-center justify-between gap-3">
-                <h2 id="public-best-selling-title" className="text-base font-black text-[var(--color-text)] sm:text-lg">
-                  {copy.topSellingTitle}
-                </h2>
+            <section className="mx-auto w-full max-w-5xl overflow-hidden rounded-[1.35rem] border border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.9),rgb(var(--color-primary-rgb)/0.045))] p-3 shadow-[0_20px_55px_-45px_rgb(var(--color-primary-rgb)/0.65)] sm:p-5" aria-labelledby="public-best-selling-title">
+              <div className="mb-3.5 flex items-center justify-between gap-3 sm:mb-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-7 w-1 rounded-full bg-[linear-gradient(180deg,var(--color-primary),rgb(var(--color-primary-rgb)/0.35))]" aria-hidden="true" />
+                  <h2 id="public-best-selling-title" className="text-base font-black text-[var(--color-text)] sm:text-lg">
+                    {copy.topSellingTitle}
+                  </h2>
+                </div>
                 <button
                   type="button"
                   onClick={handleLogin}
-                  className="text-xs font-bold text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-hover)] sm:text-sm"
+                  className="inline-flex min-h-8 items-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-3 text-[0.7rem] font-extrabold text-[var(--color-primary)] transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.13)] sm:text-xs"
                 >
                   {copy.viewAll}
                 </button>
@@ -1015,35 +1011,25 @@ const PublicCatalog = () => {
                       onClick={() => {
                         handleProductSelect(product);
                       }}
-                      className={`group relative isolate flex min-w-[38%] snap-start flex-col rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.7)] bg-[color:rgb(var(--color-card-rgb)/0.76)] p-2 text-center shadow-[0_14px_34px_-30px_rgb(var(--color-primary-rgb)/0.7)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.32)] min-[430px]:min-w-[30%] sm:min-w-[22%] lg:min-w-[17%] ${isUnavailable ? 'hover:translate-y-0' : ''}`}
+                      className={`group relative isolate min-w-[42%] snap-start overflow-hidden rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-card-rgb)/0.82)] p-2 text-start shadow-[0_14px_34px_-30px_rgb(var(--color-primary-rgb)/0.72)] transition-all hover:-translate-y-1 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:shadow-[0_20px_42px_-30px_rgb(var(--color-primary-rgb)/0.82)] min-[430px]:min-w-[32%] sm:min-w-[23%] sm:p-2.5 lg:min-w-[18%] ${isUnavailable ? 'hover:translate-y-0' : ''}`}
                       aria-label={productName}
                     >
-                      {isUnavailable ? (
-                        <span className="pointer-events-none absolute inset-0 z-10 rounded-[1rem] bg-[linear-gradient(180deg,rgb(255_255_255/0.14),rgb(240_200_90/0.08))] dark:bg-[linear-gradient(180deg,rgb(255_255_255/0.06),rgb(29_149_168/0.08))]" aria-hidden="true" />
-                      ) : null}
-                      <span className="best-selling-media relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[0.85rem] bg-[color:rgb(var(--color-surface-rgb)/0.72)]">
+                      <span className="best-selling-media relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[0.78rem] border border-[color:rgb(var(--color-border-rgb)/0.45)] bg-[radial-gradient(circle_at_50%_36%,rgb(var(--color-primary-rgb)/0.09),rgb(var(--color-surface-rgb)/0.78))]">
                         <img
                           src={imageSrc}
                           alt={productName}
-                          className={`best-selling-image h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04] ${isUnavailable ? 'brightness-[0.92] saturate-[0.88]' : ''}`}
+                          className={`best-selling-image h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.06] ${isUnavailable ? 'opacity-45 grayscale-[0.35]' : ''}`}
                           loading="lazy"
                           decoding="async"
                         />
-                        {isUnavailable ? (
-                          <span className="absolute inset-0 z-20 bg-white/12 dark:bg-white/5">
-                            <UnavailableLockOverlay label="" size="sm" />
-                          </span>
-                        ) : null}
+                        {isUnavailable ? <span className="absolute inset-0 bg-[color:rgb(var(--color-card-rgb)/0.22)]" aria-hidden="true" /> : null}
                       </span>
-                      <span className="relative z-20 mt-2 flex min-h-[1.75rem] items-center justify-center">
-                        {isUnavailable ? (
-                          <span className="unavailable-status-badge inline-flex min-h-6 max-w-full items-center justify-center rounded-full px-2.5 py-1 text-[0.68rem] font-black leading-none">
-                            {unavailableLabel}
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="relative z-20 mt-2 line-clamp-2 block min-h-[2.35rem] text-[0.72rem] font-bold leading-5 text-[var(--color-text)] sm:text-xs">
+                      <span className="mt-2.5 line-clamp-2 block min-h-10 text-[0.75rem] font-extrabold leading-5 text-[var(--color-text)] sm:text-[0.82rem]">
                         {productName}
+                      </span>
+                      <span className={`mt-1.5 inline-flex items-center gap-1.5 text-[0.65rem] font-bold sm:text-[0.7rem] ${isUnavailable ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${isUnavailable ? 'bg-rose-500' : 'bg-emerald-500'}`} aria-hidden="true" />
+                        {isUnavailable ? unavailableLabel : (language === 'ar' ? 'متوفر للطلب' : 'Available now')}
                       </span>
                     </button>
                   );

@@ -9,6 +9,7 @@ import {
 import { getDefaultRouteForRole } from '../utils/authRoles';
 import { formatAuthErrorMessage } from '../utils/authErrorMessages';
 import { devLogger } from '../utils/devLogger';
+import { getWalletBalanceSummary } from '../utils/money';
 
 const AUTH_STORAGE_KEY = 'auth-storage';
 const PROFILE_CACHE_TTL = 20 * 1000; // short TTL to keep UI responsive while staying reasonably fresh
@@ -89,6 +90,7 @@ const buildVerificationRequiredOutcome = (user = null) => ({
 
 const pickPersistedUser = (user) => {
   if (!user) return null;
+  const walletSummary = getWalletBalanceSummary(user);
 
   return {
     id: user.id || user._id || user.userId || '',
@@ -103,16 +105,29 @@ const pickPersistedUser = (user) => {
     verified: user.verified !== undefined ? Boolean(user.verified) : undefined,
     signupMethod: user.signupMethod || '',
     authProvider: user.authProvider || '',
-    coins: user.coins ?? user.walletBalance ?? user.balance ?? 0,
-    walletBalance: user.walletBalance ?? user.coins ?? user.balance ?? 0,
-    balance: user.balance ?? user.walletBalance ?? user.coins ?? 0,
-    currency: user.currency || 'USD',
+    coins: walletSummary.walletBalance,
+    walletBalance: walletSummary.walletBalance,
+    balance: walletSummary.walletBalance,
+    currency: walletSummary.currency,
+    country: user.country || '',
     group: user.group || '',
     groupName: user.groupName || user.group || '',
     groupId: user.groupId || '',
     groupPercentage: user.groupPercentage ?? null,
-    creditLimit: user.creditLimit ?? 0,
+    creditLimit: walletSummary.creditLimit,
+    creditUsed: walletSummary.creditUsed,
+    availableCredit: walletSummary.availableCredit,
+    availableBalance: walletSummary.availableBalance,
     isApiEnabled: Boolean(user.isApiEnabled),
+    referralCode: user.referralCode || user.inviteCode || '',
+    inviteCode: user.inviteCode || user.referralCode || '',
+    referralCount: user.referralCount ?? user.referralsCount ?? 0,
+    referralRewards: user.referralRewards ?? user.referralEarnings ?? 0,
+    referrals: Array.isArray(user.referrals) ? user.referrals : [],
+    referredCustomers: Array.isArray(user.referredCustomers) ? user.referredCustomers : [],
+    invitedCustomers: Array.isArray(user.invitedCustomers) ? user.invitedCustomers : [],
+    referralWithdrawals: Array.isArray(user.referralWithdrawals) ? user.referralWithdrawals : [],
+    withdrawalRequests: Array.isArray(user.withdrawalRequests) ? user.withdrawalRequests : [],
     whitelistIps: Array.isArray(user.whitelistIps) ? user.whitelistIps : [],
     webhookUrl: user.webhookUrl || '',
     phone: user.phone || '',
@@ -120,6 +135,22 @@ const pickPersistedUser = (user) => {
     emailChangedPending: user.emailChangedPending !== undefined ? Boolean(user.emailChangedPending) : undefined,
     createdAt: user.createdAt || '',
     updatedAt: user.updatedAt || '',
+  };
+};
+
+const withCanonicalWalletFields = (user) => {
+  if (!user) return user;
+  const walletSummary = getWalletBalanceSummary(user);
+  return {
+    ...user,
+    coins: walletSummary.walletBalance,
+    walletBalance: walletSummary.walletBalance,
+    balance: walletSummary.walletBalance,
+    currency: walletSummary.currency,
+    creditLimit: walletSummary.creditLimit,
+    creditUsed: walletSummary.creditUsed,
+    availableCredit: walletSummary.availableCredit,
+    availableBalance: walletSummary.availableBalance,
   };
 };
 
@@ -453,7 +484,7 @@ const useAuthStore = create((set, get) => ({
       updateUserSession: (updates) => {
         const { user, token } = get();
         if (user) {
-          const nextUser = { ...user, ...updates };
+          const nextUser = withCanonicalWalletFields({ ...user, ...updates });
           const nextStatus = normalizeAccountStatus(nextUser?.status);
           set({
             user: nextUser,
@@ -503,7 +534,7 @@ const useAuthStore = create((set, get) => ({
           profileRefreshRequest = apiClient.auth.getProfile(currentUserId)
             .then((profile) => {
               const current = get();
-              const nextUser = { ...current.user, ...profile };
+              const nextUser = withCanonicalWalletFields({ ...current.user, ...profile });
               const nextStatus = normalizeAccountStatus(profile?.status);
 
               set({

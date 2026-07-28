@@ -47,7 +47,6 @@ import { PERMISSIONS, hasPermission } from '../utils/permissions';
 const PENDING_STATUSES = ['pending', 'requested', 'under_review', 'processing'];
 const COMPLETED_STATUSES = ['completed', 'approved', 'success'];
 const REJECTED_STATUSES = ['rejected', 'denied', 'cancelled', 'canceled'];
-const DASHBOARD_DEFAULT_RANGE_DAYS = 30;
 
 const asNumber = (value) => {
   const parsed = Number(value);
@@ -69,6 +68,12 @@ const shiftDateByDays = (inputDate, days) => {
   const nextDate = new Date(inputDate);
   nextDate.setHours(0, 0, 0, 0);
   nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+};
+
+const startOfMonth = (inputDate) => {
+  const nextDate = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+  nextDate.setHours(0, 0, 0, 0);
   return nextDate;
 };
 
@@ -175,7 +180,7 @@ const extractSupplierBalanceSnapshot = (payload = {}) => {
 const getDefaultDashboardRange = () => {
   const today = shiftDateByDays(new Date(), 0);
   return {
-    startDate: toDateInputValue(shiftDateByDays(today, -(DASHBOARD_DEFAULT_RANGE_DAYS - 1))),
+    startDate: toDateInputValue(startOfMonth(today)),
     endDate: toDateInputValue(today),
   };
 };

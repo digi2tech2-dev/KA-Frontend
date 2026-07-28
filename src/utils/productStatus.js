@@ -80,7 +80,6 @@ export function getProductStatus(product, language = 'ar') {
     'stop',
     'paused',
     'pause',
-    'hidden',
     'unavailable',
     'not_available',
     'not-available',
@@ -94,7 +93,8 @@ export function getProductStatus(product, language = 'ar') {
   const isStopped = stoppedStatuses.has(normalizedStatus)
     || stoppedStatuses.has(normalizedProductStatus)
     || p.isActive === false;
-  const isVisibleByUser = p.isVisibleInStore !== false || isStopped;
+  const isDeleted = Boolean(p.deletedAt || p.isDeleted === true);
+  const isVisibleByUser = !isDeleted && p.isVisibleInStore !== false;
   const isUnavailableStatus = normalizedProductStatus === 'unavailable' || isStopped;
 
   const isInSchedule = () => {

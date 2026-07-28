@@ -20,8 +20,8 @@ const ADMIN_SIDEBAR_PATHS = new Set([
 ]);
 
 const CUSTOMER_SIDEBAR_PATHS = new Set([
-  '/wallet',
   '/orders',
+  '/referral',
   '/account',
   '/account-security',
   '/settings',

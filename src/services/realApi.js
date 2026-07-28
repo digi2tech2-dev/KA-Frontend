@@ -12,6 +12,7 @@
 
 import axios from 'axios';
 import { devLogger } from '../utils/devLogger';
+import { getWalletBalanceSummary } from '../utils/money';
 import { isSiteWalletPaymentMethod, normalizePaymentGroups } from '../utils/paymentSettings';
 import {
   resolveWalletTransactionExecutionCurrency,
@@ -466,6 +467,10 @@ const getProviderCatalogMaxQtyValue = (product = {}) => (
 const normaliseUser = (u) => {
   if (!u) return null;
   const id = u._id || u.id;
+  const rawRole = String(u.role || u.userRole || u.accountType || 'customer').trim().toLowerCase();
+  const role = ['user', 'client', 'customer_user', 'customer-user'].includes(rawRole)
+    ? 'customer'
+    : rawRole;
 
   // Flatten populated groupId: BE may return { _id, name, percentage } object
   const rawGroup = u.group || u.groupId;
@@ -487,35 +492,45 @@ const normaliseUser = (u) => {
   const currency = typeof rawCurrency === 'object' && rawCurrency !== null
     ? (rawCurrency.code || rawCurrency._id || '')
     : (rawCurrency || '');
+  const walletSummary = getWalletBalanceSummary({
+    ...u,
+    creditLimit: resolveUserCreditLimit(u),
+    currency,
+  });
 
   return {
     ...u,
     id,
     _id: undefined,
     // FE expects lowercase role
-    role: (u.role || 'customer').toLowerCase(),
+    role,
     // FE expects lowercase status strings
     status: (u.status || 'pending').toLowerCase(),
     signupMethod: (u.signupMethod || u.authProvider || u.provider || u.signupProvider || 'email').toLowerCase(),
     authProvider: (u.authProvider || u.signupMethod || u.provider || 'email').toLowerCase(),
-    // FE uses "coins" for wallet balance
-    coins: u.walletBalance ?? u.coins ?? 0,
+    // FE uses "coins" as a legacy alias for walletBalance, not spendable balance.
+    coins: walletSummary.walletBalance,
+    walletBalance: walletSummary.walletBalance,
+    balance: walletSummary.walletBalance,
     // Financial controls
-    creditLimit: toFiniteNumber(resolveUserCreditLimit(u), 0),
+    creditLimit: walletSummary.creditLimit,
+    creditUsed: walletSummary.creditUsed,
+    availableCredit: walletSummary.availableCredit,
+    availableBalance: walletSummary.availableBalance,
     // Flattened group fields — never pass an object to React
     group: groupName,
     groupId: String(groupId),
     groupName,
     groupPercentage: Number.isFinite(groupPercentage) ? groupPercentage : null,
     // Flattened currency
-    currency,
+    currency: walletSummary.currency || currency,
     // joinDate aliasing
     joinDate: u.joinDate || u.createdAt,
     createdAt: u.createdAt || u.joinDate || u.registeredAt || null,
     approvedAt: u.approvedAt || u.activatedAt || null,
     rejectedAt: u.rejectedAt || u.deniedAt || null,
     // ensure avatar — resolve relative paths and fallback
-    avatar: resolveUserAvatar(u, u.name || u.email || 'COINS User'),
+    avatar: resolveUserAvatar(u, u.name || u.email || 'Kanz Coins User'),
     permissions: Array.isArray(u.permissions) ? u.permissions.map((item) => String(item || '').trim()).filter(Boolean) : [],
     twoFactorEnabled: Boolean(u.twoFactorEnabled ?? u.isTwoFactorEnabled),
     isTwoFactorEnabled: Boolean(u.isTwoFactorEnabled ?? u.twoFactorEnabled),
@@ -612,9 +627,7 @@ const normaliseWalletSummary = (wallet, fallbackUserId = '') => {
   const recentTransactions = recentTransactionsRaw
     .map((entry) => normaliseWalletTransaction(entry, rawUserId || user?.id || fallbackUserId))
     .filter(Boolean);
-  const balance = toFiniteNumber(
-    wallet.walletBalance ?? wallet.balance ?? wallet.currentBalance ?? wallet.coins ?? 0
-  );
+  const walletSummary = getWalletBalanceSummary(wallet);
   const transactionsCount = toFiniteNumber(
     wallet.transactionsCount ?? wallet.totalTransactions ?? wallet.transactionCount ?? recentTransactions.length,
     recentTransactions.length
@@ -628,9 +641,14 @@ const normaliseWalletSummary = (wallet, fallbackUserId = '') => {
     user,
     userName: wallet.userName || user?.name || '',
     userEmail: wallet.userEmail || user?.email || '',
-    currency: String(wallet.currency || wallet.currencyCode || wallet.walletCurrency || user?.currency || 'USD').toUpperCase(),
-    walletBalance: balance,
-    balance,
+    currency: String(wallet.currency || wallet.currencyCode || wallet.walletCurrency || user?.currency || walletSummary.currency || 'USD').toUpperCase(),
+    walletBalance: walletSummary.walletBalance,
+    coins: walletSummary.walletBalance,
+    balance: walletSummary.walletBalance,
+    creditLimit: walletSummary.creditLimit,
+    creditUsed: walletSummary.creditUsed,
+    availableCredit: walletSummary.availableCredit,
+    availableBalance: walletSummary.availableBalance,
     recentTransactions,
     transactionsCount,
     lastTransactionAt: wallet.lastTransactionAt || recentTransactions[0]?.createdAt || wallet.updatedAt || null,
@@ -708,7 +726,6 @@ const normaliseProduct = (p) => {
     'stop',
     'paused',
     'pause',
-    'hidden',
     'unavailable',
     'not_available',
     'not-available',
@@ -720,15 +737,21 @@ const normaliseProduct = (p) => {
     'closed',
   ]);
   const hasExplicitIsActive = p.isActive !== undefined && p.isActive !== null;
-  const isActive = hasExplicitIsActive
-    ? p.isActive !== false
-    : !stoppedStatuses.has(productStatus) && !stoppedStatuses.has(rawStatus);
-  const normalizedStatus = ['active', 'inactive'].includes(rawStatus)
-    ? rawStatus
-    : stoppedStatuses.has(rawStatus)
-      ? 'inactive'
-    : (isActive ? 'active' : 'inactive');
-  const isStopped = normalizedStatus === 'inactive';
+  const explicitIsActiveValue = String(p.isActive ?? '').trim().toLowerCase();
+  const explicitlyInactive = hasExplicitIsActive && (
+    p.isActive === false
+    || p.isActive === 0
+    || explicitIsActiveValue === 'false'
+    || explicitIsActiveValue === '0'
+    || explicitIsActiveValue === 'inactive'
+  );
+  // Any explicit stop signal wins over a stale/conflicting `status: active`.
+  const isStopped = explicitlyInactive
+    || stoppedStatuses.has(productStatus)
+    || stoppedStatuses.has(rawStatus);
+  const isExplicitlyHidden = rawStatus === 'hidden' || productStatus === 'hidden';
+  const isDeleted = Boolean(p.deletedAt || p.isDeleted === true);
+  const normalizedStatus = isStopped ? 'inactive' : 'active';
   const resolvedProductStatus = stoppedStatuses.has(productStatus) || isStopped ? 'unavailable' : 'available';
 
   // Resolve populated provider reference
@@ -806,7 +829,7 @@ const normaliseProduct = (p) => {
     // Status mapping
     status: normalizedStatus,
     productStatus: resolvedProductStatus,
-    isVisibleInStore: true,
+    isVisibleInStore: !isDeleted && !isExplicitlyHidden && p.isVisibleInStore !== false,
     showWhenUnavailable: p.showWhenUnavailable !== undefined
       ? Boolean(p.showWhenUnavailable)
       : resolvedProductStatus === 'unavailable',
@@ -1222,6 +1245,8 @@ const normaliseTargetOrder = (order = {}) => {
   const totalPrice = Number(order.totalPrice ?? (coinAmount * unitPrice));
   const status = String(order.status || 'PENDING').trim().toUpperCase();
   const orderUser = normaliseTargetOrderUser(order);
+  const paymentMethodId = String(order.paymentMethodIdSnapshot || order.paymentMethodId || order.paymentMethod || '').trim();
+  const paymentMethodName = String(order.paymentMethodNameSnapshot || order.paymentMethodName || order.paymentMethod || '').trim();
 
   return {
     ...order,
@@ -1238,8 +1263,9 @@ const normaliseTargetOrder = (order = {}) => {
     unitPriceSnapshot: unitPrice,
     unitPrice,
     totalPrice,
-    paymentMethod: order.paymentMethod || order.paymentMethodName || '',
-    paymentMethodName: order.paymentMethod || order.paymentMethodName || '',
+    paymentMethod: paymentMethodName || paymentMethodId,
+    paymentMethodId,
+    paymentMethodName: paymentMethodName || paymentMethodId,
     transferNumber: order.transferNumber || order.vodafoneCashNumber || order.paymentAccount || '',
     paymentAccount: order.transferNumber || order.vodafoneCashNumber || order.paymentAccount || '',
     transactionNumber: order.transactionNumber || order.transactionId || order.paymentReference || '',
@@ -1290,7 +1316,6 @@ const buildTargetOrderFormData = (payload = {}) => {
   const formData = new FormData();
   const usesSiteWallet = payload.isSiteWalletPayment || isSiteWalletPaymentMethod(payload.paymentMethodId || payload.paymentMethod || payload.paymentMethodName);
   formData.append('appId', String(payload.appId || payload.productId || ''));
-  appendIfPresent(formData, 'targetAccountIdSnapshot', String(payload.targetAccountIdSnapshot || payload.targetAccountId || '').trim());
   formData.append('coinAmount', String(payload.coinAmount ?? payload.quantity ?? ''));
   formData.append('senderId', String(payload.senderId || payload.transferFromId || payload.playerId || '').trim());
   formData.append('transferNumber', String(payload.transferNumber || payload.paymentAccount || (usesSiteWallet ? 'محفظة الموقع' : '')).trim());
@@ -1301,9 +1326,179 @@ const buildTargetOrderFormData = (payload = {}) => {
   if (usesSiteWallet) formData.append('transferImageUrl', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==');
   appendIfPresent(formData, 'userName', String(payload.userName || '').trim());
   appendIfPresent(formData, 'userEmail', String(payload.userEmail || '').trim());
+  appendIfPresent(formData, 'idempotencyKey', String(payload.idempotencyKey || createClientIdempotencyKey()).trim());
   const file = payload.screenshotProof || payload.proofImage || payload.receipt || null;
   if (file) formData.append('screenshotProof', file);
   return formData;
+};
+
+const createClientIdempotencyKey = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `target-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const normalizeReferralCurrency = (value, fallback = 'USD') =>
+  String(value || fallback).trim().toUpperCase();
+
+const normalizeReferralNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const referralPayoutStatusToUi = (status) => {
+  const code = String(status || '').trim().toUpperCase();
+  if (code === 'PAID' || code === 'COMPLETED' || code === 'SUCCESS') return 'completed';
+  if (code === 'REJECTED' || code === 'FAILED') return 'failed';
+  return 'processing';
+};
+
+const normalizeSubAgentRequest = (request = {}) => ({
+  ...request,
+  id: request.id || request._id || '',
+  userId: request.userId || request.user?.id || '',
+  name: request.name || request.user?.name || '',
+  email: request.email || request.user?.email || '',
+  message: request.message || request.notes || '',
+  proofImage: resolveImageUrl(request.proofImage || request.proofUrl || ''),
+  proofUrl: resolveImageUrl(request.proofUrl || request.proofImage || ''),
+  status: String(request.status || request.statusCode || 'pending').toLowerCase(),
+  statusCode: String(request.statusCode || request.status || 'PENDING').toUpperCase(),
+  currentGroup: request.currentGroup || request.user?.group || null,
+  approvedGroup: request.approvedGroup || null,
+  rejectionReason: request.rejectionReason || null,
+  createdAt: request.createdAt || null,
+  reviewedAt: request.reviewedAt || null,
+});
+
+const normalizeReferralCommission = (commission = {}) => {
+  const referredUser = commission.referredUser || commission.referredUserId || {};
+  return {
+    ...commission,
+    id: commission.id || commission._id || '',
+    referredUser: typeof referredUser === 'object' ? {
+      id: referredUser.id || referredUser._id || '',
+      name: referredUser.name || '',
+      email: referredUser.email || '',
+    } : null,
+    sourceType: commission.sourceType || '',
+    sourceDate: commission.sourceCompletedAt || commission.sourceDate || commission.createdAt || null,
+    originalAmount: commission.originalAmount || '0.000000',
+    originalCurrency: normalizeReferralCurrency(commission.originalCurrency),
+    commissionPercent: commission.commissionPercentSnapshot || commission.commissionPercent || '0',
+    amount: commission.commissionAmountReferrerCurrency || commission.amount || '0.000000',
+    currency: normalizeReferralCurrency(commission.referrerCurrency || commission.currency),
+    status: String(commission.status || '').toLowerCase(),
+    statusCode: String(commission.status || '').toUpperCase(),
+    createdAt: commission.createdAt || null,
+  };
+};
+
+const normalizeReferralPayout = (payout = {}, { includeFullExternal = false } = {}) => {
+  const summary = payout.externalPaymentSummary || payout.externalSummary || {};
+  const fullDetails = includeFullExternal ? (payout.externalPaymentDetails || {}) : {};
+  const external = { ...summary, ...fullDetails };
+  return {
+    ...payout,
+    id: payout.id || payout._id || '',
+    user: payout.user || null,
+    ownerName: payout.ownerName || payout.user?.name || '',
+    ownerEmail: payout.ownerEmail || payout.user?.email || '',
+    ownerAvatar: resolveUserAvatar(payout.user || {}, payout.user?.email || payout.user?.name || ''),
+    method: payout.methodAlias || payout.withdrawalMethod || String(payout.method || 'wallet').toLowerCase(),
+    methodName: payout.methodName || external.methodType || payout.methodAlias || payout.withdrawalMethod || payout.method || 'wallet',
+    amount: normalizeReferralNumber(payout.amount),
+    requestedAmount: normalizeReferralNumber(payout.requestedAmount ?? payout.amount),
+    currency: normalizeReferralCurrency(payout.currency, 'EGP'),
+    status: referralPayoutStatusToUi(payout.statusCode || payout.status),
+    statusCode: String(payout.statusCode || payout.status || '').toUpperCase(),
+    createdAt: payout.createdAt || null,
+    completedAt: payout.completedAt || payout.paidAt || null,
+    reviewedAt: payout.reviewedAt || null,
+    rejectionReason: payout.rejectionReason || null,
+    accountHolder: external.accountName || '',
+    accountNumber: external.phoneNumber || external.accountNumber || external.iban || external.walletAddress || '',
+    phone: external.phoneNumber || external.accountNumber || '',
+    reference: payout.externalTransactionReference || payout.externalTransactionReferenceFull || '',
+    receiptImage: resolveImageUrl(payout.receiptImage || payout.paymentProofUrl || ''),
+    raw: payout,
+  };
+};
+
+const normalizeReferralCustomer = (customer = {}, fallbackCurrency = 'USD', index = 0) => ({
+  ...customer,
+  id: customer.id || customer._id || `referral-${index}`,
+  name: customer.name || customer.username || customer.email || `Customer ${index + 1}`,
+  email: customer.email || '',
+  avatar: resolveUserAvatar(customer, customer.email || customer.name || `Customer ${index + 1}`),
+  addedAmount: normalizeReferralNumber(customer.addedAmount ?? customer.totalDeposits ?? customer.depositsTotal ?? customer.topupTotal),
+  earnings: normalizeReferralNumber(customer.earnings ?? customer.referralEarnings ?? customer.commission),
+  currency: normalizeReferralCurrency(customer.currency, fallbackCurrency),
+  invitedAt: customer.invitedAt || customer.referredAt || customer.createdAt || null,
+  expiresAt: customer.expiresAt || customer.referralEligibleUntil || null,
+});
+
+const normalizeReferralDashboard = (dashboard = {}, user = {}) => {
+  const currency = normalizeReferralCurrency(dashboard.displayCurrency || dashboard.walletCurrency || user.currency);
+  const invitedUsers = Array.isArray(dashboard.invitedUsers || dashboard.referredCustomers)
+    ? (dashboard.invitedUsers || dashboard.referredCustomers).map((customer, index) => normalizeReferralCustomer(customer, currency, index))
+    : [];
+  return {
+    ...dashboard,
+    referralCode: dashboard.referralCode || user.referralCode || user.inviteCode || '',
+    referralLinkPath: dashboard.referralLinkPath || '',
+    walletCurrency: currency,
+    displayCurrency: currency,
+    referralCount: normalizeReferralNumber(dashboard.referralCount ?? invitedUsers.length),
+    invitedUsers,
+    referredCustomers: invitedUsers,
+    availableEarnings: dashboard.availableEarnings || {},
+    lockedEarnings: dashboard.lockedEarnings || {},
+    paidEarnings: dashboard.paidEarnings || {},
+    displayAvailableEarnings: dashboard.displayAvailableEarnings || dashboard.availableEarnings?.[currency] || '0.000000',
+    currentGroup: dashboard.currentGroup || null,
+    resellerStatus: dashboard.resellerStatus || 'NONE',
+  };
+};
+
+const normalizeReferralPayoutMethod = (method = {}, index = 0) => ({
+  id: String(method.id || method.code || `method-${index}`).trim().toLowerCase(),
+  name: String(method.name || method.label || method.id || `Method ${index + 1}`).trim(),
+  enabled: method.enabled !== false && method.isActive !== false,
+  requiresAccount: method.requiresAccount !== false && String(method.id || method.code || '').toLowerCase() !== 'wallet',
+  discountPercent: Math.min(100, Math.max(0, normalizeReferralNumber(method.discountPercent))),
+  kind: method.kind || (String(method.id || '').toLowerCase() === 'wallet' ? 'wallet_credit' : 'manual_external'),
+  sortOrder: normalizeReferralNumber(method.sortOrder, index),
+});
+
+const normalizeAdminReferralAgent = (agent = {}, index = 0) => {
+  const currency = normalizeReferralCurrency(agent.currency, 'EGP');
+  const referrals = Array.isArray(agent.referrals)
+    ? agent.referrals.map((entry, referralIndex) => normalizeReferralCustomer(entry, currency, referralIndex))
+    : [];
+  const withdrawals = Array.isArray(agent.withdrawals)
+    ? agent.withdrawals.map(normalizeReferralPayout)
+    : [];
+  return {
+    ...agent,
+    id: agent.id || agent._id || `owner-${index}`,
+    name: agent.name || agent.username || agent.email || `User ${index + 1}`,
+    email: agent.email || '',
+    avatar: resolveUserAvatar(agent, agent.email || agent.name),
+    code: agent.code || agent.referralCode || agent.inviteCode || '—',
+    currency,
+    referrals,
+    withdrawals,
+    earnings: normalizeReferralNumber(agent.earnings ?? agent.referralRewards ?? agent.referralEarnings),
+    availableEarnings: normalizeReferralNumber(agent.availableEarnings),
+    lockedEarnings: normalizeReferralNumber(agent.lockedEarnings),
+    paidEarnings: normalizeReferralNumber(agent.paidEarnings),
+    withdrawn: normalizeReferralNumber(agent.withdrawn),
+    currentCommissionPercent: normalizeReferralNumber(agent.currentCommissionPercent ?? agent.defaultCommissionPercent),
+    referralCommissionPercentOverride: agent.referralCommissionPercentOverride ?? null,
+    group: agent.group || null,
+  };
 };
 
 /**
@@ -1700,7 +1895,12 @@ const realApi = {
       const token = params.get('token');
       if (!token) {
         // Initiate the redirect
-        window.location.href = `${API_BASE}/auth/google`;
+        const referralCode = String(params.get('ref') || '').trim().toUpperCase();
+        const signupIntent = window.sessionStorage?.getItem('auth:google-signup-intent') === '1';
+        const googleParams = new URLSearchParams();
+        googleParams.set('intent', signupIntent ? 'signup' : 'login');
+        if (referralCode) googleParams.set('referralCode', referralCode);
+        window.location.href = `${API_BASE}/auth/google?${googleParams.toString()}`;
         // Return a promise that never resolves (page will redirect)
         return new Promise(() => { });
       }
@@ -1733,6 +1933,7 @@ const realApi = {
       };
 
       if (userData.username) payload.username = userData.username;
+      if (userData.referralCode) payload.referralCode = userData.referralCode;
 
       const res = await http.post('/auth/register', payload);
       const data = unwrap(res);
@@ -1763,14 +1964,9 @@ const realApi = {
     },
 
     logout: async () => {
+      // The current backend contract has no logout endpoint. The API uses
+      // bearer tokens, so clearing the persisted session is the logout action.
       clearStoredSession();
-
-      try {
-        await http.post('/auth/logout');
-      } catch {
-        // Some backend deployments do not expose a logout endpoint.
-      }
-
       return { success: true };
     },
   },
@@ -1793,78 +1989,249 @@ const realApi = {
     },
   },
 
+  referrals: {
+    dashboard: async ({ limit = 50 } = {}) => {
+      const res = await http.get('/me/referrals/dashboard', { params: { limit } });
+      const data = unwrap(res);
+      const user = getStoredAuthState()?.user || {};
+      return normalizeReferralDashboard(data?.dashboard || data, user);
+    },
+
+    commissions: async ({ page = 1, limit = 50, status, currency } = {}) => {
+      const params = { page, limit };
+      if (status) params.status = status;
+      if (currency) params.currency = normalizeReferralCurrency(currency);
+      const res = await http.get('/me/referral-commissions', { params });
+      const data = unwrap(res);
+      const items = Array.isArray(data) ? data : (data?.commissions || data?.data || []);
+      return {
+        commissions: items.map(normalizeReferralCommission),
+        pagination: res.data?.pagination || data?.pagination || null,
+      };
+    },
+
+    summary: async () => {
+      const res = await http.get('/me/referral-commissions/summary');
+      return unwrap(res);
+    },
+
+    payoutMethods: async () => {
+      const res = await http.get('/me/referral-payout-methods');
+      const data = unwrap(res);
+      const methods = Array.isArray(data) ? data : (data?.methods || []);
+      return methods.map(normalizeReferralPayoutMethod).filter((method) => method.enabled);
+    },
+
+    currentSubAgentRequest: async () => {
+      const res = await http.get('/me/sub-agent-requests/current');
+      const data = unwrap(res);
+      return {
+        ...data,
+        request: data?.request ? normalizeSubAgentRequest(data.request) : null,
+        currentGroup: data?.currentGroup || null,
+      };
+    },
+
+    subAgentRequests: async ({ page = 1, limit = 50 } = {}) => {
+      const res = await http.get('/me/sub-agent-requests', { params: { page, limit } });
+      const data = unwrap(res);
+      const items = Array.isArray(data) ? data : (data?.requests || data?.data || []);
+      return {
+        requests: items.map(normalizeSubAgentRequest),
+        pagination: res.data?.pagination || data?.pagination || null,
+      };
+    },
+
+    createSubAgentRequest: async ({ message, proofFile }) => {
+      const formData = new FormData();
+      formData.append('message', String(message || '').trim());
+      if (proofFile) formData.append('proofImage', proofFile);
+      const res = await http.post('/me/sub-agent-requests', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const data = unwrap(res);
+      return normalizeSubAgentRequest(data?.request || data);
+    },
+
+    payouts: async ({ page = 1, limit = 50, status, method, currency } = {}) => {
+      const params = { page, limit };
+      if (status) params.status = status;
+      if (method) params.method = method;
+      if (currency) params.currency = normalizeReferralCurrency(currency);
+      const res = await http.get('/me/referral-payouts', { params });
+      const data = unwrap(res);
+      const items = Array.isArray(data) ? data : (data?.payouts || data?.data || []);
+      return {
+        payouts: items.map(normalizeReferralPayout),
+        pagination: res.data?.pagination || data?.pagination || null,
+      };
+    },
+
+    createPayout: async (payload = {}) => {
+      const methodId = String(payload.method || payload.withdrawalMethod || 'wallet').trim().toLowerCase();
+      const body = {
+        method: methodId === 'wallet' ? 'wallet' : methodId,
+        currency: normalizeReferralCurrency(payload.currency),
+        amount: String(payload.amount || '').trim(),
+        idempotencyKey: payload.idempotencyKey || createClientIdempotencyKey(),
+      };
+      if (methodId !== 'wallet') {
+        body.externalDetails = {
+          methodType: methodId,
+          accountName: payload.accountName || payload.accountHolder || payload.name || '',
+          phoneNumber: payload.phone || payload.walletNumber || payload.accountNumber || '',
+          accountNumber: payload.accountNumber || payload.phone || '',
+          notes: payload.notes || '',
+        };
+      }
+      const res = await http.post('/me/referral-payouts', body);
+      const data = unwrap(res);
+      return normalizeReferralPayout(data?.payout || data);
+    },
+
+    adminAgents: async ({ page = 1, limit = 100, search = '' } = {}) => {
+      const res = await http.get('/admin/referrals/agents', { params: { page, limit, search } });
+      const data = unwrap(res);
+      const items = Array.isArray(data) ? data : (data?.agents || data?.data || []);
+      return {
+        agents: items.map(normalizeAdminReferralAgent),
+        pagination: res.data?.pagination || data?.pagination || null,
+        defaultCommissionPercent: normalizeReferralNumber(res.data?.defaultCommissionPercent ?? data?.defaultCommissionPercent, 1),
+        settingKey: res.data?.settingKey || data?.settingKey || 'referralDefaultCommissionPercent',
+      };
+    },
+
+    updateAgentCommission: async (userId, percent) => {
+      const res = await http.patch(`/admin/referrals/agents/${userId}/commission`, { percent });
+      return unwrap(res);
+    },
+
+    getDefaultCommissionRate: async () => {
+      try {
+        const res = await http.get('/admin/settings/referralDefaultCommissionPercent');
+        const data = unwrap(res);
+        return normalizeReferralNumber(data?.setting?.value ?? data?.value, 1);
+      } catch {
+        return 1;
+      }
+    },
+
+    updateDefaultCommissionRate: async (percent) => {
+      const normalized = Math.min(50, Math.max(0, normalizeReferralNumber(percent, 1)));
+      const res = await http.patch('/admin/settings/referralDefaultCommissionPercent', { value: String(normalized) });
+      const data = unwrap(res);
+      return normalizeReferralNumber(data?.setting?.value ?? data?.value, normalized);
+    },
+
+    adminSubAgentRequests: async ({ page = 1, limit = 100, status, search = '' } = {}) => {
+      const params = { page, limit, search };
+      if (status) params.status = status;
+      const res = await http.get('/admin/sub-agent-requests', { params });
+      const data = unwrap(res);
+      const items = Array.isArray(data) ? data : (data?.requests || data?.data || []);
+      return {
+        requests: items.map(normalizeSubAgentRequest),
+        pagination: res.data?.pagination || data?.pagination || null,
+      };
+    },
+
+    approveSubAgentRequest: async (requestId, { groupId }) => {
+      const res = await http.patch(`/admin/sub-agent-requests/${requestId}/approve`, { groupId });
+      const data = unwrap(res);
+      return normalizeSubAgentRequest(data?.request || data);
+    },
+
+    rejectSubAgentRequest: async (requestId, { reason }) => {
+      const res = await http.patch(`/admin/sub-agent-requests/${requestId}/reject`, { reason });
+      const data = unwrap(res);
+      return normalizeSubAgentRequest(data?.request || data);
+    },
+
+    adminPayouts: async ({ page = 1, limit = 100, status, method, search = '' } = {}) => {
+      const params = { page, limit, search };
+      if (status) params.status = status;
+      if (method) params.method = method;
+      const res = await http.get('/admin/referral-payouts', { params });
+      const data = unwrap(res);
+      const items = Array.isArray(data) ? data : (data?.payouts || data?.data || []);
+      const detailedItems = await Promise.all(items.map(async (item) => {
+        const payoutId = item.id || item._id;
+        if (!payoutId) return item;
+        try {
+          const detailRes = await http.get(`/admin/referral-payouts/${payoutId}`);
+          const detailData = unwrap(detailRes);
+          return detailData?.payout || detailData || item;
+        } catch {
+          return item;
+        }
+      }));
+      return {
+        payouts: detailedItems.map((item) => normalizeReferralPayout(item, { includeFullExternal: true })),
+        pagination: res.data?.pagination || data?.pagination || null,
+      };
+    },
+
+    rejectPayout: async (payoutId, { reason }) => {
+      const res = await http.patch(`/admin/referral-payouts/${payoutId}/reject`, { reason });
+      const data = unwrap(res);
+      return normalizeReferralPayout(data?.payout || data, { includeFullExternal: true });
+    },
+
+    payWalletPayout: async (payoutId) => {
+      const res = await http.patch(`/admin/referral-payouts/${payoutId}/pay-wallet`);
+      const data = unwrap(res);
+      return normalizeReferralPayout(data?.payout || data, { includeFullExternal: true });
+    },
+
+    markManualPayoutPaid: async (payoutId, { receiptFile, reference = '' } = {}) => {
+      const formData = new FormData();
+      if (reference) formData.append('externalTransactionReference', reference);
+      if (receiptFile) formData.append('receiptImage', receiptFile);
+      const res = await http.patch(`/admin/referral-payouts/${payoutId}/mark-paid`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const data = unwrap(res);
+      return normalizeReferralPayout(data?.payout || data, { includeFullExternal: true });
+    },
+
+    adminPayoutMethods: async () => {
+      try {
+        const res = await http.get('/admin/settings/referralPayoutMethods');
+        const data = unwrap(res);
+        const methods = data?.setting?.value || data?.value || [];
+        return (Array.isArray(methods) ? methods : []).map(normalizeReferralPayoutMethod);
+      } catch {
+        return [];
+      }
+    },
+
+    updateAdminPayoutMethods: async (methods = []) => {
+      const normalized = methods.map(normalizeReferralPayoutMethod);
+      const res = await http.patch('/admin/settings/referralPayoutMethods', { value: normalized });
+      const data = unwrap(res);
+      const fresh = data?.setting?.value || data?.value || normalized;
+      return (Array.isArray(fresh) ? fresh : normalized).map(normalizeReferralPayoutMethod);
+    },
+  },
+
   notifications: {
     unreadCount: async () => {
-      const res = await http.get('/me/notifications/unread-count');
-      const data = unwrap(res);
-      return Number(data?.unreadCount ?? data?.count ?? data?.total ?? data ?? 0) || 0;
+      // Notifications are maintained optimistically in the client. There are
+      // no notification endpoints in the deployed API contract.
+      return null;
     },
 
     list: async () => {
-      const endpointPlan = ['/me/notifications', '/notifications'];
-      let lastError = null;
-      for (const endpoint of endpointPlan) {
-        try {
-          const res = await http.get(endpoint);
-          const data = unwrap(res);
-          const items = Array.isArray(data) ? data : (data?.notifications || data?.items || []);
-          return items.map((item) => ({
-            ...item,
-            id: item._id || item.id,
-            read: Boolean(item.read ?? item.isRead),
-          }));
-        } catch (error) {
-          lastError = error;
-          const status = Number(error?.response?.status || error?.status || 0);
-          if (status === 404) {
-            continue;
-          }
-        }
-      }
-
-      if (lastError) {
-        const status = Number(lastError?.response?.status || lastError?.status || 0);
-        if (status === 404) {
-          return [];
-        }
-      }
-
-      return [];
+      return null;
     },
 
     markAsRead: async (id) => {
       const normalizedId = String(id || '').trim();
       if (!normalizedId) return { success: true };
-      const endpointPlan = [
-        { method: 'patch', url: `/me/notifications/${normalizedId}/read` },
-        { method: 'patch', url: `/notifications/${normalizedId}/read` },
-      ];
-      let lastError = null;
-      for (const request of endpointPlan) {
-        try {
-          await http[request.method](request.url);
-          return { success: true };
-        } catch (error) {
-          lastError = error;
-          const status = Number(error?.response?.status || error?.status || 0);
-          if (status === 404) {
-            return { success: true };
-          }
-        }
-      }
-
-      if (lastError) {
-        const status = Number(lastError?.response?.status || lastError?.status || 0);
-        if (status === 404) {
-          return { success: true };
-        }
-      }
-
       return { success: true };
     },
 
     markAllAsRead: async () => {
-      await http.patch('/me/notifications/read-all');
       return { success: true };
     },
 
@@ -1882,80 +2249,26 @@ const realApi = {
      * Both return products array in `data`.
      */
     list: async () => {
-      const includeUnavailableParams = {
-        includeUnavailable: true,
-        includeInactive: true,
-        showUnavailable: true,
-        includeHidden: true,
-        includeDisabled: true,
-        includeStopped: true,
-        includePaused: true,
-        status: 'all',
-        productStatus: 'all',
-        visibility: 'all',
-      };
-      const requestPlan = isAdmin()
-        ? [
-          ['/admin/products', { params: includeUnavailableParams }],
-          ['/admin/products'],
-          ['/products', { params: includeUnavailableParams }],
-          ['/me/products', { params: includeUnavailableParams }],
-        ]
-        : [
-          // Documented endpoint for customers.
-          ['/products', { params: includeUnavailableParams }],
-          // Fallback for deployments that expose customer-scoped products.
-          ['/me/products', { params: includeUnavailableParams }],
-          // If the current session is privileged but the persisted role is stale,
-          // this recovers inactive/unavailable products that public routes hide.
-          ['/admin/products', { params: includeUnavailableParams }],
-          '/products',
-          '/me/products',
-          '/admin/products',
-        ];
-
-      let fallback = null;
-      const productsById = new Map();
-
-      const mergeProductRecord = (current, next) => {
-        if (!current) return next;
-        const keepCurrentCategory = productHasReadableCategory(current) && !productHasReadableCategory(next);
-
-        return {
-          ...current,
-          ...next,
-          category: keepCurrentCategory ? current.category : next.category,
-          categoryName: next.categoryName || current.categoryName,
-          categoryNameAr: next.categoryNameAr || current.categoryNameAr,
-          categoryTitle: next.categoryTitle || current.categoryTitle,
-          categoryTitleAr: next.categoryTitleAr || current.categoryTitleAr,
-          categoryLabel: next.categoryLabel || current.categoryLabel,
-          categoryLabelAr: next.categoryLabelAr || current.categoryLabelAr,
-          categoryAr: next.categoryAr || current.categoryAr,
-        };
-      };
-
-      for (const entry of requestPlan) {
-        try {
-          const [endpoint, config] = Array.isArray(entry) ? entry : [entry, undefined];
-          const res = await http.get(endpoint, config);
-          const data = unwrap(res);
-          const products = Array.isArray(data) ? data : (data?.products || []);
-          const normalised = (Array.isArray(products) ? products : []).map(normaliseProduct).filter(Boolean);
-
-          if (!fallback) fallback = normalised;
-
-          normalised.forEach((product) => {
-            const key = String(product?.id || product?._id || product?.slug || product?.name || product?.nameAr || '').trim();
-            if (!key) return;
-            productsById.set(key, mergeProductRecord(productsById.get(key), product));
-          });
-        } catch {
-          // Silent fallback across endpoints.
-        }
-      }
-
-      return productsById.size ? Array.from(productsById.values()) : (fallback || []);
+      // Use the single documented endpoint for the current role. Speculative
+      // fallbacks generated visible 403/404 errors even after a request had
+      // already succeeded.
+      const endpoint = isAdmin() ? '/admin/products' : '/products';
+      const res = await http.get(endpoint, {
+        params: {
+          // Stopped products remain part of the storefront and are rendered as
+          // unavailable. The timestamp prevents browser/proxy response reuse.
+          includeUnavailable: true,
+          includeInactive: true,
+          includeDisabled: true,
+          includeStopped: true,
+          includePaused: true,
+          status: 'all',
+          _fresh: Date.now(),
+        },
+      });
+      const data = unwrap(res);
+      const products = Array.isArray(data) ? data : (data?.products || data?.items || []);
+      return (Array.isArray(products) ? products : []).map(normaliseProduct).filter(Boolean);
     },
 
     /**
@@ -2368,23 +2681,40 @@ const realApi = {
       status,
       email,
     } = {}) => {
-      const normalizedSortBy = typeof sortBy === 'string' && sortBy.trim() ? sortBy.trim() : 'walletBalance';
-      const normalizedSortOrder = String(sortOrder || '').trim().toLowerCase() === 'asc' ? 'asc' : 'desc';
       const query = new URLSearchParams();
       query.set('page', String(page));
       query.set('limit', String(limit));
-      query.set('sortBy', normalizedSortBy);
-      query.set('sortOrder', normalizedSortOrder);
+      // Sorting is performed in the store. Only send parameters documented by
+      // the API because strict deployments reject unknown query fields.
+      void sortBy;
+      void sortOrder;
       if (String(search || '').trim()) query.set('search', String(search).trim());
       if (role) query.set('role', String(role).toUpperCase());
       if (status) query.set('status', String(status).toUpperCase());
       if (email) query.set('email', String(email).trim());
       const res = await http.get(`/admin/users?${query}`);
       const body = res.data || {};
-      const data = body.data;
-      // sendPaginated puts the array as `data` directly
-      const users = Array.isArray(data) ? data : (data?.users || []);
-      return { users: normaliseUsers(users), pagination: body.pagination || null };
+      const data = body.data ?? body;
+      // Support the documented array envelope and common paginated variants.
+      const users = Array.isArray(data)
+        ? data
+        : (
+          data?.users
+          || data?.items
+          || data?.results
+          || data?.docs
+          || body?.users
+          || body?.items
+          || body?.results
+          || body?.docs
+          || []
+        );
+      const pagination = body.pagination
+        || data?.pagination
+        || data?.meta
+        || body?.meta
+        || null;
+      return { users: normaliseUsers(users), pagination };
     },
 
     listDeleted: async () => {
@@ -2625,6 +2955,9 @@ const realApi = {
       if (updates.phone !== undefined) body.phone = updates.phone;
       if (updates.username !== undefined) body.username = updates.username;
       if (updates.password !== undefined) body.password = updates.password;
+      if (updates.country !== undefined) body.country = updates.country;
+      if (updates.currency !== undefined) body.currency = updates.currency;
+      if (updates.referralCode !== undefined) body.referralCode = updates.referralCode;
       // Admin-only fields
       if (updates.groupId !== undefined) body.groupId = updates.groupId;
       if (updates.verified !== undefined) body.verified = updates.verified;
@@ -2857,16 +3190,15 @@ const realApi = {
         includeUnavailable: true,
         includeInactive: true,
         showUnavailable: true,
-        includeHidden: true,
         includeDisabled: true,
         includeStopped: true,
         includePaused: true,
         status: 'all',
-        visibility: 'all',
+        _fresh: Date.now(),
       };
       const catalogRequests = [
         ['/public/catalog', { params: includeUnavailableParams }],
-        ['/public/catalog?includeUnavailable=true&includeInactive=true&includeHidden=true&status=all&visibility=all'],
+        ['/public/catalog?includeUnavailable=true&includeInactive=true&status=all', { params: { _fresh: includeUnavailableParams._fresh } }],
         ['/storefront/catalog', { params: includeUnavailableParams }],
         ['/catalog', { params: includeUnavailableParams }],
       ];
@@ -2882,7 +3214,8 @@ const realApi = {
       ];
       const categoryMap = new Map();
       const productMap = new Map();
-      let foundCatalog = false;
+      let hasProductsPayload = false;
+      let hasCategoriesPayload = false;
 
       const readPayload = (res) => {
         const body = res?.data || {};
@@ -2908,40 +3241,65 @@ const realApi = {
           const [endpoint, config] = Array.isArray(entry) ? entry : [entry, undefined];
           const res = await http.get(endpoint, config);
           const data = readPayload(res);
-          addCategories(Array.isArray(data) ? [] : data?.categories);
-          addProducts(Array.isArray(data) ? data : data?.products);
-          foundCatalog = true;
+          const categoryItems = Array.isArray(data?.categories) ? data.categories : null;
+          const productItems = Array.isArray(data) ? data : (Array.isArray(data?.products) ? data.products : null);
+
+          if (categoryItems) {
+            addCategories(categoryItems);
+            hasCategoriesPayload = true;
+          }
+          if (productItems) {
+            addProducts(productItems);
+            hasProductsPayload = true;
+          }
+
+          // The first recognized catalog response is canonical. Do not merge
+          // later endpoints that may carry an older availability snapshot.
+          if (categoryItems || productItems) break;
         } catch {
           // Try the next public catalog shape.
         }
       }
 
-      for (const entry of productRequests) {
-        try {
-          const [endpoint, config] = Array.isArray(entry) ? entry : [entry, undefined];
-          const res = await http.get(endpoint, config);
-          const data = readPayload(res);
-          addProducts(Array.isArray(data) ? data : (data?.products || data?.items || []));
-        } catch {
-          // Try the next public products endpoint.
+      if (!hasProductsPayload) {
+        for (const entry of productRequests) {
+          try {
+            const [endpoint, config] = Array.isArray(entry) ? entry : [entry, undefined];
+            const res = await http.get(endpoint, config);
+            const data = readPayload(res);
+            const productItems = Array.isArray(data)
+              ? data
+              : (Array.isArray(data?.products) ? data.products : (Array.isArray(data?.items) ? data.items : null));
+            if (!productItems) continue;
+            addProducts(productItems);
+            hasProductsPayload = true;
+            break;
+          } catch {
+            // Try the next public products endpoint.
+          }
         }
       }
 
-      for (const endpoint of categoryRequests) {
-        try {
-          const res = await http.get(endpoint);
-          const data = readPayload(res);
-          addCategories(Array.isArray(data) ? data : (data?.categories || data?.items || []));
-        } catch {
-          // Try the next public categories endpoint.
+      if (!hasCategoriesPayload) {
+        for (const endpoint of categoryRequests) {
+          try {
+            const res = await http.get(endpoint, { params: { _fresh: includeUnavailableParams._fresh } });
+            const data = readPayload(res);
+            const categoryItems = Array.isArray(data)
+              ? data
+              : (Array.isArray(data?.categories) ? data.categories : (Array.isArray(data?.items) ? data.items : null));
+            if (!categoryItems) continue;
+            addCategories(categoryItems);
+            hasCategoriesPayload = true;
+            break;
+          } catch {
+            // Try the next public categories endpoint.
+          }
         }
       }
 
-      if (!foundCatalog && productMap.size === 0 && categoryMap.size === 0) {
-        const res = await http.get('/public/catalog');
-        const data = readPayload(res) || {};
-        addCategories(data?.categories);
-        addProducts(data?.products);
+      if (!hasProductsPayload && !hasCategoriesPayload) {
+        throw new Error('Public catalog is unavailable.');
       }
 
       return {
@@ -3497,6 +3855,9 @@ const realApi = {
 
     create: async (payload) => {
       const formData = payload instanceof FormData ? payload : buildTargetOrderFormData(payload);
+      if (formData instanceof FormData && !formData.has('idempotencyKey')) {
+        formData.append('idempotencyKey', createClientIdempotencyKey());
+      }
       const res = await http.post('/me/targets', formData);
       const data = unwrap(res);
       return normaliseTargetOrder(data?.order || data?.request || data);

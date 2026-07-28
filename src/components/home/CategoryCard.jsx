@@ -61,7 +61,7 @@ const CategoryCard = ({
       style={{ animation: 'page-fade-in 280ms ease-out both', animationDelay: `${Math.min(index * 35, 210)}ms` }}
     >
       <div className="flex w-full justify-center">
-        <div className="relative inline-block max-w-full overflow-hidden rounded-[1.35rem] p-px shadow-[0_0_12px_rgb(var(--color-primary-rgb)/0.14)]">
+        <div className="storefront-category-neon-frame relative inline-block max-w-full overflow-hidden rounded-[1.35rem] p-px shadow-[0_0_12px_rgb(var(--color-primary-rgb)/0.14)]">
           <span className="pointer-events-none absolute -inset-[36%] rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_52deg,rgb(var(--color-primary-rgb)/0.64)_60deg,rgb(255_245_190/0.72)_65deg,rgb(var(--color-primary-rgb)/0.52)_70deg,transparent_80deg,transparent_360deg)] blur-[1px]" />
           <span className="pointer-events-none absolute inset-px z-20 rounded-[1.28rem] border border-[color:rgb(var(--color-primary-rgb)/0.42)] shadow-[0_0_9px_rgb(var(--color-primary-rgb)/0.26),inset_0_0_10px_rgb(var(--color-primary-rgb)/0.1)]" />
           <span className="pointer-events-none absolute inset-x-5 top-1/2 z-10 h-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(var(--color-primary-rgb)/0.18),rgb(var(--color-primary-rgb)/0.07)_42%,transparent_72%)] blur-xl" />

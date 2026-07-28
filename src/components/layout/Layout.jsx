@@ -114,10 +114,12 @@ const Layout = ({ children = null }) => {
               <button
                 type="button"
                 onClick={handleGoBack}
-                className="inline-flex items-center gap-2 rounded-full border border-[color:rgb(var(--color-border-rgb)/0.76)] bg-[color:rgb(var(--color-card-rgb)/0.7)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text)] shadow-[var(--shadow-subtle)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.28)] hover:text-[var(--color-primary)]"
+                className="group inline-flex h-8 items-center gap-1.5 rounded-[0.7rem] border border-amber-500/25 bg-[linear-gradient(135deg,rgb(245_158_11/0.14),rgb(var(--color-card-rgb)/0.82)_58%,rgb(var(--color-primary-rgb)/0.12))] px-1.5 pe-2.5 text-[0.68rem] font-extrabold text-amber-700 shadow-[0_10px_24px_-20px_rgb(245_158_11/0.7),inset_0_1px_0_rgb(255_255_255/0.12)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/45 hover:bg-[linear-gradient(135deg,rgb(245_158_11/0.2),rgb(var(--color-card-rgb)/0.9)_58%,rgb(var(--color-primary-rgb)/0.16))] active:translate-y-0 active:scale-[0.98] dark:text-amber-300"
                 aria-label={dir === 'rtl' ? 'رجوع' : 'Back'}
               >
-                {dir === 'rtl' ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+                <span className="grid h-5 w-5 place-items-center rounded-md border border-amber-400/25 bg-[linear-gradient(145deg,rgb(245_158_11/0.22),rgb(var(--color-primary-rgb)/0.16))] text-amber-700 shadow-[inset_0_1px_0_rgb(255_255_255/0.16)] transition-transform duration-200 group-hover:scale-105 dark:text-amber-200">
+                  {dir === 'rtl' ? <ArrowRight className="h-3 w-3" strokeWidth={2.5} /> : <ArrowLeft className="h-3 w-3" strokeWidth={2.5} />}
+                </span>
                 <span>{dir === 'rtl' ? 'رجوع' : 'Back'}</span>
               </button>
 

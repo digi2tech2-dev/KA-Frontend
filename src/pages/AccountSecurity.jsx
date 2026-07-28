@@ -59,7 +59,7 @@ const AccountSecurity = () => {
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-600 dark:text-teal-300">
+              <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-300">
                 {text.securityOverview}
               </div>
               <h1 className="mt-1 text-xl font-black text-gray-950 sm:text-2xl dark:text-white">

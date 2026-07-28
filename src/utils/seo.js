@@ -1,7 +1,7 @@
 import resolveImageUrl from './imageUrl';
 
-const STORE_NAME = 'COINS STORES';
-const DEFAULT_DESCRIPTION = 'COINS STORES لخدمات شحن تطبيقات الدردشة الصوتية، شحن الألعاب، الاشتراكات، البطاقات الرقمية، وخدمات المنتجات الرقمية بسرعة ودقة.';
+const STORE_NAME = 'KANZ COINS';
+const DEFAULT_DESCRIPTION = 'KANZ COINS لخدمات شحن تطبيقات الدردشة الصوتية، شحن الألعاب، الاشتراكات، البطاقات الرقمية، وخدمات المنتجات الرقمية بسرعة ودقة.';
 
 const SEARCH_PHRASES = [
   'شحن تطبيقات دردشة صوتية',
@@ -13,7 +13,7 @@ const SEARCH_PHRASES = [
   'اشتراكات رقمية',
   'بطاقات رقمية',
   'شحن منتجات رقمية',
-  'Coins Stores',
+  'KANZ COINS',
 ];
 
 const cleanText = (value) => String(value || '')
@@ -55,8 +55,8 @@ export const getProductSeoDescription = (product, language = 'ar') => {
   const productName = getProductSeoName(product, language);
   const description = cleanText(product?.displayDescription || product?.descriptionAr || product?.description);
   const fallback = language === 'ar'
-    ? `شحن ${productName} عبر COINS STORES ضمن خدمات شحن تطبيقات الدردشة الصوتية، الألعاب، الاشتراكات، والمنتجات الرقمية.`
-    : `Top up ${productName} through COINS STORES for voice chat apps, games, subscriptions, and digital products.`;
+    ? `شحن ${productName} عبر KANZ COINS ضمن خدمات شحن تطبيقات الدردشة الصوتية، الألعاب، الاشتراكات، والمنتجات الرقمية.`
+    : `Top up ${productName} through KANZ COINS for voice chat apps, games, subscriptions, and digital products.`;
 
   return truncateText(description || fallback, 220);
 };
@@ -141,7 +141,7 @@ export const buildStoreSeo = ({
       '@type': 'Organization',
       name: STORE_NAME,
       url: origin || canonicalUrl,
-      logo: origin ? `${origin}/android-chrome-192x192.png?v=coins-stores` : '/android-chrome-192x192.png?v=coins-stores',
+      logo: origin ? `${origin}/android-chrome-192x192.png?v=kanz-coins` : '/android-chrome-192x192.png?v=kanz-coins',
     },
     {
       '@context': 'https://schema.org',
@@ -164,7 +164,7 @@ export const buildStoreSeo = ({
     jsonLd.push({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      name: language === 'ar' ? 'منتجات COINS STORES' : 'COINS STORES Products',
+      name: language === 'ar' ? 'منتجات KANZ COINS' : 'KANZ COINS Products',
       description: seoDescription,
       itemListElement: productList,
     });

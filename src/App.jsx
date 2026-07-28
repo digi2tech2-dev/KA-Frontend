@@ -4,6 +4,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import FloatingWhatsApp from './components/ui/FloatingWhatsApp';
 import PageTransition from './components/app/PageTransition';
 import SessionBootstrap from './components/app/SessionBootstrap';
+import RouteErrorBoundary from './components/app/RouteErrorBoundary';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -31,16 +32,17 @@ const AdminDashboard = lazy(routeLoaders.AdminDashboard);
 const Orders = lazy(routeLoaders.Orders);
 const Products = lazy(routeLoaders.Products);
 const ProductPurchasePage = lazy(routeLoaders.ProductPurchasePage);
-const Wallet = lazy(routeLoaders.Wallet);
 const Settings = lazy(routeLoaders.Settings);
 const ContactUs = lazy(routeLoaders.ContactUs);
 const CreatedBy = lazy(routeLoaders.CreatedBy);
 const Account = lazy(routeLoaders.Account);
 const AccountSecurity = lazy(routeLoaders.AccountSecurity);
+const Referral = lazy(routeLoaders.Referral);
 const AdminUsers = lazy(routeLoaders.AdminUsers);
 const AdminGroups = lazy(routeLoaders.AdminGroups);
 const AdminProducts = lazy(routeLoaders.AdminProducts);
 const AdminWallet = lazy(routeLoaders.AdminWallet);
+const AdminReferrals = lazy(routeLoaders.AdminReferrals);
 const AdminCurrencies = lazy(routeLoaders.AdminCurrencies);
 const AdminPayments = lazy(routeLoaders.AdminPayments);
 const AdminPaymentMethods = lazy(routeLoaders.AdminPaymentMethods);
@@ -49,7 +51,6 @@ const AdminSupervisors = lazy(routeLoaders.AdminSupervisors);
 const SupervisorMonitoring = lazy(routeLoaders.SupervisorMonitoring);
 const AdminSuppliers = lazy(routeLoaders.AdminSuppliers);
 const AdminOrders = lazy(routeLoaders.AdminOrders);
-const AdminUserTransactions = lazy(routeLoaders.AdminUserTransactions);
 const AdminTargetRequests = lazy(routeLoaders.AdminTargetRequests);
 const BuyTarget = lazy(routeLoaders.BuyTarget);
 const TargetOrders = lazy(routeLoaders.TargetOrders);
@@ -97,6 +98,7 @@ const AnimatedAppRoutes = ({ location }) => {
       <Route path="/" element={renderSuspended(<PublicCatalog />)} />
       <Route path="/catalog" element={renderSuspended(<PublicCatalog />)} />
       <Route path="/about-us" element={renderSuspended(<AboutUsPage />)} />
+      <Route path="/created-by" element={renderSuspended(<CreatedBy />)} />
       <Route path="/public-contact-us" element={renderSuspended(<ContactUs accountOnly />)} />
       <Route path="/auth" element={renderSuspended(<Auth />)} />
       <Route path="/login" element={renderSuspended(<Auth />)} />
@@ -108,6 +110,7 @@ const AnimatedAppRoutes = ({ location }) => {
       <Route path="/account-rejected" element={<Navigate to={ACCOUNT_REJECTED_ROUTE} replace />} />
 
       <Route element={renderSuspended(<Layout />)}>
+        <Route path="/wallet" element={<Navigate to="/wallet/add-balance" replace />} />
         <Route
           path="/dashboard"
           element={(
@@ -157,14 +160,6 @@ const AnimatedAppRoutes = ({ location }) => {
           )}
         />
         <Route
-          path="/wallet"
-          element={(
-            <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
-              {renderSuspended(<Wallet />)}
-            </ProtectedRoute>
-          )}
-        />
-        <Route
           path="/settings"
           element={(
             <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
@@ -205,10 +200,10 @@ const AnimatedAppRoutes = ({ location }) => {
           )}
         />
         <Route
-          path="/created-by"
+          path="/referral"
           element={(
             <ProtectedRoute roles={['customer']}>
-              {renderSuspended(<CreatedBy />)}
+              {renderSuspended(<Referral />)}
             </ProtectedRoute>
           )}
         />
@@ -309,14 +304,6 @@ const AnimatedAppRoutes = ({ location }) => {
           )}
         />
         <Route
-          path="/admin/users/:userId/transactions"
-          element={(
-            <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_USERS}>
-              {renderSuspended(<AdminUserTransactions />)}
-            </ProtectedRoute>
-          )}
-        />
-        <Route
           path="/admin/groups"
           element={(
             <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_GROUPS}>
@@ -340,6 +327,16 @@ const AnimatedAppRoutes = ({ location }) => {
             </ProtectedRoute>
           )}
         />
+        <Route path="/admin/user-transactions" element={<Navigate to="/admin/wallet" replace />} />
+        <Route path="/admin/users/:userId/transactions" element={<Navigate to="/admin/wallet" replace />} />
+        <Route
+          path="/admin/referrals"
+          element={(
+            <ProtectedRoute roles={ADMIN_PANEL_ROLES}>
+              {renderSuspended(<AdminReferrals />)}
+            </ProtectedRoute>
+          )}
+        />
         <Route
           path="/admin/payments"
           element={(
@@ -353,14 +350,6 @@ const AnimatedAppRoutes = ({ location }) => {
           element={(
             <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_ORDERS}>
               {renderSuspended(<AdminOrders />)}
-            </ProtectedRoute>
-          )}
-        />
-        <Route
-          path="/admin/user-transactions"
-          element={(
-            <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_USER_TRANSACTIONS}>
-              {renderSuspended(<AdminUserTransactions />)}
             </ProtectedRoute>
           )}
         />
@@ -442,7 +431,13 @@ const AnimatedAppRoutes = ({ location }) => {
     </Routes>
   );
 
-  return <div className={`min-h-screen${isAdminRoute ? ' admin-route-view' : ''}`}>{routes}</div>;
+  const routeKey = `${location.pathname}${location.search}${location.hash}`;
+
+  return (
+    <RouteErrorBoundary routeKey={routeKey}>
+      <div className={`min-h-screen${isAdminRoute ? ' admin-route-view' : ''}`}>{routes}</div>
+    </RouteErrorBoundary>
+  );
 };
 
 function App() {

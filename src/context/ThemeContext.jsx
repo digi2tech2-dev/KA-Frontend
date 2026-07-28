@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const ThemeContext = createContext();
-const THEME_STORAGE_KEY = 'coins-stores-theme';
+const THEME_STORAGE_KEY = 'kanz-coins-theme';
 
 const normalizeTheme = (value) => (value === 'light' || value === 'dark' ? value : null);
 

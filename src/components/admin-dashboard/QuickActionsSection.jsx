@@ -19,8 +19,8 @@ const QuickActionsSection = ({ actions, isArabic, variant = 'default' }) => {
     <Card
       variant="elevated"
       className={cn(
-        'mx-auto w-[calc(100vw-1.5rem)] sm:w-full xl:max-w-none',
-        isCompact ? 'max-w-[42rem] p-2.5 sm:p-3' : 'max-w-[42rem] p-3 sm:p-6'
+        'mx-auto w-[calc(100vw-1.5rem)] max-w-[24rem] sm:w-full sm:max-w-[42rem] xl:max-w-none',
+        isCompact ? 'p-2.5 sm:p-3' : 'p-3 sm:p-6'
       )}
     >
       <div className={cn('mb-3 sm:mb-4', isArabic ? 'text-right' : 'text-left')}>
@@ -53,7 +53,7 @@ const QuickActionsSection = ({ actions, isArabic, variant = 'default' }) => {
                 </p>
               </div>
 
-              <span className="inline-flex h-6 shrink-0 items-center justify-center rounded-md border border-[color:rgb(var(--color-border-rgb)/0.78)] bg-[color:rgb(var(--color-surface-rgb)/0.38)] px-2 text-[11px] font-semibold text-[var(--color-text)] transition-colors group-hover:border-[color:rgb(var(--color-primary-rgb)/0.34)] group-hover:bg-[color:rgb(var(--color-primary-rgb)/0.08)] group-hover:text-[var(--color-primary)]">
+              <span className="inline-flex h-6 shrink-0 items-center justify-center rounded-md border border-[color:rgb(var(--color-border-rgb)/0.78)] bg-[color:rgb(var(--color-surface-rgb)/0.38)] px-2 text-[11px] font-semibold text-[var(--color-text)] transition-[color,background-color,border-color,transform] duration-300 ease-out group-hover:scale-105 group-hover:border-[color:rgb(var(--color-primary-rgb)/0.34)] group-hover:bg-[color:rgb(var(--color-primary-rgb)/0.08)] group-hover:text-[var(--color-primary)] group-focus-visible:scale-105 motion-reduce:transform-none">
                 {isArabic ? 'فتح' : 'Open'}
               </span>
             </div>
@@ -89,7 +89,7 @@ const QuickActionsSection = ({ actions, isArabic, variant = 'default' }) => {
               key={action.to}
               to={action.to}
               className={cn(
-                'group relative overflow-hidden border border-[color:rgb(var(--color-border-rgb)/0.78)] bg-[linear-gradient(180deg,rgb(255_255_255/0.035),rgb(255_255_255/0.015))] shadow-[var(--shadow-subtle)] transition-colors hover:border-[color:rgb(var(--color-primary-rgb)/0.34)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.06)]',
+                'group relative z-0 overflow-hidden border border-[color:rgb(var(--color-border-rgb)/0.78)] bg-[linear-gradient(180deg,rgb(255_255_255/0.035),rgb(255_255_255/0.015))] shadow-[var(--shadow-subtle)] outline-none transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out hover:z-10 hover:-translate-y-0.5 hover:scale-[1.025] hover:border-[color:rgb(var(--color-primary-rgb)/0.42)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.07)] hover:shadow-[0_14px_34px_rgb(var(--color-primary-rgb)/0.16)] focus-visible:z-10 focus-visible:-translate-y-0.5 focus-visible:scale-[1.025] focus-visible:border-[color:rgb(var(--color-primary-rgb)/0.55)] focus-visible:shadow-[0_0_0_3px_rgb(var(--color-primary-rgb)/0.16),0_14px_34px_rgb(var(--color-primary-rgb)/0.16)] active:translate-y-0 active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none',
                 isCompact
                   ? 'rounded-[0.85rem] px-2 py-2'
                   : 'rounded-[1rem] px-3 py-3 sm:px-4 sm:py-3.5'

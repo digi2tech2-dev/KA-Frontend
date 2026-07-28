@@ -272,7 +272,7 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mb-3 space-y-3 rounded-[14px] border border-teal-200 bg-teal-50 p-3 dark:border-teal-900/50 dark:bg-teal-950/20 sm:p-4"
+              className="mb-3 space-y-3 rounded-[14px] border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-900/50 dark:bg-indigo-950/20 sm:p-4"
             >
               <p className="text-xs font-semibold leading-5 text-gray-950 dark:text-white">
                 {text.setupCodePrompt}
@@ -330,7 +330,7 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
                     ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300'
                     : feedback.type === 'warning'
                       ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300'
-                      : 'border-teal-200 bg-teal-50 text-teal-800 dark:border-teal-900/50 dark:bg-teal-950/20 dark:text-teal-300'
+                      : 'border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-300'
               }`}
             >
               {feedback.type === 'success' ? (
@@ -354,7 +354,7 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
             className={`w-full rounded-lg px-4 py-2.5 text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
               isEnabled
                 ? 'border border-rose-500 bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                : 'border border-teal-500 bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed dark:border-teal-400 dark:bg-teal-400 dark:text-gray-950 dark:hover:bg-teal-300'
+                : 'border border-indigo-500 bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed dark:border-indigo-400 dark:bg-indigo-400 dark:text-gray-950 dark:hover:bg-indigo-300'
             }`}
           >
             {status === STATUS.SENDING_CODE ? (

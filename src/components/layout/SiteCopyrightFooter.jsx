@@ -1,5 +1,7 @@
 import React from 'react';
-import { Phone } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
+
+const ENGINEERS_WHATSAPP_URL = `https://wa.me/201019603238?text=${encodeURIComponent('كنت محتاج تفاصيل عن انشاء موقع')}`;
 
 const SiteCopyrightFooter = ({ isArabic, showEngineerContact = true }) => (
   <footer className="mx-auto w-full max-w-[var(--shell-max-width)] px-3 pb-6 sm:px-4 md:px-6 lg:px-8">
@@ -11,7 +13,7 @@ const SiteCopyrightFooter = ({ isArabic, showEngineerContact = true }) => (
             {isArabic ? 'حقوق الملكية محفوظة بعناية' : 'Copyright protected'}
           </span>
           <span className="hidden h-1 w-1 rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.62)] sm:inline-flex" />
-          <span>© 2026 COINS STORES</span>
+          <span>© 2026 KANZ COINS</span>
           <span className="hidden h-1 w-1 rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.62)] sm:inline-flex" />
           <span>
             {isArabic
@@ -22,10 +24,12 @@ const SiteCopyrightFooter = ({ isArabic, showEngineerContact = true }) => (
 
         {showEngineerContact ? (
           <a
-            href="tel:01019603238"
+            href={ENGINEERS_WHATSAPP_URL}
+            target="_blank"
+            rel="noreferrer"
             className="mx-auto inline-flex items-center justify-center gap-1 text-[0.65rem] font-semibold text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-primary)]"
           >
-            <Phone className="h-3 w-3" />
+            <MessageCircle className="h-3 w-3" />
             <span>{isArabic ? 'تواصل مع مهندسين الموقع' : 'Contact site engineers'}</span>
           </a>
         ) : null}

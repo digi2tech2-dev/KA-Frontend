@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageCircle, MessageSquareText, Send, Sparkles, ArrowRightLeft, CheckCircle2, Home, Menu, UserRound } from 'lucide-react';
@@ -250,9 +251,10 @@ const ContactUs = ({ accountOnly = false }) => {
     )}>
       {accountOnly ? (
         <>
-          <header className="fixed inset-x-0 top-0 z-[90] border-b border-[color:rgb(var(--color-border-rgb)/0.32)] bg-[color:rgb(var(--color-background-rgb)/0.88)] shadow-[0_18px_44px_-34px_rgb(var(--color-primary-rgb)/0.36)] backdrop-blur-xl">
+          {typeof document !== 'undefined' && createPortal(
+          <header className="pointer-events-none fixed inset-x-0 top-0 z-[90]">
             <div className="mx-auto max-w-[var(--shell-max-width)] px-3 py-2 sm:px-4 lg:px-6">
-              <div dir="ltr" className="coins-stores-panel grid min-h-[2.95rem] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-[20px] border px-2.5 py-1 sm:min-h-[3.25rem] sm:gap-5 sm:rounded-[28px] sm:px-5 sm:py-1.5">
+              <div dir="ltr" className="kanz-coins-panel pointer-events-auto grid min-h-[2.95rem] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-[20px] border px-2.5 py-1 sm:min-h-[3.25rem] sm:gap-5 sm:rounded-[28px] sm:px-5 sm:py-1.5">
                 <div className="col-start-1 row-start-1 flex items-center gap-1 justify-self-start sm:gap-2">
                   <ThemeToggle variant="glass" compact className="h-9 w-9 sm:h-10 sm:w-10" />
                 </div>
@@ -270,7 +272,7 @@ const ContactUs = ({ accountOnly = false }) => {
                   <button
                     type="button"
                     onClick={handleLogin}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-200/20 bg-[linear-gradient(180deg,rgb(29_149_168/0.22),rgb(3_8_22/0.78))] text-cyan-50 shadow-[inset_0_0_18px_rgb(255_255_255/0.035),0_0_26px_-18px_rgb(29_149_168/0.9)] transition-all hover:-translate-y-0.5 hover:border-amber-200/30 hover:text-amber-100 sm:h-10 sm:w-10"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-violet-200/20 bg-[linear-gradient(180deg,rgb(124_58_237/0.22),rgb(3_8_22/0.78))] text-violet-50 shadow-[inset_0_0_18px_rgb(255_255_255/0.035),0_0_26px_-18px_rgb(124_58_237/0.9)] transition-all hover:-translate-y-0.5 hover:border-amber-200/30 hover:text-amber-100 sm:h-10 sm:w-10"
                     aria-label={isArabic ? 'تسجيل الدخول' : 'Login'}
                   >
                     <UserRound className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
@@ -287,7 +289,9 @@ const ContactUs = ({ accountOnly = false }) => {
                 </div>
               </div>
             </div>
-          </header>
+          </header>,
+          document.body
+          )}
 
           <PublicSidebar
             isOpen={isMenuOpen}

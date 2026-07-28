@@ -27,7 +27,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ui/Toast';
 import useAuthStore from '../store/useAuthStore';
 
-const SETTINGS_PREFS_KEY = 'coins-stores-settings-prefs-v1';
+const SETTINGS_PREFS_KEY = 'kanz-coins-settings-prefs-v1';
 
 const AdminToolCard = ({ icon: Icon, title, description, action, onClick }) => (
   <button

@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Copy, Landmark, Loader, ReceiptText, ShieldCheck } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import UploadReceiptBox from '../components/wallet/UploadReceiptBox';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,6 +16,51 @@ import { devLogger } from '../utils/devLogger';
 import { resolveImageUrl } from '../utils/imageUrl';
 
 const normalizeMethodType = (type) => String(type || '').trim().toLowerCase();
+
+const getReceiverDestination = (method) => {
+  const accountNumber = String(method?.accountNumber || '').trim();
+  const accountName = String(method?.accountName || '').trim();
+  const methodType = normalizeMethodType(method?.type);
+  const methodToken = `${method?.name || ''} ${methodType}`.toLowerCase();
+  const destination = {
+    receiverPhone: '',
+    receiverWallet: '',
+    receiverUID: '',
+    receiverEmail: '',
+    receiverName: accountName,
+    receiverWalletAddress: '',
+  };
+
+  if (!accountNumber) return destination;
+
+  if (methodToken.includes('binance') || methodToken.includes('بينانس')) {
+    if (accountNumber.includes('@')) destination.receiverEmail = accountNumber;
+    else destination.receiverUID = accountNumber;
+  } else if (methodType === 'usdt' || methodType === 'crypto') {
+    destination.receiverWalletAddress = accountNumber;
+  } else if (['mobile_wallet', 'e_wallet', 'ewallet'].includes(methodType)) {
+    destination.receiverPhone = accountNumber;
+  } else {
+    destination.receiverWallet = accountNumber;
+  }
+
+  return destination;
+};
+
+const FieldCompletionBadge = ({ complete }) => (
+  <span
+    className={complete
+      ? 'inline-flex items-center gap-1 rounded-full bg-emerald-500/12 px-2 py-0.5 text-[9px] font-black text-emerald-500'
+      : 'rounded-full bg-rose-500/10 px-2 py-0.5 text-[9px] font-black text-rose-500'}
+  >
+    {complete ? (
+      <>
+        <CheckCircle className="h-3 w-3" />
+        تم
+      </>
+    ) : 'مطلوب'}
+  </span>
+);
 
 const getSenderDetailRequirement = (method) => {
   const type = normalizeMethodType(method?.type);
@@ -44,13 +90,13 @@ const getMethodPresentation = (method) => {
   const type = normalizeMethodType(method?.type);
 
   if (token.includes('vodafone')) return { icon: 'VC', color: 'from-red-500 to-yellow-500' };
-  if (token.includes('etisalat')) return { icon: 'EC', color: 'from-green-500 to-teal-500' };
+  if (token.includes('etisalat')) return { icon: 'EC', color: 'from-green-500 to-indigo-500' };
   if (token.includes('orange')) return { icon: 'OC', color: 'from-orange-500 to-red-500' };
-  if (type === 'bank_transfer') return { icon: 'BT', color: 'from-teal-500 to-amber-500' };
-  if (type === 'usdt' || type === 'crypto') return { icon: 'USDT', color: 'from-emerald-500 to-teal-600' };
+  if (type === 'bank_transfer') return { icon: 'BT', color: 'from-indigo-500 to-amber-500' };
+  if (type === 'usdt' || type === 'crypto') return { icon: 'USDT', color: 'from-emerald-500 to-indigo-600' };
   if (type === 'credit_card') return { icon: 'CC', color: 'from-amber-500 to-orange-600' };
 
-  return { icon: 'PM', color: 'from-emerald-500 to-teal-600' };
+  return { icon: 'PM', color: 'from-emerald-500 to-indigo-600' };
 };
 
 const getCurrencyRate = (currencies = [], currencyCode = 'USD') => {
@@ -70,15 +116,31 @@ const getCurrencyRate = (currencies = [], currencyCode = 'USD') => {
   return null;
 };
 
-const PaymentDetails = () => {
-  const { methodId } = useParams();
+const PaymentDetails = ({
+  embedded = false,
+  methodId: embeddedMethodId = '',
+  automaticAmount = null,
+  automaticCurrency = '',
+  onBack = null,
+  onComplete = null,
+  onReturnToPurchase = null,
+}) => {
+  const { methodId: routeMethodId } = useParams();
+  const methodId = embeddedMethodId || routeMethodId;
   const { dir } = useLanguage();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuthStore();
   const { paymentSettings, currencies, loadPaymentSettings, loadCurrencies } = useSystemStore();
   const { addToast } = useToast();
   const isRTL = dir === 'rtl';
+  const automaticTopupAmount = Number(automaticAmount ?? searchParams.get('amount') ?? 0);
+  const automaticTopupCurrency = String(automaticCurrency || searchParams.get('currency') || user?.currency || 'USD').toUpperCase();
+  const isAutomaticTopup = (embedded || searchParams.get('mode') === 'auto')
+    && Number.isFinite(automaticTopupAmount)
+    && automaticTopupAmount > 0;
+  const automaticTopupPrefilled = useRef(false);
 
   const [formData, setFormData] = useState({
     amount: '',
@@ -96,6 +158,17 @@ const PaymentDetails = () => {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
+    if (submitStatus !== 'success') return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [submitStatus]);
+
+  useEffect(() => {
     loadPaymentSettings({ force: true });
     loadCurrencies();
   }, [loadPaymentSettings, loadCurrencies]);
@@ -107,6 +180,10 @@ const PaymentDetails = () => {
 
   const group = selectedMethodEntry?.group || null;
   const method = selectedMethodEntry?.method || null;
+  const receiverDestination = useMemo(
+    () => getReceiverDestination(method),
+    [method]
+  );
 
   const methodPresentation = useMemo(
     () => getMethodPresentation(method),
@@ -146,13 +223,31 @@ const PaymentDetails = () => {
     () => getCurrencyRate(currencies, 'USD') || 1,
     [currencies]
   );
+
+  useEffect(() => {
+    if (automaticTopupPrefilled.current || !isAutomaticTopup) return;
+    if (!Number.isFinite(automaticTopupAmount) || automaticTopupAmount <= 0 || !method) return;
+
+    const sourceRate = getCurrencyRate(currencies, automaticTopupCurrency);
+    const targetRate = getCurrencyRate(currencies, paymentCurrencyCode);
+    if (!sourceRate || !targetRate) return;
+
+    const convertedAmount = (automaticTopupAmount / sourceRate) * targetRate;
+    if (!Number.isFinite(convertedAmount) || convertedAmount <= 0) return;
+
+    setFormData((previous) => ({
+      ...previous,
+      amount: previous.amount || String(Number(convertedAmount.toFixed(2))),
+    }));
+    automaticTopupPrefilled.current = true;
+  }, [automaticTopupAmount, automaticTopupCurrency, currencies, isAutomaticTopup, method, paymentCurrencyCode]);
   const usdPreviewAmount = useMemo(() => {
     const amountValue = Number(formData.amount);
     if (!Number.isFinite(amountValue) || amountValue <= 0) return null;
     if (!Number.isFinite(paymentCurrencyRate) || paymentCurrencyRate <= 0) return null;
 
     const convertedAmount = (amountValue / paymentCurrencyRate) * usdCurrencyRate;
-    if (!Number.isFinite(convertedAmount) || convertedAmount <= 0) return null;
+    if (!Number.isFinite(convertedAmount) || convertedAmount < 0.01) return null;
 
     return convertedAmount;
   }, [formData.amount, paymentCurrencyRate, usdCurrencyRate]);
@@ -171,9 +266,11 @@ const PaymentDetails = () => {
     const safeValue = Number(value || 0);
 
     try {
-      return new Intl.NumberFormat(isRTL ? 'ar-EG' : 'en-US', {
+      return new Intl.NumberFormat(isRTL ? 'ar-EG-u-nu-latn' : 'en-US-u-nu-latn', {
         style: 'currency',
         currency: paymentCurrencyCode,
+        numberingSystem: 'latn',
+        minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(safeValue);
     } catch (_error) {
@@ -245,7 +342,8 @@ const PaymentDetails = () => {
 
       if (!freshMethod) {
         addToast('طريقة الدفع لم تعد متاحة. تم تحديث البيانات من السيرفر.', 'error');
-        navigate('/wallet/add-balance');
+        if (onBack) onBack();
+        else navigate('/wallet/add-balance');
         return;
       }
 
@@ -316,7 +414,16 @@ const PaymentDetails = () => {
   };
 
   const handleSuccessConfirm = () => {
-    navigate('/wallet');
+    if (onComplete) onComplete();
+    else navigate('/wallet/topups');
+  };
+
+  const handleSuccessCancel = () => {
+    if (onReturnToPurchase) {
+      onReturnToPurchase();
+      return;
+    }
+    setSubmitStatus(null);
   };
 
   const fieldConfigs = {
@@ -361,7 +468,7 @@ const PaymentDetails = () => {
           <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">{t('payments.invalidMethodTitle')}</h1>
           <button
             type="button"
-            onClick={() => navigate('/wallet/add-balance')}
+            onClick={() => (onBack ? onBack() : navigate('/wallet/add-balance'))}
             className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200"
           >
             {t('payments.invalidMethodAction')}
@@ -372,16 +479,24 @@ const PaymentDetails = () => {
   }
 
   return (
-    <div className="space-y-5" dir={dir}>
-      <div className="mx-auto w-full max-w-6xl space-y-5">
+    <div className={embedded ? 'w-full min-w-0 overflow-x-hidden pb-2' : 'pb-6'} dir={dir}>
+      <div className="mx-auto w-full min-w-0 max-w-4xl space-y-3 sm:space-y-4">
+        {embedded && onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.22)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-3 text-xs font-black text-[var(--color-primary)] transition hover:bg-[color:rgb(var(--color-primary-rgb)/0.14)]"
+          >
+            {dir === 'rtl' ? 'العودة لوسائل الدفع' : 'Back to payment methods'}
+          </button>
+        ) : null}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          whileHover={{ y: -2 }}
-          transition={{ duration: 0.45, ease: 'easeOut' }}
-          className={`overflow-hidden rounded-[1.4rem] border border-[color:rgb(var(--color-border-rgb)/0.68)] bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(239,246,255,0.72)_48%,rgba(240,253,250,0.7)_100%)] p-4 shadow-[0_18px_36px_-30px_rgba(15,23,42,0.28)] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,41,59,0.82)_52%,rgba(8,47,73,0.42)_100%)] sm:p-5 ${isRTL ? 'text-right' : 'text-left'}`}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="relative overflow-hidden rounded-[1.35rem] border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[linear-gradient(135deg,rgb(var(--color-card-rgb)/0.96),rgb(var(--color-primary-rgb)/0.08),rgb(192_38_211/0.06))] p-3.5 shadow-[0_22px_55px_-44px_rgb(var(--color-primary-rgb)/0.72)] sm:p-4"
         >
-          <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className="flex items-center gap-3">
             {method.image ? (
               <img
                 src={resolveImageUrl(method.image)}
@@ -389,114 +504,100 @@ const PaymentDetails = () => {
                 loading="lazy"
                 decoding="async"
                 referrerPolicy="no-referrer"
-                className="h-14 w-14 shrink-0 rounded-[1rem] border border-white/80 bg-white object-cover shadow-[0_14px_26px_-20px_rgba(15,23,42,0.5)] dark:border-white/10 dark:bg-slate-950 sm:h-16 sm:w-16"
+                className="h-12 w-12 shrink-0 rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.22)] bg-white object-cover sm:h-14 sm:w-14"
               />
             ) : (
-              <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[1rem] bg-gradient-to-br ${methodPresentation.color} shadow-[0_14px_26px_-20px_rgba(15,23,42,0.55)] sm:h-16 sm:w-16`}>
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${methodPresentation.color} sm:h-14 sm:w-14`}>
                 <span className="text-xs font-bold text-white">{methodPresentation.icon}</span>
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <div className="mb-2 flex flex-wrap items-center justify-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-300">
+              <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-300">
                   <ShieldCheck className="h-3.5 w-3.5" />
                   {dir === 'rtl' ? 'دفع آمن' : 'Secure payment'}
                 </span>
                 {group?.currency && (
-                  <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-bold text-sky-700 dark:border-sky-800 dark:bg-sky-950/45 dark:text-sky-300">
+                  <span className="rounded-full border border-violet-400/25 bg-violet-500/10 px-2 py-0.5 text-[9px] font-black text-violet-600 dark:text-violet-300">
                     {String(group.currency).toUpperCase()}
                   </span>
                 )}
               </div>
-              <h1 className="text-left text-2xl font-black tracking-tight text-slate-950 sm:text-3xl dark:text-white">{method.name}</h1>
-              <p className="mt-1 max-w-2xl text-left text-sm font-black leading-6 text-slate-950 dark:text-white">{methodInstructions}</p>
-              {group?.name && (
-                <p className="mt-1.5 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-950 dark:text-white">
-                  {group.name}
-                </p>
-              )}
+              <h1 className="truncate text-base font-black tracking-tight text-[var(--color-text)] sm:text-xl">{method.name}</h1>
+              <p className="mt-0.5 truncate text-[10px] font-bold text-[var(--color-text-secondary)] sm:text-xs">
+                {group?.name || (dir === 'rtl' ? 'إضافة رصيد' : 'Add balance')}
+              </p>
             </div>
           </div>
         </motion.div>
 
-        <div className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
         {method.accountNumber && (
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            whileHover={{ y: -2 }}
-            transition={{ duration: 0.45, delay: 0.12, ease: 'easeOut' }}
-            className="overflow-hidden rounded-[1.35rem] border border-[color:rgb(var(--color-border-rgb)/0.74)] bg-[color:rgb(var(--color-card-rgb)/0.92)] p-4 shadow-[0_18px_34px_-30px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:bg-slate-950/72 sm:p-5 lg:sticky lg:top-5"
+            transition={{ duration: 0.25, delay: 0.05, ease: 'easeOut' }}
+            className="min-w-0 overflow-hidden rounded-[1.3rem] border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-card-rgb)/0.9)] p-3.5 shadow-[0_20px_48px_-42px_rgb(var(--color-primary-rgb)/0.6)] sm:p-4 lg:sticky lg:top-5"
           >
-            <div className="mb-4 flex flex-col items-center justify-center gap-2 text-center">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] border border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/45 dark:text-sky-300">
-                <Landmark className="h-5 w-5" />
+            <div className="mb-3 flex items-center gap-2.5">
+              <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#7c3aed,#c026d3)] text-white shadow-[0_14px_28px_-18px_rgb(124_58_237/0.9)]">
+                <Landmark className="h-4 w-4" />
+                <span className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border-2 border-[var(--color-card)] bg-white font-['Poppins'] text-[9px] font-extrabold text-violet-700">1</span>
               </span>
               <div>
-                <h3 className="text-base font-black text-slate-950 dark:text-white">{t('payments.accountDetails')}</h3>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{dir === 'rtl' ? 'حوّل على البيانات التالية ثم ارفع الإيصال.' : 'Transfer to these details, then upload your receipt.'}</p>
+                <h3 className="text-sm font-black text-[var(--color-text)]">{t('payments.accountDetails')}</h3>
+                <p className="mt-0.5 text-[10px] text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'الخطوة الأولى: حوّل المبلغ إلى الرقم التالي' : 'Step 1: Transfer to this account'}</p>
               </div>
             </div>
-            {method.image ? (
-              <div className="mb-4 flex justify-center">
-                <img
-                  src={resolveImageUrl(method.image)}
-                  alt={method.name}
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="h-28 w-full max-w-xs rounded-[1.1rem] border border-slate-200 bg-white object-cover shadow-[0_14px_30px_-24px_rgba(15,23,42,0.34)] dark:border-slate-800 dark:bg-slate-900"
-                />
-              </div>
-            ) : null}
-            <div className="rounded-[1.1rem] border border-slate-200 bg-slate-50/80 p-3 text-left dark:border-slate-800 dark:bg-slate-900/70 sm:p-4">
-              <div className="mb-3 text-left text-sm font-black leading-6 text-slate-950 dark:text-white">
-                {methodInstructions}
-              </div>
+            <div className="rounded-2xl border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-surface-rgb)/0.55)] p-2.5 sm:p-3">
               <button
                 type="button"
                 onClick={handleCopyAccount}
-                className="group flex w-full flex-col items-center justify-center gap-2 rounded-[0.95rem] border border-slate-200 bg-white px-3 py-3 text-center font-mono text-slate-950 shadow-[0_10px_22px_-20px_rgba(15,23,42,0.32)] transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-50/65 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-sky-500/45 dark:hover:bg-slate-900"
+                className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-card-rgb)/0.9)] px-3 py-3 text-[var(--color-text)] transition hover:border-[color:rgb(var(--color-primary-rgb)/0.46)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.06)]"
               >
-                <span className="w-full break-all text-base font-black">{method.accountNumber}</span>
-                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700 transition-colors group-hover:bg-white dark:border-sky-800 dark:bg-sky-950/55 dark:text-sky-300 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <Copy className="h-3.5 w-3.5" />
-                  <span>{t('payments.copyAccount', { defaultValue: dir === 'rtl' ? 'نسخ الرقم' : 'Copy number' })}</span>
+                <span className="min-w-0 break-all font-mono text-base font-black [direction:ltr]">{method.accountNumber}</span>
+                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:rgb(var(--color-primary-rgb)/0.12)] text-[var(--color-primary)]">
+                  <Copy className="h-4 w-4" />
                 </span>
               </button>
               {method.accountName && (
-                <div className="mt-3 rounded-[0.95rem] border border-slate-200 bg-white px-3 py-2.5 text-center dark:border-slate-700 dark:bg-slate-950">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <div className="mt-2 flex items-center justify-between gap-3 rounded-xl px-2 py-2">
+                  <p className="text-[10px] font-bold text-[var(--color-text-secondary)]">
                     {t('payments.accountHolder', { defaultValue: dir === 'rtl' ? 'اسم صاحب الحساب' : 'Account holder' })}
                   </p>
-                  <p className="mt-1 text-sm font-black text-slate-950 dark:text-white">{method.accountName}</p>
+                  <p className="text-xs font-black text-[var(--color-text)]">{method.accountName}</p>
                 </div>
               )}
               {method.bankName && (
-                <div className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+                <div className="mt-1 border-t border-[color:rgb(var(--color-border-rgb)/0.58)] pt-2 text-center text-[10px] font-bold text-[var(--color-text-secondary)]">
                   {method.bankName}
                 </div>
               )}
             </div>
+            {methodInstructions && (
+              <p className="mt-2.5 rounded-xl bg-[color:rgb(var(--color-primary-rgb)/0.07)] px-3 py-2 text-[10px] font-semibold leading-5 text-[var(--color-text-secondary)]">
+                {methodInstructions}
+              </p>
+            )}
           </motion.div>
         )}
 
         <motion.form
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          whileHover={{ y: -2 }}
-          transition={{ duration: 0.45, delay: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.25, delay: 0.08, ease: 'easeOut' }}
           onSubmit={handleSubmit}
-          className="mb-8 rounded-[1.35rem] border border-[color:rgb(var(--color-border-rgb)/0.74)] bg-[color:rgb(var(--color-card-rgb)/0.94)] p-4 shadow-[0_18px_34px_-30px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:bg-slate-950/72 sm:p-5"
+          className="min-w-0 overflow-hidden rounded-[1.3rem] border border-[color:rgb(var(--color-border-rgb)/0.76)] bg-[color:rgb(var(--color-card-rgb)/0.92)] p-3.5 shadow-[0_20px_48px_-42px_rgb(var(--color-primary-rgb)/0.55)] sm:p-4"
         >
-          <div className={`mb-5 flex items-center justify-between gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div>
-              <h3 className="text-base font-black text-slate-950 dark:text-white">{t('payments.paymentDetails')}</h3>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{dir === 'rtl' ? 'أدخل المبلغ وارفع إيصال واضح للمراجعة.' : 'Enter the amount and upload a clear receipt.'}</p>
-            </div>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-300">
-              <ReceiptText className="h-5 w-5" />
+          <div className="mb-4 flex items-center gap-2.5">
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#c026d3,#ec4899)] text-white shadow-[0_14px_28px_-18px_rgb(192_38_211/0.9)]">
+              <ReceiptText className="h-4 w-4" />
+              <span className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border-2 border-[var(--color-card)] bg-white font-['Poppins'] text-[9px] font-extrabold text-fuchsia-700">2</span>
             </span>
+            <div>
+              <h3 className="text-sm font-black text-[var(--color-text)]">{t('payments.paymentDetails')}</h3>
+              <p className="mt-0.5 text-[10px] text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'الخطوة الثانية: أدخل البيانات المطلوبة' : 'Step 2: Enter the required details'}</p>
+            </div>
           </div>
 
           {visibleMethodFields.map((field) => {
@@ -504,9 +605,12 @@ const PaymentDetails = () => {
             if (!config) return null;
 
             return (
-              <div key={field} className="mb-4">
-                <label className={`mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300 ${isRTL ? 'text-right' : 'text-left'}`}>
-                  {config.label}
+              <div key={field} className="mb-3">
+                <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <span>{config.label}</span>
+                  {field === 'amount' ? (
+                    <FieldCompletionBadge complete={Number(formData.amount) > 0} />
+                  ) : null}
                 </label>
                 <input
                   type={config.type}
@@ -515,11 +619,11 @@ const PaymentDetails = () => {
                   placeholder={config.placeholder}
                   min={config.min}
                   step={config.step}
-                  className={`${inputBaseClassName} ${field === 'amount' ? 'payment-amount-input' : ''} ${isRTL ? 'text-right' : 'text-left'}`}
+                  className={`${inputBaseClassName} ${field === 'amount' ? 'payment-amount-input border-violet-400/35 bg-violet-500/[0.035] focus:border-violet-400' : ''} ${isRTL ? 'text-right' : 'text-left'}`}
                   disabled={isSubmitting}
                 />
                 {field === 'amount' && usdPreviewLabel && (
-                  <div className="mt-2 flex min-h-11 w-full items-center justify-center rounded-[0.95rem] border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-center text-sm font-black text-emerald-700 shadow-[0_12px_24px_-20px_rgba(5,150,105,0.75)] dark:border-emerald-500/30 dark:bg-emerald-500/12 dark:text-emerald-300">
+                  <div className="mt-1.5 flex min-h-9 w-full items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-500/8 px-3 py-2 text-center text-xs font-black text-emerald-600 dark:text-emerald-300">
                     <span className="[direction:ltr]">
                       {usdPreviewLabel}
                     </span>
@@ -530,77 +634,86 @@ const PaymentDetails = () => {
           })}
 
           {senderDetailRequirement && (
-            <div className="mb-4">
-              <label className={`mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300 ${isRTL ? 'text-right' : 'text-left'}`}>
-                {senderDetailRequirement.label}
-                <span className="text-rose-500"> *</span>
+            <div className="mb-3">
+              <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
+                <span>{senderDetailRequirement.label}</span>
+                <FieldCompletionBadge complete={Boolean(String(formData[senderDetailRequirement.field] || '').trim())} />
               </label>
               <input
                 type="text"
                 value={formData[senderDetailRequirement.field] || ''}
                 onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
                 placeholder={senderDetailRequirement.placeholder}
-                className={`${inputBaseClassName} ${isRTL ? 'text-right' : 'text-left'}`}
+                className={`${inputBaseClassName} border-violet-400/35 bg-violet-500/[0.035] focus:border-violet-400 ${isRTL ? 'text-right' : 'text-left'}`}
                 disabled={isSubmitting}
                 required
               />
             </div>
           )}
 
-          <div className="mb-4">
-            <label className={`mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300 ${isRTL ? 'text-right' : 'text-left'}`}>
-              رقم العملية
-              <span className="text-rose-500"> *</span>
+          <div className="mb-3">
+            <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
+              <span>رقم العملية</span>
+              <FieldCompletionBadge complete={Boolean(String(formData.transactionId || '').trim())} />
             </label>
             <input
               type="text"
               value={formData.transactionId || ''}
               onChange={(e) => handleInputChange('transactionId', e.target.value)}
               placeholder="أدخل رقم العملية"
-              className={`${inputBaseClassName} ${isRTL ? 'text-right' : 'text-left'}`}
+              className={`${inputBaseClassName} border-violet-400/35 bg-violet-500/[0.035] focus:border-violet-400 ${isRTL ? 'text-right' : 'text-left'}`}
               disabled={isSubmitting}
               required
             />
           </div>
 
           {requiresReceipt && (
-            <div className="mb-6">
-              <label className={`mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300 ${isRTL ? 'text-right' : 'text-left'}`}>
-                {t('payments.uploadReceipt')}
+            <div className="mb-4">
+              <label className={`mb-2 flex items-center justify-between gap-2 rounded-xl border border-violet-400/20 bg-violet-500/7 px-3 py-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
+                <span className="flex items-center gap-2">
+                  <span className="grid h-5 w-5 place-items-center rounded-md bg-violet-500 font-['Poppins'] text-[9px] font-extrabold text-white">3</span>
+                  {t('payments.uploadReceipt')}
+                </span>
+                <FieldCompletionBadge complete={Boolean(uploadedFile)} />
               </label>
-              <UploadReceiptBox onFileUpload={handleReceiptUpload} />
+              <UploadReceiptBox
+                onFileUpload={handleReceiptUpload}
+                paymentAmount={formData.amount}
+                transactionId={formData.transactionId}
+                {...receiverDestination}
+              />
             </div>
           )}
 
-          <div className="mb-6 overflow-hidden rounded-[1.1rem] border border-sky-200/70 bg-gradient-to-br from-sky-50 via-white to-emerald-50/80 p-4 shadow-[0_14px_30px_-28px_rgba(15,23,42,0.36)] dark:border-sky-900/60 dark:from-slate-900 dark:via-slate-950 dark:to-emerald-950/24">
-            <div className={`flex items-center justify-between gap-3 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <span className="font-medium text-slate-600 dark:text-slate-300">
+          <div className="mb-4 overflow-hidden rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[linear-gradient(135deg,rgb(var(--color-primary-rgb)/0.07),rgb(192_38_211/0.05))] p-3">
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="font-bold text-[var(--color-text-secondary)]">
                 {t('payments.subtotalLabel', {
                   defaultValue: dir === 'rtl' ? 'المبلغ الأساسي' : 'Base amount',
                 })}
               </span>
-              <span className="font-black text-slate-950 dark:text-white">{formatMoney(baseAmount)}</span>
+              <span className="font-['Poppins'] font-extrabold tracking-tight text-[var(--color-text)] [direction:ltr] [font-variant-numeric:tabular-nums]">{formatMoney(baseAmount)}</span>
             </div>
 
             {feePercent > 0 && (
-              <div className={`mt-2 flex items-center justify-between gap-3 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <span className="font-medium text-slate-600 dark:text-slate-300">
+              <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                <span className="font-bold text-[var(--color-text-secondary)]">
                   {t('payments.feeAmountLabel', {
                     defaultValue: dir === 'rtl' ? 'رسوم التحويل' : 'Payment fee',
                   })}
                   {` (${feePercent}%)`}
                 </span>
-                <span className="font-black text-sky-700 dark:text-sky-300">{formatMoney(feeAmount)}</span>
+                <span className="font-['Poppins'] font-extrabold tracking-tight text-fuchsia-600 [direction:ltr] [font-variant-numeric:tabular-nums] dark:text-fuchsia-300">{formatMoney(feeAmount)}</span>
               </div>
             )}
 
-            <div className={`mt-3 flex items-center justify-between gap-3 border-t border-sky-200/70 pt-3 text-sm dark:border-slate-700 ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <span className="font-black text-slate-950 dark:text-white">
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-[color:rgb(var(--color-primary-rgb)/0.18)] pt-3 text-xs">
+              <span className="font-black text-[var(--color-text)]">
                 {t('payments.totalToTransferLabel', {
                   defaultValue: dir === 'rtl' ? 'الإجمالي المطلوب تحويله' : 'Total to transfer',
                 })}
               </span>
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-base font-black text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-300">{formatMoney(payableAmount)}</span>
+              <span className="rounded-xl bg-[linear-gradient(135deg,#7c3aed,#c026d3)] px-3 py-1.5 font-['Poppins'] text-sm font-extrabold tracking-tight text-white shadow-[0_12px_24px_-18px_rgb(124_58_237/0.9)] [direction:ltr] [font-variant-numeric:tabular-nums]">{formatMoney(payableAmount)}</span>
             </div>
           </div>
 
@@ -630,7 +743,7 @@ const PaymentDetails = () => {
             aria-busy={isSubmitting}
             whileTap={{ scale: 0.985 }}
             whileHover={!isSubmitting ? { y: -1 } : undefined}
-            className="group flex w-full items-center justify-center gap-2 rounded-[1rem] bg-gradient-to-r from-[var(--color-primary)] via-sky-500 to-emerald-500 px-6 py-4 font-black text-white shadow-[0_18px_34px_-24px_rgba(14,165,233,0.75)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_38px_-22px_rgba(16,185,129,0.78)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#7c3aed_0%,#c026d3_100%)] px-5 text-sm font-black text-white shadow-[0_18px_34px_-24px_rgb(124_58_237/0.9)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -648,35 +761,51 @@ const PaymentDetails = () => {
         </motion.form>
         </div>
 
-        {submitStatus === 'success' && (
-          <div className="fixed inset-0 z-[240] flex items-center justify-center bg-[radial-gradient(32rem_circle_at_50%_10%,rgb(212_164_45/0.16),transparent_50%),radial-gradient(28rem_circle_at_18%_78%,rgb(29_149_168/0.14),transparent_48%),linear-gradient(180deg,rgb(2_4_12/0.66),rgb(0_0_0/0.86))] px-4 backdrop-blur-[14px]">
+        {submitStatus === 'success' && createPortal(
+          <div className="fixed inset-0 z-[240] flex items-center justify-center bg-[radial-gradient(34rem_circle_at_50%_15%,rgb(192_38_211/0.2),transparent_52%),radial-gradient(28rem_circle_at_15%_85%,rgb(37_99_235/0.17),transparent_50%),rgb(2_1_10/0.82)] px-4 backdrop-blur-[16px]">
             <motion.div
-              initial={{ scale: 0.92, opacity: 0, y: 10 }}
+              initial={{ scale: 0.9, opacity: 0, y: 14 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="relative isolate w-full max-w-[20.5rem] overflow-hidden rounded-[1.25rem] border border-[rgb(212_164_45/0.36)] bg-[radial-gradient(19rem_circle_at_84%_-4%,rgb(212_164_45/0.19),transparent_44%),radial-gradient(16rem_circle_at_12%_8%,rgb(29_149_168/0.2),transparent_42%),linear-gradient(180deg,rgb(4_13_15/0.98),rgb(2_7_9/0.98))] p-4 text-center text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_24px_70px_-38px_rgb(0_0_0/0.95),0_0_38px_-22px_rgb(212_164_45/0.76),0_0_40px_-30px_rgb(29_149_168/0.82)]"
+              transition={{ duration: 0.26, ease: 'easeOut' }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="topup-success-title"
+              className="relative isolate w-full max-w-[21.5rem] overflow-hidden rounded-[1.65rem] border border-violet-300/25 bg-[radial-gradient(20rem_circle_at_92%_-8%,rgb(244_114_208/0.25),transparent_46%),radial-gradient(18rem_circle_at_2%_104%,rgb(37_99_235/0.3),transparent_48%),linear-gradient(145deg,#10082b_0%,#221b53_52%,#42136a_100%)] p-5 text-center text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.14),0_32px_90px_-35px_rgb(0_0_0/0.95),0_0_55px_-28px_rgb(192_38_211/0.76),0_0_50px_-30px_rgb(124_58_237/0.88)] sm:p-6"
             >
-              <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(212_164_45/0.045)_1px,transparent_1px),linear-gradient(180deg,rgb(29_149_168/0.04)_1px,transparent_1px)] bg-[length:42px_42px] opacity-40 [mask-image:linear-gradient(180deg,black,transparent_92%)]" />
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-transparent bg-[linear-gradient(rgb(4_13_15),rgb(4_13_15))_padding-box,conic-gradient(from_15deg,#0b6f83,#f0c85a,#34d399,#0b6f83)_border-box] text-emerald-300 shadow-[0_0_34px_-16px_rgb(52_211_153/0.85)]">
-                <CheckCircle className="h-7 w-7" />
+              <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(255_255_255/0.025)_1px,transparent_1px),linear-gradient(180deg,rgb(255_255_255/0.025)_1px,transparent_1px)] bg-[length:30px_30px] [mask-image:linear-gradient(180deg,black,transparent_90%)]" />
+              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl border border-emerald-300/25 bg-[linear-gradient(145deg,rgb(52_211_153/0.22),rgb(20_184_166/0.1))] text-emerald-300 shadow-[inset_0_1px_0_rgb(255_255_255/0.14),0_18px_42px_-22px_rgb(52_211_153/0.9)]">
+                <CheckCircle className="h-8 w-8" />
               </div>
-              <h3 className="text-base font-black text-[#fff7d7]">
-                {dir === 'rtl' ? 'تم الشحن' : t('payments.submitSuccessTitle')}
+              <h3 id="topup-success-title" className="text-xl font-black tracking-tight text-white">
+                {dir === 'rtl' ? 'تم الشحن' : 'Top-up submitted'}
               </h3>
-              <p className="mx-auto mt-2 max-w-[16.5rem] text-xs font-semibold leading-5 text-[rgb(222_245_247/0.76)]">
+              <p className="mx-auto mt-2 max-w-[17rem] text-xs font-semibold leading-6 text-violet-100/76">
                 {dir === 'rtl'
                   ? 'تم إرسال طلب إضافة الرصيد للمراجعة.'
-                  : t('payments.submitSuccessDesc')}
+                  : 'Your balance top-up request was sent for review.'}
               </p>
-              <button
-                type="button"
-                onClick={handleSuccessConfirm}
-                className="mt-4 h-10 w-full rounded-[0.9rem] bg-[radial-gradient(circle_at_28%_20%,rgb(255_255_255/0.2),transparent_34%),linear-gradient(135deg,#0b6f83_0%,#0a4654_42%,#d4a42d_100%)] px-4 text-sm font-black text-[#fffaf0] shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_0_24px_-12px_rgb(212_164_45/0.82),0_0_28px_-18px_rgb(29_149_168/0.84)] transition hover:-translate-y-0.5 hover:brightness-105"
-              >
-                {dir === 'rtl' ? 'موافق' : 'OK'}
-              </button>
+
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleSuccessConfirm}
+                  className="h-11 rounded-xl bg-[linear-gradient(135deg,#7c3aed,#c026d3)] px-3 text-xs font-black text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_16px_32px_-20px_rgb(192_38_211/0.9)] transition hover:-translate-y-0.5 hover:brightness-110"
+                >
+                  {dir === 'rtl' ? 'سجل الطلبات' : 'Request history'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSuccessCancel}
+                  className="h-11 rounded-xl border border-white/15 bg-white/8 px-3 text-xs font-black text-violet-100 backdrop-blur-md transition hover:border-white/28 hover:bg-white/14 hover:text-white"
+                >
+                  {onReturnToPurchase
+                    ? (dir === 'rtl' ? 'العودة للشراء' : 'Back to purchase')
+                    : (dir === 'rtl' ? 'إلغاء' : 'Cancel')}
+                </button>
+              </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {submitStatus === 'error' && (

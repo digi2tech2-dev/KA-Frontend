@@ -27,7 +27,7 @@ const Header = ({ toggleSidebar }) => {
   const isBackoffice = isAdmin || isSupervisorRole(user?.role);
   const walletValue = Number(user?.coins || 0);
   const walletDisplayValue = formatWalletAmount(walletValue, user?.currency || 'USD');
-  const walletTargetPath = isCustomer ? '/wallet' : '/admin/wallet';
+  const walletTargetPath = isCustomer ? '/wallet/add-balance' : '/admin/wallet';
   const shouldShowWallet = isCustomer || isBackoffice;
   const displayedNotifications = useMemo(() => (
     [...notifications].sort((left, right) => {
@@ -48,7 +48,13 @@ const Header = ({ toggleSidebar }) => {
   }, [loadUnreadCount, user?.id]);
 
   const resolveNotificationTarget = (notification) => {
-    if (notification?.targetUrl) return notification.targetUrl;
+    if (notification?.targetUrl) {
+      const explicitTarget = String(notification.targetUrl).trim();
+      if (isCustomer && explicitTarget.startsWith('/admin/payments')) {
+        return '/wallet/topups';
+      }
+      return explicitTarget;
+    }
 
     const source = String(notification?.source || notification?.context || notification?.category || '').toLowerCase();
     const targetType = String(notification?.targetType || '').toLowerCase();
@@ -69,7 +75,7 @@ const Header = ({ toggleSidebar }) => {
       || targetType === 'wallet'
       || /wallet|topup|payment|deposit/i.test(text)
     ) {
-      return isBackoffice ? '/admin/payments' : '/wallet';
+      return isBackoffice ? '/admin/payments' : '/wallet/topups';
     }
     const inferredId = text.match(/(?:الطلب|طلب|order|#)\s*([A-Za-z0-9_-]{4,})/i)?.[1] || '';
 
@@ -80,7 +86,7 @@ const Header = ({ toggleSidebar }) => {
     }
 
     if (topupId || targetType === 'topup' || targetType === 'wallet' || /شحن|رصيد|محفظة|wallet|topup|payment/i.test(text)) {
-      return isBackoffice ? '/admin/payments' : '/wallet';
+      return isBackoffice ? '/admin/payments' : '/wallet/topups';
     }
 
     if (userId || targetType === 'user' || /حساب|account|user/i.test(text)) {
@@ -122,7 +128,7 @@ const Header = ({ toggleSidebar }) => {
       return {
         icon: CreditCard,
         label: 'عملية رصيد',
-        className: 'bg-teal-500/12 text-teal-500 ring-cyan-400/24',
+        className: 'bg-indigo-500/12 text-indigo-500 ring-violet-400/24',
       };
     }
 
@@ -130,7 +136,7 @@ const Header = ({ toggleSidebar }) => {
       return {
         icon: UserCheck,
         label: 'حساب',
-        className: 'bg-teal-500/12 text-teal-500 ring-teal-400/24',
+        className: 'bg-indigo-500/12 text-indigo-500 ring-indigo-400/24',
       };
     }
 
@@ -193,7 +199,7 @@ const Header = ({ toggleSidebar }) => {
   return (
     <header dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-full">
       <div className={cn(
-        'app-shell-header-panel coins-stores-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0.5 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-1',
+        'app-shell-header-panel kanz-coins-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0.5 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-1',
         isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
       )}>
         <div dir="ltr" className="grid min-h-[2.55rem] min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:min-h-[2.9rem] sm:gap-4">
@@ -224,7 +230,7 @@ const Header = ({ toggleSidebar }) => {
               >
                 <Bell className="h-3.5 w-3.5" />
                 {unreadCount > 0 ? (
-                  <span className="absolute -end-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(135deg,#d4a42d,#f0c85a)] px-1 text-[10px] font-black text-white shadow-[0_0_18px_rgb(244_63_221/0.52)]">
+                  <span className="absolute -end-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(135deg,#c026d3,#f472d0)] px-1 text-[10px] font-black text-white shadow-[0_0_18px_rgb(244_63_221/0.52)]">
                     {unreadCount > 9 ? '+9' : unreadCount}
                   </span>
                 ) : null}

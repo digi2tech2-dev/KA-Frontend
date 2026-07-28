@@ -5,11 +5,11 @@ import './AdminNeonGlow.css';
 const StatsGrid = ({ stats, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
+      <div className="mx-auto grid w-[calc(100vw-1.5rem)] max-w-[42rem] grid-cols-2 justify-items-center gap-3 sm:w-full sm:gap-4 xl:max-w-none xl:grid-cols-5">
         {Array.from({ length: 10 }, (_, index) => (
           <div
             key={`stats-skeleton-${index}`}
-            className="admin-dashboard-skeleton h-[110px] w-full animate-pulse rounded-[1rem] sm:h-[148px]"
+            className="admin-dashboard-skeleton h-[110px] w-full max-w-[24rem] animate-pulse rounded-[1rem] sm:max-w-none sm:h-[148px]"
           />
         ))}
       </div>
@@ -17,7 +17,7 @@ const StatsGrid = ({ stats, isLoading }) => {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
+    <div className="mx-auto grid w-[calc(100vw-1.5rem)] max-w-[42rem] grid-cols-2 justify-items-center gap-3 sm:w-full sm:gap-4 xl:max-w-none xl:grid-cols-5">
       {stats.map((stat) => (
         <StatCard key={stat.title} {...stat} />
       ))}

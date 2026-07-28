@@ -10,7 +10,7 @@ const StatCard = ({ title, value, note, icon: Icon, progress = 40, wide = false 
     <Card
       variant="elevated"
       className={cn(
-        'admin-stat-card relative w-full p-0 transition-colors',
+        'admin-stat-card relative w-full max-w-[24rem] p-0 transition-colors sm:max-w-none',
         wide && 'col-span-2'
       )}
     >

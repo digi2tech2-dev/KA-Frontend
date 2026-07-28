@@ -7,6 +7,7 @@ import useMediaStore from '../store/useMediaStore';
 import useGroupStore from '../store/useGroupStore';
 import useSystemStore from '../store/useSystemStore';
 import ProductSearchBar from '../components/products/ProductSearchBar';
+import HeroSlider from '../components/home/HeroSlider';
 import CategoryCard from '../components/home/CategoryCard';
 import ProductCardSimple from '../components/products/ProductCardSimple';
 import ProductPurchaseDialog from '../components/products/ProductPurchaseDialog';
@@ -19,6 +20,8 @@ import {
   getStorefrontLanguage,
 } from '../utils/storefront';
 import { buildStoreSeo, toAbsoluteUrl } from '../utils/seo';
+import slideFourImage from '../assets/slide-4.webp';
+import slideThreeImage from '../assets/slide-3.webp';
 
 const getProductsPageCopy = (language = 'ar') => (
   language === 'ar'
@@ -86,6 +89,10 @@ const Products = () => {
   const language = getStorefrontLanguage(i18n);
   const isRTL = language === 'ar';
   const copy = useMemo(() => getProductsPageCopy(language), [language]);
+  const categorySlides = useMemo(() => ([
+    { id: 'categories-slide-4', image: slideFourImage, title: '' },
+    { id: 'categories-slide-3', image: slideThreeImage, title: '', href: '/referral' },
+  ]), []);
 
   const activeCategoryParam = searchParams.get('category') || '';
 
@@ -94,9 +101,28 @@ const Products = () => {
   const [activeSubcategoryId, setActiveSubcategoryId] = useState(null);
 
   useEffect(() => {
-    loadProducts({ force: true, bypassCache: true });
+    const refreshProducts = () => {
+      void loadProducts({ force: true, bypassCache: true });
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refreshProducts();
+    };
+
+    refreshProducts();
+    window.addEventListener('focus', refreshProducts);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    const refreshInterval = window.setInterval(refreshProducts, 30_000);
+
+    return () => {
+      window.removeEventListener('focus', refreshProducts);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      window.clearInterval(refreshInterval);
+    };
+  }, [loadProducts]);
+
+  useEffect(() => {
     loadCurrencies();
-  }, [loadProducts, loadCurrencies]);
+  }, [loadCurrencies]);
 
   const storefrontProducts = useMemo(
     () => createStorefrontProducts(products, {
@@ -377,6 +403,8 @@ const Products = () => {
         jsonLd={seoData.jsonLd}
       />
 
+      <HeroSlider slides={categorySlides} />
+
       <section className="border-0 bg-transparent p-0 shadow-none">
         <div className="mx-auto flex w-full max-w-5xl justify-center">
           <ProductSearchBar
@@ -439,7 +467,7 @@ const Products = () => {
 
           {/* Sub-categories — tight square cards (drilled into a parent) */}
           {shouldMergeProductsWithSubcategories && (
-            <section className="products-grid products-grid--mixed grid grid-cols-2 gap-3 p-1 min-[420px]:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <section className="products-grid products-grid--mixed grid grid-cols-3 gap-2 p-1 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
               {currentCategories.map((catalog, index) => (
                 <CategoryCard
                   key={catalog.id}
@@ -491,7 +519,7 @@ const Products = () => {
 
           {/* Products — from leaf category or parent drill-down */}
           {displayProducts.length > 0 && !shouldMergeProductsWithSubcategories && (
-            <section className="products-grid products-grid--items grid grid-cols-2 gap-3 p-1 min-[420px]:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <section className="products-grid products-grid--items grid grid-cols-3 gap-2 p-1 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
               {displayProducts.map((product) => (
                 <ProductCardSimple
                   key={product.id}

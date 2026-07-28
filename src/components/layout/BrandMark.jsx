@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '../ui/Button';
-import brandIconImage from '../../assets/logo.webp';
+import brandIconImage from '../../assets/logo.PNG';
 
 const stylesBySize = {
   xs: {
@@ -46,7 +46,7 @@ const BrandMark = ({
       <div className={cn('relative overflow-hidden', styles.iconShell)}>
         <img
           src={brandIconImage}
-          alt="COINS STORES"
+          alt="KANZ COINS"
           loading="eager"
           decoding="async"
           className="relative h-full w-full object-contain"
@@ -57,16 +57,16 @@ const BrandMark = ({
         <div className="min-w-0">
           <p
             className={cn(
-              'coins-brand-title whitespace-nowrap font-extrabold uppercase',
+              'kanz-brand-title whitespace-nowrap font-extrabold uppercase',
               styles.title,
               titleClassName
             )}
           >
-            <span className="text-transparent bg-clip-text bg-[linear-gradient(120deg,#fffaf0_0%,#f0c85a_28%,#d4a42d_52%,#1d95a8_76%,#0a4654_100%)] animate-shimmer-slow">
-              COINS
+            <span className="text-transparent bg-clip-text bg-[linear-gradient(120deg,#fffaf0_0%,#f472d0_28%,#c026d3_52%,#7c3aed_76%,#312e81_100%)] animate-shimmer-slow">
+              KANZ
             </span>
             <span className="mx-1.5 text-[color:rgb(var(--color-text-secondary)/0.64)]">/</span>
-            <span className="text-[color:rgb(var(--color-text-secondary)/0.64)]">STORES</span>
+            <span className="text-[color:rgb(var(--color-text-secondary)/0.64)]">COINS</span>
           </p>
         </div>
       )}

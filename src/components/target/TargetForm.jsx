@@ -133,7 +133,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit }) => {
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">
               <Sparkles className="h-3.5 w-3.5" />
-              COINS STORES Target
+              KANZ COINS Target
             </p>
             <h2 className="mt-3 text-xl font-black text-[var(--color-text)] sm:text-2xl">بيع تارجت</h2>
           </div>

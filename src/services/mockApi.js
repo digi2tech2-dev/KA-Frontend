@@ -9,7 +9,7 @@ import {
   mockSuppliers
 } from '../data/mockData';
 import { normalizeAccountStatus, normalizeSignupMethod } from '../utils/accountStatus';
-import { normalizeMoneyAmount } from '../utils/money';
+import { getWalletBalanceSummary, normalizeMoneyAmount } from '../utils/money';
 import { getDefaultWhatsAppNumber, normalizeWhatsAppNumber } from '../utils/whatsapp';
 import { createDefaultPaymentGroups, normalizePaymentGroups } from '../utils/paymentSettings';
 import { devLogger } from '../utils/devLogger';
@@ -22,7 +22,7 @@ import {
 } from '../utils/transactionCurrency';
 
 const DELAY = 800; // Simulated network latency in ms
-const ACCOUNT_SECURITY_STORAGE_KEY = 'coins-stores-account-security-v1';
+const ACCOUNT_SECURITY_STORAGE_KEY = 'kanz-coins-account-security-v1';
 const AUTH_STORAGE_KEY = 'auth-storage';
 
 // In-memory simulated "Database"; auth uses localStorage to match real persistence.
@@ -166,10 +166,21 @@ const hashPassword = async (plainText) => {
 const sanitizeUser = (user) => {
   if (!user) return null;
   const { password, passwordHash, ...safeUser } = user;
+  const walletSummary = getWalletBalanceSummary({
+    ...safeUser,
+    walletBalance: safeUser.walletBalance ?? safeUser.coins ?? safeUser.balance,
+    creditLimit: normalizeCreditLimitValue(safeUser.creditLimit),
+  });
   return {
     ...safeUser,
-    avatar: resolveUserAvatar(safeUser, safeUser.name || safeUser.email || 'COINS User'),
-    creditLimit: normalizeCreditLimitValue(safeUser.creditLimit),
+    avatar: resolveUserAvatar(safeUser, safeUser.name || safeUser.email || 'Kanz Coins User'),
+    coins: walletSummary.walletBalance,
+    walletBalance: walletSummary.walletBalance,
+    balance: walletSummary.walletBalance,
+    creditLimit: walletSummary.creditLimit,
+    creditUsed: walletSummary.creditUsed,
+    availableCredit: walletSummary.availableCredit,
+    availableBalance: walletSummary.availableBalance,
     permissions: Array.isArray(safeUser.permissions) ? safeUser.permissions : [],
     isApiEnabled: Boolean(safeUser.isApiEnabled),
     whitelistIps: Array.isArray(safeUser.whitelistIps) ? safeUser.whitelistIps : [],
@@ -770,7 +781,7 @@ const mockApi = {
       const migrated = await secureUsersInDb(db);
       if (migrated) saveDB('admin-storage', db);
 
-      const googleEmail = 'google.user@COINSSTORE.app';
+      const googleEmail = 'google.user@kanz-coins.app';
       let user = users.find((item) => String(item.email || '').toLowerCase() === googleEmail);
 
       if (!user) {
@@ -842,7 +853,7 @@ const mockApi = {
         signupMethod: normalizeSignupMethod(userData.signupMethod || 'email'),
         approvedAt: null,
         rejectedAt: null,
-        avatar: resolveUserAvatar(userData, userData.name || userData.username || userData.email || 'COINS User')
+        avatar: resolveUserAvatar(userData, userData.name || userData.username || userData.email || 'Kanz Coins User')
       };
       delete newUser.password;
       
@@ -1402,16 +1413,26 @@ const mockApi = {
       const user = userDB.state.users[userIndex];
       
       const orderPrice = normalizeMoneyAmount(Number(orderData.priceCoins || 0));
-      const currentBalance = toFiniteNumber(user.coins, 0);
-      const creditLimit = normalizeCreditLimitValue(user.creditLimit);
-      const spendableAmount = normalizeMoneyAmount(currentBalance + creditLimit);
+      const currentWallet = getWalletBalanceSummary(user);
+      const currentBalance = currentWallet.walletBalance;
+      const spendableAmount = currentWallet.availableBalance;
 
       if (spendableAmount < orderPrice) {
           throw new Error('Insufficient balance');
       }
       
       // Deduct Coins
-      user.coins = normalizeMoneyAmount(currentBalance - orderPrice);
+      const nextWallet = getWalletBalanceSummary({
+        ...user,
+        walletBalance: normalizeMoneyAmount(currentBalance - orderPrice, 2),
+      });
+      user.coins = nextWallet.walletBalance;
+      user.walletBalance = nextWallet.walletBalance;
+      user.balance = nextWallet.walletBalance;
+      user.creditLimit = nextWallet.creditLimit;
+      user.creditUsed = nextWallet.creditUsed;
+      user.availableCredit = nextWallet.availableCredit;
+      user.availableBalance = nextWallet.availableBalance;
       userDB.state.users[userIndex] = user;
       saveDB('admin-storage', userDB);
       

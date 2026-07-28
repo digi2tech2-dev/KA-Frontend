@@ -262,6 +262,9 @@ const useNotificationStore = create((set, get) => ({
   loadUnreadCount: async () => {
     try {
       const count = await apiClient.notifications?.unreadCount?.();
+      if (count === null || count === undefined) {
+        return get().unreadCount;
+      }
       const unreadCount = Number(count || 0);
       set({ unreadCount: Number.isFinite(unreadCount) ? unreadCount : 0 });
       return get().unreadCount;

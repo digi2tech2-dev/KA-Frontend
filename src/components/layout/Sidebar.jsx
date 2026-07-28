@@ -21,13 +21,13 @@ import {
   LockKeyhole,
   LogOut,
   MessageCircle,
+  Share2,
   ReceiptText,
   SlidersHorizontal,
   Target,
   Truck,
   UserCog,
-  UsersRound,
-  Wallet
+  UsersRound
 } from 'lucide-react';
 import ConfirmDialog from '../account/ConfirmDialog';
 import { motion } from 'framer-motion';
@@ -167,7 +167,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     },
     { icon: IdCard, label: t('sidebar.myAccount', { defaultValue: dir === 'rtl' ? 'حسابي' : 'My Account' }), path: '/account', roles: ['admin', 'customer', ...SUPERVISOR_ROLES] },
     { icon: LockKeyhole, label: t('sidebar.accountProtection', { defaultValue: dir === 'rtl' ? 'حماية الحساب' : 'Account Security' }), path: '/account-security', roles: ['admin', 'customer', ...SUPERVISOR_ROLES] },
-    { icon: Wallet, label: t('sidebar.wallet'), path: '/wallet', roles: ['customer'] },
+    { icon: Share2, label: dir === 'rtl' ? 'رابط الإحالة اكسب واسحب' : 'Referral Link — Earn & Withdraw', path: '/referral', roles: ['customer'] },
     {
       icon: ReceiptText,
       label: t('sidebar.myOrders', { defaultValue: dir === 'rtl' ? 'طلباتي' : 'My Orders' }),
@@ -184,6 +184,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     },
     { icon: Code2, label: dir === 'rtl' ? 'تم الإنشاء بواسطة' : 'Created By', path: '/created-by', roles: ['customer'] },
     { icon: UsersRound, label: t('sidebar.users'), path: '/admin/users', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_USERS, section: 'admin' },
+    { icon: Share2, label: dir === 'rtl' ? 'أرباح كود الإحالة' : 'Referral Earnings', path: '/admin/referrals', roles: ADMIN_NAV_ROLES, section: 'admin' },
     { icon: UserCog, label: t('sidebar.supervisors'), path: '/admin/supervisors', roles: ['admin'], section: 'admin' },
     { icon: Activity, label: 'مراقبة المشرفين', path: '/admin/supervisor-monitoring', roles: ['admin'], section: 'admin' },
     { icon: FolderKanban, label: t('sidebar.groupsManager'), path: '/admin/groups', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_GROUPS, section: 'admin' },
@@ -246,11 +247,11 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         type="button"
         onClick={item.onClick}
         className={cn(
-          'coins-sidebar-nav-item group relative flex w-full items-center gap-2 overflow-hidden px-2.5 py-1.5 text-[var(--color-text-secondary)] transition-all',
+          'kanz-sidebar-nav-item group relative flex w-full items-center gap-2 overflow-hidden px-2.5 py-1.5 text-[var(--color-text-secondary)] transition-all',
           !isExpanded && 'justify-center'
         )}
       >
-        <span className="coins-sidebar-icon-bubble">
+        <span className="kanz-sidebar-icon-bubble">
           <item.icon className="h-5 w-5" strokeWidth={2.15} />
         </span>
         {isExpanded && <span className="truncate text-[0.8rem] font-semibold">{item.label}</span>}
@@ -262,7 +263,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         onClick={closeSidebarOnMobile}
         className={({ isActive }) =>
           cn(
-            'coins-sidebar-nav-item group relative flex items-center gap-2 overflow-hidden px-2.5 py-1.5 transition-all',
+            'kanz-sidebar-nav-item group relative flex items-center gap-2 overflow-hidden px-2.5 py-1.5 transition-all',
             !isExpanded && 'justify-center',
             isActive
               ? 'is-active text-[var(--color-text)]'
@@ -272,7 +273,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       >
         {({ isActive }) => (
           <>
-            <span className={cn('coins-sidebar-icon-bubble', isActive && 'is-active')}>
+            <span className={cn('kanz-sidebar-icon-bubble', isActive && 'is-active')}>
               <item.icon className="h-5 w-5" strokeWidth={2.15} />
             </span>
             {isExpanded && <span className="truncate text-[0.8rem] font-semibold">{item.label}</span>}
@@ -315,7 +316,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         )}
       >
         <div className={cn(
-          'app-shell-sidebar-panel coins-sidebar-panel relative flex h-full flex-col rounded-[32px] border backdrop-blur-[24px]',
+          'app-shell-sidebar-panel kanz-sidebar-panel relative flex h-full flex-col rounded-[32px] border backdrop-blur-[24px]',
           isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
         )}>
           <div className="relative z-10 px-4 pb-4 pt-5">
@@ -345,7 +346,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                   type="button"
                   onClick={() => setIsOpen(!isOpen)}
                   className={cn(
-                    'coins-sidebar-collapse absolute top-1 inline-flex h-9 w-9 items-center justify-center rounded-full transition-all',
+                    'kanz-sidebar-collapse absolute top-1 inline-flex h-9 w-9 items-center justify-center rounded-full transition-all',
                     dir === 'rtl' ? 'left-0' : 'right-0',
                     !isExpanded && 'mx-auto'
                   )}
@@ -359,17 +360,17 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             {isExpanded && (
               <>
                 <div className="mt-4">
-                  <LanguageSwitcher showIcon variant="sidebar" className="coins-sidebar-language w-full justify-center" />
+                  <LanguageSwitcher showIcon variant="sidebar" className="kanz-sidebar-language w-full justify-center" />
                 </div>
 
-                <div className="coins-sidebar-user-card mt-2 px-2.5 py-2">
+                <div className="kanz-sidebar-user-card mt-2 px-2.5 py-2">
                   <div className="flex items-center gap-2.5">
                     <div className="relative flex shrink-0 flex-col items-center">
                       {userId ? (
                         <button
                           type="button"
                           onClick={handleCopyUserId}
-                          className="coins-sidebar-id-chip absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2"
+                          className="kanz-sidebar-id-chip absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2"
                           title={copiedUserId ? 'تم نسخ ID المستخدم' : 'اضغط لنسخ ID المستخدم'}
                           aria-label={copiedUserId ? 'تم نسخ ID المستخدم' : 'نسخ ID المستخدم'}
                         >
@@ -382,7 +383,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                         <button
                           type="button"
                           onClick={handleOpenMyAccount}
-                          className="coins-sidebar-avatar h-9 w-9"
+                          className="kanz-sidebar-avatar h-9 w-9"
                           aria-label={dir === 'rtl' ? 'فتح الحساب' : 'Open account'}
                         >
                           <img
@@ -407,7 +408,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                     <button
                       type="button"
                       onClick={handleLogoutClick}
-                      className="coins-sidebar-user-action h-8 w-8"
+                      className="kanz-sidebar-user-action h-8 w-8"
                       aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
                     >
                       <LogOut className="h-4 w-4" />
@@ -464,7 +465,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             <button
               type="button"
               onClick={handleLogoutClick}
-              className={cn('coins-sidebar-logout-pill w-full', !isExpanded && 'is-icon-only')}
+              className={cn('kanz-sidebar-logout-pill w-full', !isExpanded && 'is-icon-only')}
               aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
             >
               <LogOut className="h-5 w-5" />

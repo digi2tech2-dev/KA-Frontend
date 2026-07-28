@@ -235,7 +235,7 @@ const useTopupStore = create((set, get) => ({
                 targetType: 'wallet',
                 targetId: finalTopup?.id,
                 topupId: finalTopup?.id,
-                targetUrl: '/wallet',
+                targetUrl: '/wallet/topups',
               });
             }
           );
@@ -248,7 +248,7 @@ const useTopupStore = create((set, get) => ({
           targetType: 'topup',
           targetId: finalTopup?.id,
           topupId: finalTopup?.id,
-          targetUrl: '/admin/payments',
+          targetUrl: '/wallet/topups',
         });
       },
 
@@ -341,7 +341,7 @@ const useTopupStore = create((set, get) => ({
             targetType: 'wallet',
             targetId: target?.id || id,
             topupId: target?.id || id,
-            targetUrl: '/wallet',
+            targetUrl: '/wallet/topups',
           });
         } else if (status === 'rejected' || status === 'denied') {
           useNotificationStore.getState().addNotification({
@@ -351,7 +351,7 @@ const useTopupStore = create((set, get) => ({
             targetType: 'wallet',
             targetId: target?.id || id,
             topupId: target?.id || id,
-            targetUrl: '/wallet',
+            targetUrl: '/wallet/topups',
           });
         }
       },
@@ -387,7 +387,7 @@ const useTopupStore = create((set, get) => ({
           targetType: 'topup',
           targetId: id,
           topupId: id,
-          targetUrl: '/admin/payments',
+          targetUrl: '/wallet/topups',
         });
       }
 }));

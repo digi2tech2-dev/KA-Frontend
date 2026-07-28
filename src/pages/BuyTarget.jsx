@@ -8,6 +8,7 @@ import useTargetStore from '../store/useTargetStore';
 import useSystemStore from '../store/useSystemStore';
 import { useToast } from '../components/ui/Toast';
 import { getTargetPaymentMethods, isPaymentMethodAllowed } from '../utils/paymentSettings';
+import targetHeroImage from '../assets/تارجت.jpg';
 
 const TARGET_DATA_REFRESH_INTERVAL = 15 * 1000;
 
@@ -78,6 +79,17 @@ const BuyTarget = () => {
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 text-[var(--color-text)]">
+      <section className="relative mx-auto aspect-[2048/752] w-[46%] max-w-2xl overflow-hidden rounded-[0.8rem] border border-[color:rgb(var(--color-border-rgb)/0.58)] bg-[var(--color-card)] shadow-[0_18px_46px_-32px_rgb(0_0_0/0.82)] sm:w-[58%] sm:rounded-[1.2rem]">
+        <img
+          src={targetHeroImage}
+          alt="بيع تارجت"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          className="block h-full w-full object-cover"
+        />
+      </section>
+
       <TargetForm products={products} paymentMethods={paymentMethods} onSubmit={handleSubmit} />
       <section className="rounded-[1.5rem] border border-[color:rgb(var(--color-primary-rgb)/0.18)] bg-[linear-gradient(135deg,rgb(var(--color-card-rgb)/0.92),rgb(var(--color-surface-rgb)/0.68))] p-4 shadow-[0_22px_62px_-48px_rgb(var(--color-primary-rgb)/0.34)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -1,6 +1,6 @@
 import barba from '@barba/core';
 
-const BARBA_REACT_ADAPTER = Symbol.for('coins-stores.barba-react-adapter');
+const BARBA_REACT_ADAPTER = Symbol.for('kanz-coins.barba-react-adapter');
 const TRANSITION_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const LEAVE_DURATION = 220;
 const ENTER_DURATION = 360;

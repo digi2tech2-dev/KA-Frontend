@@ -13,7 +13,7 @@ const toneStyles = {
 
 const ActivityFeedSection = ({ items, isArabic, formatDate }) => {
   return (
-    <Card variant="elevated" className="mx-auto w-[calc(100vw-1.5rem)] max-w-[42rem] p-4 sm:w-full sm:p-6 xl:max-w-none">
+    <Card variant="elevated" className="mx-auto w-[calc(100vw-1.5rem)] max-w-[24rem] p-4 sm:w-full sm:max-w-[42rem] sm:p-6 xl:max-w-none">
       <div className={cn('mb-4', isArabic ? 'text-right' : 'text-left')}>
         <h2 className="text-lg font-bold text-[var(--color-text)] sm:text-xl">
           {isArabic ? 'ملخص النشاط' : 'Activity Summary'}

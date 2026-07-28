@@ -10,6 +10,13 @@
 
 const DEFAULT_MONEY_FRACTION_DIGITS = 10;
 const FRACTION_EPSILON = 1e-9;
+const MAX_INTL_FRACTION_DIGITS = 20;
+
+const normalizeIntlFractionDigits = (value) => (
+  Number.isInteger(value)
+    ? Math.min(MAX_INTL_FRACTION_DIGITS, Math.max(0, value))
+    : null
+);
 
 /**
  * Convert a value to a finite Number. For DISPLAY / FIAT amounts only.
@@ -27,6 +34,39 @@ export const toFiniteMoneyNumber = (value, fallback = 0) => {
 export const normalizeMoneyAmount = (value, fractionDigits = DEFAULT_MONEY_FRACTION_DIGITS) => {
   const safeValue = toFiniteMoneyNumber(value, 0);
   return Number(safeValue.toFixed(fractionDigits));
+};
+
+export const getWalletBalanceSummary = (source = {}) => {
+  const hasLedgerInputs = (
+    source?.walletBalance !== undefined
+    || source?.coins !== undefined
+    || source?.balance !== undefined
+    || source?.creditLimit !== undefined
+  );
+  const walletBalance = normalizeMoneyAmount(
+    source?.walletBalance ?? source?.coins ?? source?.balance ?? 0,
+    2
+  );
+  const creditLimit = Math.max(0, normalizeMoneyAmount(source?.creditLimit ?? 0, 2));
+  const derivedCreditUsed = walletBalance < 0
+    ? normalizeMoneyAmount(Math.min(Math.abs(walletBalance), creditLimit), 2)
+    : 0;
+  const rawAvailableBalance = normalizeMoneyAmount(walletBalance + creditLimit, 2);
+  const availableBalanceSource = hasLedgerInputs ? rawAvailableBalance : (source?.availableBalance ?? rawAvailableBalance);
+  const availableBalance = normalizeMoneyAmount(Math.max(0, availableBalanceSource), 2);
+  const availableCredit = normalizeMoneyAmount(
+    Math.max(0, hasLedgerInputs ? (creditLimit - derivedCreditUsed) : (source?.availableCredit ?? (creditLimit - derivedCreditUsed))),
+    2
+  );
+
+  return {
+    walletBalance,
+    creditLimit,
+    creditUsed: derivedCreditUsed,
+    availableCredit,
+    availableBalance,
+    currency: String(source?.currency || 'USD').toUpperCase(),
+  };
 };
 
 /**
@@ -79,13 +119,18 @@ export const getMoneyFormatOptions = (
     ? getResolvedMoneyFractionDigits(safeValue, DEFAULT_MONEY_FRACTION_DIGITS)
     : 0;
 
-  const resolvedMaximumFractionDigits = Number.isInteger(maximumFractionDigits)
-    ? maximumFractionDigits
-    : (compact ? Math.min(Math.max(actualFractionDigits, 1), 2) : actualFractionDigits);
-
-  const resolvedMinimumFractionDigits = Number.isInteger(minimumFractionDigits)
-    ? minimumFractionDigits
-    : (compact ? 0 : actualFractionDigits);
+  const requestedMaximumFractionDigits = normalizeIntlFractionDigits(maximumFractionDigits);
+  const requestedMinimumFractionDigits = normalizeIntlFractionDigits(minimumFractionDigits);
+  const defaultMaximumFractionDigits = compact
+    ? Math.min(Math.max(actualFractionDigits, 1), 2)
+    : actualFractionDigits;
+  const resolvedMaximumFractionDigits = requestedMaximumFractionDigits
+    ?? Math.max(defaultMaximumFractionDigits, requestedMinimumFractionDigits ?? 0);
+  const defaultMinimumFractionDigits = compact ? 0 : actualFractionDigits;
+  const resolvedMinimumFractionDigits = Math.min(
+    requestedMinimumFractionDigits ?? defaultMinimumFractionDigits,
+    resolvedMaximumFractionDigits
+  );
 
   return {
     maximumFractionDigits: resolvedMaximumFractionDigits,

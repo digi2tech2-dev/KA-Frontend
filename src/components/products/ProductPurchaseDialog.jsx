@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Copy, FileText, LockKeyhole, Package, UserRound, WalletCards, X } from 'lucide-react';
+import { Check, Copy, FileText, LockKeyhole, Package, UserRound, WalletCards, X, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import useMediaStore from '../../store/useMediaStore';
 import useOrderStore from '../../store/useOrderStore';
@@ -22,9 +23,11 @@ import {
   resolveProductOrderFields,
   sanitizeOrderFieldValue,
 } from '../../utils/productPurchase';
-import { normalizeMoneyAmount } from '../../utils/money';
+import { getWalletBalanceSummary, normalizeMoneyAmount } from '../../utils/money';
 import { devLogger } from '../../utils/devLogger';
 import { useBodyScrollLock } from '../../utils/bodyScrollLock';
+import AddBalance from '../../pages/AddBalance';
+import PaymentDetails from '../../pages/PaymentDetails';
 import './ProductPurchaseDialog.css';
 
 const getCopy = (language = 'ar') => (
@@ -59,6 +62,12 @@ const getCopy = (language = 'ar') => (
         aboveMax: 'Quantity is above the maximum.',
         emptyUserId: 'User ID is required.',
         insufficientBalance: 'Insufficient balance.',
+        balanceRequiredTitle: 'Top up to complete your order',
+        balanceRequiredDescription: 'Your balance is short by the amount below.',
+        currentBalance: 'Available balance',
+        requiredTopup: 'Amount required',
+        automaticTopup: 'Auto Top-up',
+        backToPurchase: 'Back to purchase',
         loading: 'Loading product...',
         fallbackStatus: 'Processing',
       }
@@ -92,12 +101,27 @@ const getCopy = (language = 'ar') => (
         aboveMax: 'الكمية أكبر من الحد الأقصى.',
         emptyUserId: 'معرف المستخدم مطلوب.',
         insufficientBalance: 'الرصيد غير كافي.',
+        balanceRequiredTitle: 'اشحن رصيدك لإتمام الطلب',
+        balanceRequiredDescription: 'رصيدك الحالي لا يكفي، وتحتاج إلى شحن المبلغ الموضح بالأسفل.',
+        currentBalance: 'الرصيد المتاح',
+        requiredTopup: 'المبلغ المطلوب شحنه',
+        automaticTopup: 'شحن آلي',
+        backToPurchase: 'العودة للشراء',
         loading: 'جاري تحميل المنتج...',
         fallbackStatus: 'قيد التنفيذ',
       }
 );
 
 const formatCount = (value) => Number(value || 0).toLocaleString('en-US');
+const normalizeQuantityDigits = (value) => String(value || '')
+  .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+  .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+  .replace(/\D/g, '');
+const formatQuantityInput = (value) => {
+  const digits = normalizeQuantityDigits(value);
+  return digits ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+};
+const parseQuantityInput = (value) => Number.parseInt(normalizeQuantityDigits(value), 10);
 const isUploadFieldType = (type) => ['image', 'file'].includes(String(type || '').trim().toLowerCase());
 
 const ProductImage = ({ product }) => {
@@ -157,6 +181,7 @@ const ProductPurchaseDialog = ({
   requireAuth = false,
   onRequireAuth,
 }) => {
+  const navigate = useNavigate();
   const { language, dir } = useLanguage();
   const { addToast } = useToast();
   const copy = useMemo(() => getCopy(language), [language]);
@@ -182,6 +207,9 @@ const ProductPurchaseDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(Boolean(productId && !initialProduct));
   const [successOrder, setSuccessOrder] = useState(null);
+  const [showBalanceTopup, setShowBalanceTopup] = useState(false);
+  const [topupStep, setTopupStep] = useState('summary');
+  const [topupMethodId, setTopupMethodId] = useState('');
 
   useBodyScrollLock(isOpen);
 
@@ -198,6 +226,9 @@ const ProductPurchaseDialog = ({
     setFormError('');
     setServerError('');
     setSuccessOrder(null);
+    setShowBalanceTopup(false);
+    setTopupStep('summary');
+    setTopupMethodId('');
   }, [initialProduct, isOpen, productId]);
 
   useEffect(() => {
@@ -258,16 +289,18 @@ const ProductPurchaseDialog = ({
   const pricingGroupPercentage = pricingUser?.groupPercentage ?? null;
   const unitPriceBase = product ? calculateProductPrice(product, pricingGroup, pricingGroupPercentage) : '0';
   const unitPrice = product ? resolveProductUnitPrice(product, userCurrencyCode, currencies, pricingGroup, pricingGroupPercentage) : '0';
-  const quantity = Number.parseInt(quantityInput, 10);
+  const quantity = parseQuantityInput(quantityInput);
   const safeQuantity = Number.isFinite(quantity) ? quantity : 0;
   const totalPrice = normalizeMoneyAmount(Number(unitPrice) * safeQuantity);
-  const walletBalance = normalizeMoneyAmount(pricingUser?.walletBalance ?? pricingUser?.coins ?? pricingUser?.balance ?? 0);
-  const creditLimit = normalizeMoneyAmount(pricingUser?.creditLimit ?? 0);
-  const creditUsed = normalizeMoneyAmount(pricingUser?.creditUsed ?? 0);
-  const availableBalance = normalizeMoneyAmount(walletBalance + creditLimit - creditUsed);
+  const walletSummary = getWalletBalanceSummary(pricingUser);
+  const walletBalance = walletSummary.walletBalance;
+  const availableBalance = walletSummary.availableBalance;
   const locale = language === 'en' ? 'en-US' : 'ar-EG';
   const formattedUnitPrice = formatCurrencyAmount(unitPrice, userCurrencyCode, currencies, locale);
   const formattedTotalPrice = formatCurrencyAmount(totalPrice, userCurrencyCode, currencies, locale);
+  const balanceShortfall = normalizeMoneyAmount(Math.max(0, totalPrice - availableBalance));
+  const formattedAvailableBalance = formatCurrencyAmount(availableBalance, userCurrencyCode, currencies, locale);
+  const formattedBalanceShortfall = formatCurrencyAmount(balanceShortfall, userCurrencyCode, currencies, locale);
   const agentProductId = String(
     product?.providerProductId
     || product?.externalProductId
@@ -360,7 +393,6 @@ const ProductPurchaseDialog = ({
           : `${field.label || key} مطلوب.`;
       }
     }
-    if (Number.isFinite(totalPrice) && totalPrice > availableBalance) return copy.insufficientBalance;
     if (!isPurchasable) return copy.unavailable;
     return '';
   };
@@ -435,13 +467,13 @@ const ProductPurchaseDialog = ({
     if (!data) return null;
 
     return (
-      <div className="mt-2 flex items-center gap-2 rounded-xl border border-teal-400/25 bg-teal-500/10 px-3 py-2 text-start text-xs font-bold text-teal-200">
+      <div className="mt-2 flex items-center gap-2 rounded-xl border border-indigo-400/25 bg-indigo-500/10 px-3 py-2 text-start text-xs font-bold text-indigo-200">
         {data.avatar ? (
-          <img src={data.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-teal-300/30" />
+          <img src={data.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-indigo-300/30" />
         ) : null}
         <div className="min-w-0">
           <p className="truncate">{data.nickName || data.uid}</p>
-          {data.uid ? <p className="truncate text-[0.68rem] text-teal-100/70" dir="ltr">{data.uid}</p> : null}
+          {data.uid ? <p className="truncate text-[0.68rem] text-indigo-100/70" dir="ltr">{data.uid}</p> : null}
         </div>
       </div>
     );
@@ -456,10 +488,10 @@ const ProductPurchaseDialog = ({
         type="button"
         onClick={() => handleVerifyField(field, value)}
         disabled={Boolean(verificationLoading[key])}
-        className="min-h-[2.75rem] rounded-xl border border-teal-400/25 bg-teal-500/15 px-3 text-sm font-black text-teal-100 transition hover:bg-teal-500/25 disabled:cursor-wait disabled:opacity-60"
+        className="min-h-[2.75rem] rounded-xl border border-indigo-400/25 bg-indigo-500/15 px-3 text-sm font-black text-indigo-100 transition hover:bg-indigo-500/25 disabled:cursor-wait disabled:opacity-60"
       >
         {verificationLoading[key] ? (
-          <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-teal-100/30 border-t-teal-100" />
+          <span className="mx-auto block h-4 w-4 animate-spin rounded-full border-2 border-indigo-100/30 border-t-indigo-100" />
         ) : (
           'تحقق'
         )}
@@ -477,6 +509,11 @@ const ProductPurchaseDialog = ({
     setFormError(validationError);
     setServerError('');
     if (validationError) return;
+
+    if (Number.isFinite(totalPrice) && totalPrice > availableBalance) {
+      setShowBalanceTopup(true);
+      return;
+    }
 
     const identifier = sanitizeOrderFieldValue(userId).trim();
     setIsSubmitting(true);
@@ -554,15 +591,31 @@ const ProductPurchaseDialog = ({
         || returnedOrder?.displayOrderId
         || returnedId
       ).trim();
-      const nextBalance = Number(result?.updatedBalance);
-
-      if (Number.isFinite(nextBalance)) {
-        const normalizedBalance = normalizeMoneyAmount(nextBalance);
-        updateUserSession({ coins: normalizedBalance, walletBalance: normalizedBalance, balance: normalizedBalance });
-      } else {
-        const normalizedBalance = normalizeMoneyAmount(walletBalance - totalPrice);
-        updateUserSession({ coins: normalizedBalance, walletBalance: normalizedBalance, balance: normalizedBalance });
+      let returnedWalletSource = result?.wallet || result?.walletSummary || result?.user || returnedOrder?.wallet || returnedOrder?.walletSummary || null;
+      if (!returnedWalletSource && user?.id) {
+        try {
+          returnedWalletSource = await apiClient.auth.getProfile(user.id);
+        } catch (profileError) {
+          devLogger.warnUnlessBenign('Failed to refresh profile after purchase', profileError, { once: true });
+        }
       }
+      const nextBalance = Number(result?.updatedBalance);
+      const nextWalletSummary = getWalletBalanceSummary(
+        returnedWalletSource
+        || (Number.isFinite(nextBalance)
+          ? { ...walletSummary, walletBalance: nextBalance }
+          : { ...walletSummary, walletBalance: normalizeMoneyAmount(walletBalance - totalPrice, 2) })
+      );
+
+      updateUserSession({
+        coins: nextWalletSummary.walletBalance,
+        walletBalance: nextWalletSummary.walletBalance,
+        balance: nextWalletSummary.walletBalance,
+        creditLimit: nextWalletSummary.creditLimit,
+        creditUsed: nextWalletSummary.creditUsed,
+        availableCredit: nextWalletSummary.availableCredit,
+        availableBalance: nextWalletSummary.availableBalance,
+      });
 
       setSuccessOrder({
         orderId: returnedId,
@@ -584,6 +637,15 @@ const ProductPurchaseDialog = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleAutomaticTopup = () => {
+    setTopupStep('methods');
+  };
+
+  const handleTopupMethodSelect = (method) => {
+    setTopupMethodId(String(method?.id || ''));
+    setTopupStep('details');
   };
 
   const copyOrderNumber = async () => {
@@ -657,7 +719,7 @@ const ProductPurchaseDialog = ({
                 clearVerificationForField(key);
                 setFormError('');
               }}
-              className="min-h-[2.75rem] w-full rounded-xl border border-slate-400/20 bg-white px-3 text-center text-sm font-extrabold text-slate-900 outline-none focus:border-teal-400/50 dark:bg-slate-950/60 dark:text-white"
+              className="min-h-[2.75rem] w-full rounded-xl border border-slate-400/20 bg-white px-3 text-center text-sm font-extrabold text-slate-900 outline-none focus:border-indigo-400/50 dark:bg-slate-950/60 dark:text-white"
             >
               <option value="">{placeholder}</option>
               {(field.options || []).map((option) => (
@@ -720,7 +782,7 @@ const ProductPurchaseDialog = ({
         initial={{ opacity: 0, y: 28, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.18 }}
-        className="purchase-dialog-card"
+        className={`purchase-dialog-card ${showBalanceTopup && topupStep !== 'summary' ? 'is-wallet-flow' : ''}`}
       >
         <div className="purchase-dialog-grid" />
         <button type="button" className="purchase-dialog-close" onClick={onClose} aria-label="Close">
@@ -791,6 +853,77 @@ const ProductPurchaseDialog = ({
               </button>
             </div>
           </div>
+        ) : showBalanceTopup && topupStep === 'methods' ? (
+          <div className="purchase-dialog-wallet-flow">
+            <button
+              type="button"
+              onClick={() => setTopupStep('summary')}
+              className="purchase-dialog-wallet-back"
+            >
+              {language === 'en' ? 'Back to required amount' : 'العودة للمبلغ المطلوب'}
+            </button>
+            <AddBalance
+              embedded
+              automaticAmount={balanceShortfall}
+              automaticCurrency={userCurrencyCode}
+              onSelectMethod={handleTopupMethodSelect}
+            />
+          </div>
+        ) : showBalanceTopup && topupStep === 'details' ? (
+          <div className="purchase-dialog-wallet-flow">
+            <PaymentDetails
+              embedded
+              methodId={topupMethodId}
+              automaticAmount={balanceShortfall}
+              automaticCurrency={userCurrencyCode}
+              onBack={() => setTopupStep('methods')}
+              onComplete={() => {
+                onClose?.();
+                navigate('/wallet/topups');
+              }}
+              onReturnToPurchase={() => {
+                setTopupStep('summary');
+                setTopupMethodId('');
+                setShowBalanceTopup(false);
+              }}
+            />
+          </div>
+        ) : showBalanceTopup ? (
+          <div className="purchase-dialog-topup">
+            <div className="purchase-dialog-topup-icon">
+              <WalletCards className="h-8 w-8" />
+            </div>
+            <span className="purchase-dialog-topup-kicker">
+              <Zap className="h-3.5 w-3.5" />
+              {copy.automaticTopup}
+            </span>
+            <h2>{copy.balanceRequiredTitle}</h2>
+            <p>{copy.balanceRequiredDescription}</p>
+
+            <div className="purchase-dialog-topup-summary">
+              <div>
+                <span>{copy.currentBalance}</span>
+                <strong dir="ltr">{formattedAvailableBalance}</strong>
+              </div>
+              <div>
+                <span>{copy.total}</span>
+                <strong dir="ltr">{formattedTotalPrice}</strong>
+              </div>
+              <div className="is-required">
+                <span>{copy.requiredTopup}</span>
+                <strong dir="ltr">{formattedBalanceShortfall}</strong>
+              </div>
+            </div>
+
+            <button type="button" className="purchase-dialog-primary purchase-dialog-topup-action" onClick={handleAutomaticTopup}>
+              <Zap className="h-5 w-5" />
+              {copy.automaticTopup}
+              <strong dir="ltr">{formattedBalanceShortfall}</strong>
+            </button>
+            <button type="button" className="purchase-dialog-secondary purchase-dialog-topup-back" onClick={() => setShowBalanceTopup(false)}>
+              {copy.backToPurchase}
+            </button>
+          </div>
         ) : (
           <>
             <div className="purchase-dialog-product">
@@ -822,15 +955,14 @@ const ProductPurchaseDialog = ({
             <label className="purchase-dialog-field">
               <span>{copy.quantity}</span>
               <input
-                type="number"
+                type="text"
                 inputMode="numeric"
-                min={quantityMeta.minQty}
-                max={quantityMeta.maxQty}
-                step={quantityMeta.stepQty}
+                pattern="[0-9,]*"
+                dir="ltr"
                 value={quantityInput}
                 placeholder={copy.quantityPlaceholder}
                 onChange={(event) => {
-                  setQuantityInput(event.target.value);
+                  setQuantityInput(formatQuantityInput(event.target.value));
                   setFormError('');
                 }}
               />

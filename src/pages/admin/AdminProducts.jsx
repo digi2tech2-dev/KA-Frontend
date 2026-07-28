@@ -1359,7 +1359,7 @@ const AdminProducts = () => {
                     </div>
                 )}
                 {isUnavailable || isHidden ? (
-                    <span className="absolute inset-x-1 bottom-1 truncate rounded-md border border-amber-200/50 bg-[linear-gradient(180deg,rgb(255_255_255/0.86),rgb(255_248_226/0.82))] px-1 py-0.5 text-center text-[8px] font-bold leading-none text-amber-800 shadow-[0_8px_14px_-12px_rgb(15_23_42/0.38)] dark:border-cyan-200/24 dark:bg-[linear-gradient(180deg,rgb(15_23_42/0.72),rgb(29_149_168/0.42))] dark:text-cyan-50">
+                    <span className="absolute inset-x-1 bottom-1 truncate rounded-md border border-amber-200/50 bg-[linear-gradient(180deg,rgb(255_255_255/0.86),rgb(255_248_226/0.82))] px-1 py-0.5 text-center text-[8px] font-bold leading-none text-amber-800 shadow-[0_8px_14px_-12px_rgb(15_23_42/0.38)] dark:border-violet-200/24 dark:bg-[linear-gradient(180deg,rgb(15_23_42/0.72),rgb(124_58_237/0.42))] dark:text-violet-50">
                         {isHidden ? (isEnglish ? 'Hidden' : 'مخفي') : (isEnglish ? 'Unavailable' : 'غير متوفر')}
                     </span>
                 ) : null}
@@ -2576,7 +2576,7 @@ const AdminProducts = () => {
                                             </label>
 
                                             {/* حذف (Delete) */}
-                                            <label className="inline-flex cursor-pointer items-center gap-2 self-end pb-2.5 text-xs font-medium text-teal-700 dark:text-teal-300 sm:col-span-1 md:col-span-2">
+                                            <label className="inline-flex cursor-pointer items-center gap-2 self-end pb-2.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 sm:col-span-1 md:col-span-2">
                                                 <input
                                                     type="checkbox"
                                                     checked={item.isVerifiable === true}
@@ -2586,7 +2586,7 @@ const AdminProducts = () => {
                                                             rowIndex === index ? { ...row, isVerifiable: e.target.checked } : row
                                                         )),
                                                     }))}
-                                                    className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800"
+                                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800"
                                                 />
                                                 يدعم التحقق (Verifiable)
                                             </label>
@@ -2616,25 +2616,25 @@ const AdminProducts = () => {
 
                     {/* Preview حالة المنتج النهائية */}
                     {productFormStep === 'fields' ? (
-                    <div className="space-y-2 rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-900 dark:bg-teal-900/20">
-                        <h4 className="font-semibold text-teal-900 dark:text-teal-100">معاينة: كيف سيبدو المنتج للعميل</h4>
+                    <div className="space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-900 dark:bg-indigo-900/20">
+                        <h4 className="font-semibold text-indigo-900 dark:text-indigo-100">معاينة: كيف سيبدو المنتج للعميل</h4>
                         {(() => {
                             const status = getProductStatus(productForm);
                             return (
                                 <div className="space-y-2 text-sm">
-                                    <p className="text-teal-700 dark:text-teal-300">
+                                    <p className="text-indigo-700 dark:text-indigo-300">
                                         {status.isVisible ? '✓ المنتج سيكون ظاهراً' : '✗ المنتج لن يكون ظاهراً'}
                                     </p>
-                                    <p className="text-teal-700 dark:text-teal-300">
+                                    <p className="text-indigo-700 dark:text-indigo-300">
                                         {status.isPurchasable ? '✓ يمكن شراء المنتج' : '✗ لا يمكن شراء المنتج'}
                                     </p>
                                     {status.badge && (
-                                        <p className="text-teal-700 dark:text-teal-300">
+                                        <p className="text-indigo-700 dark:text-indigo-300">
                                             Badge: <Badge variant={status.badgeColor}>{status.badgeLabel}</Badge>
                                         </p>
                                     )}
                                     {status.helperText && (
-                                        <p className="text-teal-700 dark:text-teal-300">النص: {status.helperText}</p>
+                                        <p className="text-indigo-700 dark:text-indigo-300">النص: {status.helperText}</p>
                                     )}
                                 </div>
                             );

@@ -140,4 +140,4 @@ All financial snapshots include timestamps and complete context for auditing.
 - All financial changes must be logged
 - Snapshot creation must be atomic
 - No post-creation modifications allowed</content>
-  <parameter name="filePath">c:\Users\Ahmed\Desktop\CoinsStores\FINANCIAL_SNAPSHOT_SYSTEM.md
+  <parameter name="filePath">c:\Users\Ahmed\Desktop\KANZ COINS\FINANCIAL_SNAPSHOT_SYSTEM.md
