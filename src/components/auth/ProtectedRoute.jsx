@@ -36,6 +36,10 @@ const ProtectedRoute = ({ children, roles = [], permission = null }) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  if (user?.profileCompletionRequired) {
+    return <Navigate to="/auth?status=PROFILE_COMPLETION_REQUIRED" state={{ from: location }} replace />;
+  }
+
   if (!isApprovedAccountStatus(normalizedStatus) && blockedRoute) {
     return <Navigate to={blockedRoute} state={{ from: location }} replace />;
   }

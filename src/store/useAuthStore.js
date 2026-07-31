@@ -60,7 +60,10 @@ const clearStoredAuthState = () => {
 };
 
 const buildAuthOutcome = (user) => {
-  const status = normalizeAccountStatus(user?.status);
+  const profileCompletionRequired = Boolean(user?.profileCompletionRequired);
+  const status = profileCompletionRequired
+    ? 'profile_completion_required'
+    : normalizeAccountStatus(user?.status);
   return {
     ok: true,
     status,
@@ -132,6 +135,10 @@ const pickPersistedUser = (user) => {
     webhookUrl: user.webhookUrl || '',
     phone: user.phone || '',
     twoFactorEnabled: user.twoFactorEnabled !== undefined ? Boolean(user.twoFactorEnabled) : undefined,
+    profileCompletedAt: user.profileCompletedAt || null,
+    isProfileComplete: user.isProfileComplete !== undefined ? Boolean(user.isProfileComplete) : undefined,
+    profileCompletionRequired: Boolean(user.profileCompletionRequired),
+    missingProfileFields: Array.isArray(user.missingProfileFields) ? user.missingProfileFields : [],
     emailChangedPending: user.emailChangedPending !== undefined ? Boolean(user.emailChangedPending) : undefined,
     createdAt: user.createdAt || '',
     updatedAt: user.updatedAt || '',
@@ -304,6 +311,26 @@ const useAuthStore = create((set, get) => ({
         });
         try {
           const response = await apiClient.auth.loginWithGoogle();
+          if (response?.status === 'profile_completion_required' || response?.completionToken) {
+            set({
+              user: null,
+              token: null,
+              isAuthenticated: false,
+              isLoading: false,
+              blockedStatus: 'profile_completion_required',
+              blockedUser: null,
+              profileLastLoadedAt: 0,
+            });
+
+            return {
+              ok: true,
+              status: 'profile_completion_required',
+              completionToken: response.completionToken,
+              redirectTo: response.redirectTo || '/auth?status=PROFILE_COMPLETION_REQUIRED',
+              canAccessApp: false,
+            };
+          }
+
           if (response?.redirectTo && !response?.user && !response?.token) {
             const callbackStatus = normalizeAccountStatus(response?.status);
 
@@ -376,6 +403,45 @@ const useAuthStore = create((set, get) => ({
             profileLastLoadedAt: 0,
           });
           return { ok: false, error: formattedError };
+        }
+      },
+
+      completeGoogleProfile: async ({ completionToken, country, currency }) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await apiClient.auth.completeGoogleProfile({ completionToken, country, currency });
+          const outcome = buildAuthOutcome(response.user);
+
+          set({
+            user: response.user,
+            token: response.token || null,
+            isAuthenticated: true,
+            isLoading: false,
+            blockedStatus: outcome.canAccessApp ? null : outcome.status,
+            blockedUser: outcome.canAccessApp ? null : response.user,
+            profileLastLoadedAt: Date.now(),
+          });
+          writeStoredAuthState({
+            user: response.user,
+            token: response.token || null,
+            isAuthenticated: true,
+            blockedStatus: outcome.canAccessApp ? null : outcome.status,
+            blockedUser: outcome.canAccessApp ? null : response.user,
+            profileLastLoadedAt: Date.now(),
+          });
+
+          await loadAdminUsersSilently();
+          return outcome;
+        } catch (err) {
+          const formattedError = formatAuthErrorMessage(err, { action: 'google' });
+          set({
+            error: formattedError,
+            isLoading: false,
+            isAuthenticated: false,
+            blockedStatus: 'profile_completion_required',
+            blockedUser: null,
+          });
+          return { ok: false, status: 'profile_completion_required', error: formattedError };
         }
       },
 
@@ -485,7 +551,9 @@ const useAuthStore = create((set, get) => ({
         const { user, token } = get();
         if (user) {
           const nextUser = withCanonicalWalletFields({ ...user, ...updates });
-          const nextStatus = normalizeAccountStatus(nextUser?.status);
+          const nextStatus = nextUser?.profileCompletionRequired
+            ? 'profile_completion_required'
+            : normalizeAccountStatus(nextUser?.status);
           set({
             user: nextUser,
             blockedStatus: isApprovedAccountStatus(nextStatus) ? null : nextStatus,
@@ -535,7 +603,9 @@ const useAuthStore = create((set, get) => ({
             .then((profile) => {
               const current = get();
               const nextUser = withCanonicalWalletFields({ ...current.user, ...profile });
-              const nextStatus = normalizeAccountStatus(profile?.status);
+              const nextStatus = nextUser?.profileCompletionRequired
+                ? 'profile_completion_required'
+                : normalizeAccountStatus(profile?.status);
 
               set({
                 user: nextUser,

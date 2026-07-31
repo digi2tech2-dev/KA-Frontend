@@ -24,6 +24,7 @@ import {
 import { resolveImageUrl } from '../utils/imageUrl';
 import { resolveUserAvatar } from '../utils/avatar';
 import { getAccountAccessRoute, normalizeAccountStatus } from '../utils/accountStatus';
+import { readReferralBridge, readReferralCodeFromSearch } from '../utils/referralCode';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -534,6 +535,10 @@ const normaliseUser = (u) => {
     permissions: Array.isArray(u.permissions) ? u.permissions.map((item) => String(item || '').trim()).filter(Boolean) : [],
     twoFactorEnabled: Boolean(u.twoFactorEnabled ?? u.isTwoFactorEnabled),
     isTwoFactorEnabled: Boolean(u.isTwoFactorEnabled ?? u.twoFactorEnabled),
+    profileCompletedAt: u.profileCompletedAt || null,
+    isProfileComplete: Boolean(u.isProfileComplete ?? !u.profileCompletionRequired),
+    profileCompletionRequired: Boolean(u.profileCompletionRequired),
+    missingProfileFields: Array.isArray(u.missingProfileFields) ? u.missingProfileFields : [],
     isApiEnabled: Boolean(u.isApiEnabled),
     whitelistIps: Array.isArray(u.whitelistIps) ? u.whitelistIps.map((item) => String(item || '').trim()).filter(Boolean) : [],
     webhookUrl: String(u.webhookUrl || ''),
@@ -1881,8 +1886,26 @@ const realApi = {
       // This method is called from FE after capturing the token from the redirect.
       // We keep it compatible by parsing the token from the current URL if present.
       const params = new URLSearchParams(window.location.search);
-      const callbackStatus = normalizeAccountStatus(params.get('status'));
-      if (callbackStatus && !params.get('token')) {
+      const rawCallbackStatus = String(params.get('status') || '').trim().toUpperCase();
+      const callbackStatus = normalizeAccountStatus(rawCallbackStatus);
+      const completionToken = params.get('completionToken') || params.get('completion_token');
+      if (rawCallbackStatus === 'OAUTH_ERROR') {
+        throw new Error('Google authentication failed. Please try again.');
+      }
+
+      if (callbackStatus === 'profile_completion_required' && completionToken) {
+        return {
+          user: null,
+          token: null,
+          completionToken,
+          status: 'profile_completion_required',
+          callbackStatus: 'PROFILE_COMPLETION_REQUIRED',
+          redirectTo: '/auth?status=PROFILE_COMPLETION_REQUIRED',
+          canAccessApp: false,
+        };
+      }
+
+      if (callbackStatus && callbackStatus !== 'approved' && !params.get('token')) {
         return {
           user: null,
           token: null,
@@ -1895,7 +1918,7 @@ const realApi = {
       const token = params.get('token');
       if (!token) {
         // Initiate the redirect
-        const referralCode = String(params.get('ref') || '').trim().toUpperCase();
+        const referralCode = readReferralCodeFromSearch(window.location.search) || readReferralBridge();
         const signupIntent = window.sessionStorage?.getItem('auth:google-signup-intent') === '1';
         const googleParams = new URLSearchParams();
         googleParams.set('intent', signupIntent ? 'signup' : 'login');
@@ -1908,7 +1931,21 @@ const realApi = {
       setStoredAuthTokens(token, null);
       const res = await http.get('/users/me');
       const user = normaliseUser(unwrap(res));
-      return { user, token };
+      return { user, token, status: 'login_complete', callbackStatus: rawCallbackStatus || 'LOGIN_COMPLETE' };
+    },
+
+    completeGoogleProfile: async ({ completionToken, country, currency }) => {
+      const res = await http.post('/auth/google/complete-profile', {
+        completionToken,
+        country,
+        currency,
+      });
+      const data = unwrap(res);
+      const user = normaliseUser(data.user);
+      const token = data.token || data.accessToken || null;
+      const refreshToken = data.refreshToken ?? data.refresh_token ?? null;
+      if (token) setStoredAuthTokens(token, refreshToken);
+      return { user, token, status: normalizeAccountStatus(data.status || 'LOGIN_COMPLETE') };
     },
 
     resendVerification: async (email) => {

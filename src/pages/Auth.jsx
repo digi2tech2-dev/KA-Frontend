@@ -24,7 +24,6 @@ import OtpInput from '../components/account/OtpInput';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../components/ui/Toast';
 import useSystemStore from '../store/useSystemStore';
-import apiClient from '../services/client';
 import { useTranslation } from 'react-i18next';
 import {
   validateEmail,
@@ -34,6 +33,12 @@ import {
 import { COUNTRY_CATALOG } from '../data/countryCatalog';
 import { getDefaultRouteForRole } from '../utils/authRoles';
 import { getAccountAccessRoute, normalizeAccountStatus } from '../utils/accountStatus';
+import {
+  clearReferralBridge,
+  persistReferralBridge,
+  readReferralBridge,
+  readReferralCodeFromSearch,
+} from '../utils/referralCode';
 import brandIconImage from '../assets/logo.PNG';
 import styles from './Auth.module.css';
 
@@ -78,6 +83,7 @@ const Auth = () => {
     login,
     verifyTwoFactor,
     loginWithGoogle,
+    completeGoogleProfile,
     signup,
     isLoading,
     error: storeError,
@@ -97,7 +103,7 @@ const Auth = () => {
   const [name, setName] = useState('');
   const [country, setCountry] = useState('US');
   const [currency, setCurrency] = useState('USD');
-  const [referralCode, setReferralCode] = useState(() => new URLSearchParams(location.search).get('ref') || '');
+  const [referralCode, setReferralCode] = useState(() => readReferralCodeFromSearch(location.search) || readReferralBridge());
   const [countries] = useState(COUNTRY_CATALOG);
   const [errors, setErrors] = useState({});
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
@@ -108,8 +114,13 @@ const Auth = () => {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [googleSetupPending, setGoogleSetupPending] = useState(() => (
     typeof window !== 'undefined'
-    && Boolean(new URLSearchParams(window.location.search).get('token'))
-    && window.sessionStorage.getItem('auth:google-signup-intent') === '1'
+    && normalizeAccountStatus(new URLSearchParams(window.location.search).get('status')) === 'profile_completion_required'
+    && Boolean(new URLSearchParams(window.location.search).get('completionToken'))
+  ));
+  const [googleCompletionToken, setGoogleCompletionToken] = useState(() => (
+    typeof window === 'undefined'
+      ? ''
+      : (new URLSearchParams(window.location.search).get('completionToken') || '')
   ));
 
 const countryOptions = useMemo(() => {
@@ -147,9 +158,12 @@ const countryOptions = useMemo(() => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const mode = String(params.get('mode') || '').toLowerCase();
-    const codeFromLink = String(params.get('ref') || '').trim();
+    const codeFromLink = readReferralCodeFromSearch(location.search);
 
-    if (codeFromLink) setReferralCode(codeFromLink.toUpperCase());
+    if (codeFromLink) {
+      setReferralCode(codeFromLink);
+      persistReferralBridge(codeFromLink);
+    }
 
     if (mode === 'signup') {
       setIsLogin(false);
@@ -218,6 +232,14 @@ const countryOptions = useMemo(() => {
 
     const handleGoogleCallback = async () => {
       const result = await loginWithGoogle();
+
+      if (result?.status === 'profile_completion_required' || result?.completionToken) {
+        setGoogleCompletionToken(result?.completionToken || params.get('completionToken') || '');
+        setGoogleSetupPending(true);
+        setIsLogin(false);
+        setRegisterStep(2);
+        return;
+      }
 
       const signupIntent = window.sessionStorage.getItem('auth:google-signup-intent') === '1';
       if (result?.user && signupIntent) {
@@ -413,7 +435,7 @@ const countryOptions = useMemo(() => {
       }
 
       if (registerStep !== 2) return;
-      if (!validateRegisterStepOne() || !validateRegisterStepTwo()) return;
+      if ((!googleSetupPending && !validateRegisterStepOne()) || !validateRegisterStepTwo()) return;
     } else if (!validateForm()) {
       return;
     }
@@ -430,25 +452,17 @@ const countryOptions = useMemo(() => {
       }
 
       try {
-        const updatedUser = await apiClient.users.updateProfile(
-          user?.id || user?._id,
-          {
-            country,
-            currency,
-            referralCode: referralCode.trim().toUpperCase(),
-          },
-          user
-        );
-        useAuthStore.getState().updateUserSession({
-          ...(updatedUser || {}),
+        const result = await completeGoogleProfile({
+          completionToken: googleCompletionToken,
           country,
           currency,
-          ...(referralCode.trim() ? { referredByCode: referralCode.trim().toUpperCase() } : {}),
         });
         window.sessionStorage.removeItem('auth:google-signup-intent');
+        clearReferralBridge();
         setGoogleSetupPending(false);
+        setGoogleCompletionToken('');
         addToast('تم استكمال إعداد حساب Google بنجاح.', 'success');
-        navigate(getDefaultRouteForRole((updatedUser || user)?.role), { replace: true });
+        navigate(getDefaultRouteForRole(result?.user?.role || useAuthStore.getState().user?.role), { replace: true });
       } catch (error) {
         addToast(error?.message || 'تعذر حفظ إعدادات حساب Google. حاول مرة أخرى.', 'error');
       }
@@ -475,6 +489,7 @@ const countryOptions = useMemo(() => {
     }
 
     if (!isLogin) {
+      if (result?.ok !== false) clearReferralBridge();
       consumeAuthResult(result, { source: 'email', mode: 'signup' });
       return;
     }
@@ -505,6 +520,7 @@ const countryOptions = useMemo(() => {
 
   const handleGoogleAuth = async () => {
     if (typeof window !== 'undefined') {
+      persistReferralBridge(referralCode);
       if (isLogin) window.sessionStorage.removeItem('auth:google-signup-intent');
       else window.sessionStorage.setItem('auth:google-signup-intent', '1');
     }
@@ -878,7 +894,7 @@ const countryOptions = useMemo(() => {
                       className={styles.authInput}
                       prefix={<TicketCheck className="h-4 w-4" />}
                     />
-                    {new URLSearchParams(location.search).get('ref') && referralCode ? (
+                    {readReferralCodeFromSearch(location.search) && referralCode ? (
                       <p className="-mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         <TicketCheck className="h-3.5 w-3.5" />
                         {dir === 'rtl' ? 'تمت إضافة كود الدعوة تلقائيًا من الرابط.' : 'The invitation code was added automatically from the link.'}

@@ -5,6 +5,9 @@ const STATUS_ALIASES = {
   completed: 'approved',
   verification_required: 'verification_required',
   email_verification_required: 'verification_required',
+  profile_completion_required: 'profile_completion_required',
+  profile_completion: 'profile_completion_required',
+  incomplete_profile: 'profile_completion_required',
   verify_email: 'verification_required',
   verification: 'verification_required',
   unverified: 'verification_required',
@@ -38,10 +41,12 @@ export const normalizeAccountStatus = (status) => {
 
 export const isApprovedAccountStatus = (status) => normalizeAccountStatus(status) === 'approved';
 export const isVerificationRequiredStatus = (status) => normalizeAccountStatus(status) === 'verification_required';
+export const isProfileCompletionRequiredStatus = (status) => normalizeAccountStatus(status) === 'profile_completion_required';
 export const isPendingAccountStatus = (status) => normalizeAccountStatus(status) === 'pending';
 export const isRejectedAccountStatus = (status) => normalizeAccountStatus(status) === 'rejected';
 
 export const getAccountAccessRoute = (status) => {
+  if (isProfileCompletionRequiredStatus(status)) return '/auth?status=PROFILE_COMPLETION_REQUIRED';
   if (isVerificationRequiredStatus(status)) return ACCOUNT_VERIFICATION_ROUTE;
   if (isPendingAccountStatus(status)) return ACCOUNT_PENDING_ROUTE;
   if (isRejectedAccountStatus(status)) return ACCOUNT_REJECTED_ROUTE;
