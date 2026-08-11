@@ -22,7 +22,7 @@ import {
 } from '../utils/transactionCurrency';
 
 const DELAY = 800; // Simulated network latency in ms
-const ACCOUNT_SECURITY_STORAGE_KEY = 'kanz-coins-account-security-v1';
+const ACCOUNT_SECURITY_STORAGE_KEY = 'ka-card-account-security-v1';
 const AUTH_STORAGE_KEY = 'auth-storage';
 
 // In-memory simulated "Database"; auth uses localStorage to match real persistence.
@@ -173,7 +173,7 @@ const sanitizeUser = (user) => {
   });
   return {
     ...safeUser,
-    avatar: resolveUserAvatar(safeUser, safeUser.name || safeUser.email || 'Kanz Coins User'),
+    avatar: resolveUserAvatar(safeUser, safeUser.name || safeUser.email || 'KA-CARD User'),
     coins: walletSummary.walletBalance,
     walletBalance: walletSummary.walletBalance,
     balance: walletSummary.walletBalance,
@@ -781,7 +781,7 @@ const mockApi = {
       const migrated = await secureUsersInDb(db);
       if (migrated) saveDB('admin-storage', db);
 
-      const googleEmail = 'google.user@kanz-coins.app';
+      const googleEmail = 'google.user@ka-card.app';
       let user = users.find((item) => String(item.email || '').toLowerCase() === googleEmail);
 
       if (!user) {
@@ -853,7 +853,7 @@ const mockApi = {
         signupMethod: normalizeSignupMethod(userData.signupMethod || 'email'),
         approvedAt: null,
         rejectedAt: null,
-        avatar: resolveUserAvatar(userData, userData.name || userData.username || userData.email || 'Kanz Coins User')
+        avatar: resolveUserAvatar(userData, userData.name || userData.username || userData.email || 'KA-CARD User')
       };
       delete newUser.password;
       

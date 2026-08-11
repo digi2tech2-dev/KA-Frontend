@@ -187,7 +187,7 @@ const Account = () => {
     }
   }, [location.hash]);
 
-  const avatarIdentity = form.fullName || savedProfile.fullName || form.username || savedProfile.username || form.email || savedProfile.email || 'Kanz Coins User';
+  const avatarIdentity = form.fullName || savedProfile.fullName || form.username || savedProfile.username || form.email || savedProfile.email || 'KA-CARD User';
   const fallbackAvatar = resolveUserAvatar({ name: avatarIdentity, avatar: '' }, avatarIdentity);
   const displayedAvatar =
     form.avatarAction === 'remove'

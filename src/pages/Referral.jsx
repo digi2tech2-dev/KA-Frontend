@@ -32,7 +32,7 @@ import Input from '../components/ui/Input';
 import { useToast } from '../components/ui/Toast';
 import { resolveUserAvatar } from '../utils/avatar';
 import apiClient from '../services/client';
-import referralHeroImage from '../assets/slide-3.webp';
+import referralHeroImage from '../assets/slide-3.jpg';
 
 const copyText = async (value) => {
   try {
@@ -52,7 +52,7 @@ const copyText = async (value) => {
 };
 
 const createSevenLetterCode = (value) => {
-  const source = String(value || 'KANZCOINS').trim().toUpperCase();
+  const source = String(value || 'KACARD').trim().toUpperCase();
   const lettersOnly = source.replace(/[^A-Z]/g, '');
 
   if (lettersOnly.length === 7) return lettersOnly;
@@ -74,7 +74,7 @@ const createSevenLetterCode = (value) => {
 };
 
 const getPublicAppUrl = () => {
-  const configuredUrl = String(import.meta.env.VITE_PUBLIC_APP_URL || 'http://kanzcoins.com').trim();
+  const configuredUrl = String(import.meta.env.VITE_PUBLIC_APP_URL || 'http://kacard.com').trim();
   const currentOrigin = typeof window === 'undefined' ? '' : window.location.origin;
   return (configuredUrl || currentOrigin).replace(/\/+$/, '');
 };
@@ -94,13 +94,13 @@ const TEST_VODAFONE_RECEIPT = `data:image/svg+xml;charset=UTF-8,${encodeURICompo
     <text x="638" y="250" text-anchor="end" font-family="Arial" font-size="20" font-weight="700" fill="#0f172a">01012345678</text>
     <text x="82" y="300" font-family="Arial" font-size="17" fill="#64748b">Transaction ID</text>
     <text x="638" y="300" text-anchor="end" font-family="Arial" font-size="20" font-weight="700" fill="#0f172a">VC-TEST-2026</text>
-    <text x="82" y="342" font-family="Arial" font-size="14" fill="#94a3b8">Kanz Coins · Test receipt</text>
+    <text x="82" y="342" font-family="Arial" font-size="14" fill="#94a3b8">KA-CARD · Test receipt</text>
   </svg>
 `)}`;
 
 const REFERRAL_VALIDITY_DAYS = 30;
-const WITHDRAWAL_METHODS_KEY = 'kanzcoins_referral_withdrawal_methods';
-const WITHDRAWAL_REQUESTS_KEY = 'kanzcoins_referral_withdrawal_requests';
+const WITHDRAWAL_METHODS_KEY = 'kacard_referral_withdrawal_methods';
+const WITHDRAWAL_REQUESTS_KEY = 'kacard_referral_withdrawal_requests';
 const SUB_AGENT_REQUESTS_KEY = 'oscar_sub_agent_requests';
 const isRealProvider = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase() === 'real';
 const DEFAULT_WITHDRAWAL_METHODS = [
@@ -295,8 +295,8 @@ const Referral = () => {
     : [{
       id: 'test-referral-customer',
       name: isArabic ? 'أحمد محمد' : 'Ahmed Mohamed',
-      email: 'ahmed.test@kanzcoins.com',
-      avatar: resolveUserAvatar({ name: 'Ahmed Mohamed', email: 'ahmed.test@kanzcoins.com' }, 'Ahmed Mohamed'),
+      email: 'ahmed.test@kacard.com',
+      avatar: resolveUserAvatar({ name: 'Ahmed Mohamed', email: 'ahmed.test@kacard.com' }, 'Ahmed Mohamed'),
       addedAmount: 1000,
       earnings: 50,
       currency: 'EGP',
@@ -337,8 +337,8 @@ const Referral = () => {
     ];
   const withdrawals = [...(isRealProvider ? [] : localWithdrawals), ...realWithdrawals, ...previewWithdrawals];
   const shareMessage = isArabic
-    ? '🚀 كل اللي محتاجه في مكان واحد مع كنز كوينز!\n\n🎮 شحن الألعاب والبرامج\n💎 اشتراكات مميزة\n🤖 خدمات وأدوات الذكاء الاصطناعي\n📈 زيادة المتابعين وخدمات السوشيال ميديا\n\n✨ سجّل الآن من خلال رابط دعوتي واكتشف كل الخدمات:'
-    : '🚀 Everything you need in one place with Kanz Coins!\n\n🎮 Games and software top-ups\n💎 Premium subscriptions\n🤖 AI services and tools\n📈 Followers growth and social media services\n\n✨ Sign up through my invitation link and discover all the services:';
+    ? '🚀 كل خدماتك الرقمية في مكان واحد مع KA CARD!\n\n🎮 شحن الألعاب والتطبيقات\n💎 اشتراكات وبطاقات رقمية\n🤖 خدمات وأدوات الذكاء الاصطناعي\n📈 خدمات السوشيال ميديا\n\n✨ سجّل الآن من خلال رابط دعوتي واكتشف خدمات KA CARD:'
+    : '🚀 Everything you need in one place with KA-CARD!\n\n🎮 Games and software top-ups\n💎 Premium subscriptions\n🤖 AI services and tools\n📈 Followers growth and social media services\n\n✨ Sign up through my invitation link and discover all the services:';
   const shareText = `${shareMessage}\n${referralLink}`;
 
   useEffect(() => {
@@ -373,7 +373,7 @@ const Referral = () => {
 
     try {
       await navigator.share({
-        title: isArabic ? 'دعوة إلى كنز كوينز' : 'Kanz Coins invitation',
+        title: isArabic ? 'دعوة إلى KA CARD' : 'KA CARD invitation',
         text: shareMessage,
         url: referralLink,
       });
@@ -602,12 +602,12 @@ const Referral = () => {
   return (
     <div className="relative isolate mx-auto w-full max-w-5xl space-y-5 pb-8 sm:space-y-6">
       <div className="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
-        <span className="absolute -right-24 top-20 h-80 w-80 rounded-full bg-fuchsia-500/10 blur-[110px]" />
+        <span className="absolute -right-24 top-20 h-80 w-80 rounded-full bg-amber-500/10 blur-[110px]" />
         <span className="absolute -left-24 top-[42%] h-96 w-96 rounded-full bg-cyan-400/10 blur-[120px]" />
-        <span className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-500/10 blur-[110px]" />
+        <span className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-[110px]" />
       </div>
 
-      <section className="group relative aspect-[2048/752] overflow-hidden rounded-[1.35rem] border border-violet-300/35 bg-[var(--color-card)] shadow-[0_28px_80px_-38px_rgb(0_0_0/0.95),0_0_55px_-20px_rgb(139_92_246/0.8),0_0_28px_-18px_rgb(34_211_238/0.7)] sm:rounded-[1.65rem]">
+      <section className="group relative aspect-[2048/752] overflow-hidden rounded-[1.35rem] border border-cyan-300/35 bg-[var(--color-card)] shadow-[0_28px_80px_-38px_rgb(0_0_0/0.95),0_0_55px_-20px_rgb(139_92_246/0.8),0_0_28px_-18px_rgb(34_211_238/0.7)] sm:rounded-[1.65rem]">
         <img
           src={referralHeroImage}
           alt={isArabic ? 'الوكيل الفرعي والإحالة' : 'Sub-agent & Referral'}
@@ -616,7 +616,7 @@ const Referral = () => {
           fetchPriority="high"
           className="block h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.015]"
         />
-        <span className="pointer-events-none absolute inset-x-[12%] bottom-0 h-px bg-[linear-gradient(90deg,transparent,#22d3ee,#d946ef,transparent)] shadow-[0_0_18px_3px_rgb(217_70_239/0.75)]" />
+        <span className="pointer-events-none absolute inset-x-[12%] bottom-0 h-px bg-[linear-gradient(90deg,transparent,#22d3ee,#e3bb61,transparent)] shadow-[0_0_18px_3px_rgb(217_70_239/0.75)]" />
       </section>
 
       <nav className="grid grid-cols-2 gap-2 border-y-4 border-[#f59e0b] bg-[#0b1f33] p-2 shadow-[8px_8px_0_#f59e0b33] sm:gap-3" aria-label={isArabic ? 'أقسام الوكيل الفرعي والإحالة' : 'Sub-agent and referral sections'}>
@@ -645,16 +645,16 @@ const Referral = () => {
       </nav>
 
       <div className={`${activePage === 'referral' ? 'contents' : 'hidden'} referral-fresh-theme`}>
-      <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-fuchsia-300/30 bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.96),rgb(91_33_182/0.18)_52%,rgb(8_145_178/0.09))] p-4 shadow-[0_30px_90px_-42px_rgb(124_58_237/0.95),0_0_42px_-28px_rgb(217_70_239/0.85),inset_0_1px_0_rgb(255_255_255/0.1)] backdrop-blur-xl sm:p-6">
-        <div className="pointer-events-none absolute -end-16 -top-20 -z-10 h-56 w-56 rounded-full bg-violet-500/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -start-16 -z-10 h-56 w-56 rounded-full bg-fuchsia-500/10 blur-3xl" />
+      <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-amber-300/30 bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.96),rgb(91_33_182/0.18)_52%,rgb(8_145_178/0.09))] p-4 shadow-[0_30px_90px_-42px_rgb(124_58_237/0.95),0_0_42px_-28px_rgb(217_70_239/0.85),inset_0_1px_0_rgb(255_255_255/0.1)] backdrop-blur-xl sm:p-6">
+        <div className="pointer-events-none absolute -end-16 -top-20 -z-10 h-56 w-56 rounded-full bg-cyan-500/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -start-16 -z-10 h-56 w-56 rounded-full bg-amber-500/10 blur-3xl" />
 
         <div className="flex items-center gap-3 border-b border-[color:rgb(var(--color-border-rgb)/0.5)] pb-4">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-fuchsia-200/35 bg-[linear-gradient(145deg,#6d28d9,#c026d3_58%,#0891b2)] text-white shadow-[0_0_24px_-5px_rgb(217_70_239/0.9),inset_0_1px_0_rgb(255_255_255/0.24)]">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-amber-200/35 bg-[linear-gradient(145deg,#075a75,#b37a18_58%,#0891b2)] text-white shadow-[0_0_24px_-5px_rgb(217_70_239/0.9),inset_0_1px_0_rgb(255_255_255/0.24)]">
             <Gift className="h-5.5 w-5.5" strokeWidth={2} />
           </span>
           <div className="min-w-0">
-            <p className="text-[0.68rem] font-black text-violet-500">{isArabic ? 'شارك واربح' : 'Share & earn'}</p>
+            <p className="text-[0.68rem] font-black text-cyan-500">{isArabic ? 'شارك واربح' : 'Share & earn'}</p>
             <h1 className="text-lg font-black text-[var(--color-text)] sm:text-xl">{isArabic ? 'دعوتك الخاصة' : 'Your invitation'}</h1>
             <p className="mt-0.5 text-xs font-semibold text-[var(--color-text-secondary)]">{isArabic ? 'انسخ الكود أو الرابط وشاركه مع أصدقائك' : 'Copy your code or link and share it'}</p>
           </div>
@@ -675,19 +675,19 @@ const Referral = () => {
             </button>
           </div>
 
-          <div className="relative overflow-hidden rounded-[1.35rem] border border-fuchsia-300/40 bg-[linear-gradient(135deg,rgb(124_58_237/0.22),rgb(192_38_211/0.16)_55%,rgb(6_182_212/0.11))] p-4 shadow-[0_20px_48px_-24px_rgb(124_58_237/0.95),0_0_32px_-24px_rgb(217_70_239/0.9),inset_0_1px_0_rgb(255_255_255/0.14)]">
-            <span className="pointer-events-none absolute -end-8 -top-10 h-24 w-24 rounded-full bg-fuchsia-400/20 blur-2xl" />
-            <div className="relative flex items-center gap-2 text-violet-600 dark:text-violet-300">
+          <div className="relative overflow-hidden rounded-[1.35rem] border border-amber-300/40 bg-[linear-gradient(135deg,rgb(124_58_237/0.22),rgb(192_38_211/0.16)_55%,rgb(6_182_212/0.11))] p-4 shadow-[0_20px_48px_-24px_rgb(124_58_237/0.95),0_0_32px_-24px_rgb(217_70_239/0.9),inset_0_1px_0_rgb(255_255_255/0.14)]">
+            <span className="pointer-events-none absolute -end-8 -top-10 h-24 w-24 rounded-full bg-amber-400/20 blur-2xl" />
+            <div className="relative flex items-center gap-2 text-cyan-600 dark:text-cyan-300">
               <Link2 className="h-4.5 w-4.5" />
               <p className="text-[0.68rem] font-black">{isArabic ? 'رابط الدعوة' : 'Invitation link'}</p>
             </div>
-            <div dir="ltr" className="relative mt-2.5 flex min-h-12 items-center overflow-hidden rounded-xl border border-violet-300/25 bg-[color:rgb(var(--color-card-rgb)/0.82)] px-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]">
+            <div dir="ltr" className="relative mt-2.5 flex min-h-12 items-center overflow-hidden rounded-xl border border-cyan-300/25 bg-[color:rgb(var(--color-card-rgb)/0.82)] px-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]">
               <span className="block min-w-0 truncate text-xs font-bold text-[var(--color-text)] sm:text-sm">{referralLink}</span>
             </div>
             <button
               type="button"
               onClick={() => handleCopy('link', referralLink)}
-              className="relative mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-fuchsia-200/25 bg-[linear-gradient(135deg,#6d28d9,#c026d3_55%,#0891b2)] px-4 text-xs font-black text-white shadow-[0_0_24px_-7px_rgb(217_70_239/0.9)] transition-all hover:-translate-y-0.5 hover:brightness-115 hover:shadow-[0_0_30px_-5px_rgb(34_211_238/0.8)]"
+              className="relative mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-200/25 bg-[linear-gradient(135deg,#075a75,#b37a18_55%,#0891b2)] px-4 text-xs font-black text-white shadow-[0_0_24px_-7px_rgb(217_70_239/0.9)] transition-all hover:-translate-y-0.5 hover:brightness-115 hover:shadow-[0_0_30px_-5px_rgb(34_211_238/0.8)]"
             >
               {copiedField === 'link' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               <span>{copiedField === 'link' ? (isArabic ? 'تم النسخ' : 'Copied') : (isArabic ? 'نسخ الرابط' : 'Copy link')}</span>
@@ -709,7 +709,7 @@ const Referral = () => {
             href={`https://t.me/share/url?url=&text=${encodeURIComponent(shareText)}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-sky-400/20 bg-sky-500/10 px-2 text-[0.68rem] font-black text-sky-600 transition-all hover:-translate-y-0.5 hover:bg-sky-500/15 dark:text-sky-400 sm:text-xs"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-2 text-[0.68rem] font-black text-cyan-600 transition-all hover:-translate-y-0.5 hover:bg-cyan-500/15 dark:text-cyan-400 sm:text-xs"
           >
             <Send className="h-4.5 w-4.5" />
             <span>{isArabic ? 'تيليجرام' : 'Telegram'}</span>
@@ -750,7 +750,7 @@ const Referral = () => {
             {referredCustomers.map((customer) => (
               <article
                 key={customer.id}
-                className="group relative isolate overflow-hidden rounded-[1.3rem] border border-violet-300/22 bg-[linear-gradient(135deg,rgb(var(--color-surface-rgb)/0.82),rgb(124_58_237/0.08),rgb(6_182_212/0.05))] p-3.5 shadow-[0_18px_44px_-34px_rgb(124_58_237/0.75)] transition-all hover:-translate-y-1 hover:border-fuchsia-300/40 hover:shadow-[0_22px_52px_-30px_rgb(217_70_239/0.7)] sm:p-4"
+                className="group relative isolate overflow-hidden rounded-[1.3rem] border border-cyan-300/22 bg-[linear-gradient(135deg,rgb(var(--color-surface-rgb)/0.82),rgb(124_58_237/0.08),rgb(6_182_212/0.05))] p-3.5 shadow-[0_18px_44px_-34px_rgb(124_58_237/0.75)] transition-all hover:-translate-y-1 hover:border-amber-300/40 hover:shadow-[0_22px_52px_-30px_rgb(217_70_239/0.7)] sm:p-4"
               >
                 <span className="pointer-events-none absolute -end-12 -top-14 -z-10 h-32 w-32 rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.1)] blur-3xl" />
                 <div className="flex items-center gap-3">
@@ -769,7 +769,7 @@ const Referral = () => {
                     <div className="flex flex-wrap items-center gap-1.5">
                       <p className="truncate text-sm font-black text-[var(--color-text)] sm:text-base">{customer.name}</p>
                       {customer.isTest ? (
-                        <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2 py-0.5 text-[0.58rem] font-black text-violet-600 dark:text-violet-300">
+                        <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-2 py-0.5 text-[0.58rem] font-black text-cyan-600 dark:text-cyan-300">
                           {isArabic ? 'تجريبي' : 'Test'}
                         </span>
                       ) : null}
@@ -844,7 +844,7 @@ const Referral = () => {
         <CircleDollarSign className="h-6 w-6 shrink-0 text-white/72 transition-transform group-hover:scale-110" />
       </button>
 
-      <section className="rounded-[1.5rem] border border-violet-300/25 bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.86),rgb(124_58_237/0.07))] p-5 shadow-[0_24px_70px_-45px_rgb(139_92_246/0.85),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl sm:p-7">
+      <section className="rounded-[1.5rem] border border-cyan-300/25 bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.86),rgb(124_58_237/0.07))] p-5 shadow-[0_24px_70px_-45px_rgb(139_92_246/0.85),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl sm:p-7">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-500">
             <ShieldCheck className="h-5.5 w-5.5" />
@@ -856,8 +856,8 @@ const Referral = () => {
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3">
           {[
-            { icon: Link2, text: isArabic ? 'انسخ كود دعوتك' : 'Copy your invitation code', tone: 'border-violet-400/18 bg-violet-500/8 text-violet-500' },
-            { icon: Share2, text: isArabic ? 'شاركه مع أصدقائك' : 'Share it with friends', tone: 'border-sky-400/18 bg-sky-500/8 text-sky-500' },
+            { icon: Link2, text: isArabic ? 'انسخ كود دعوتك' : 'Copy your invitation code', tone: 'border-cyan-400/18 bg-cyan-500/8 text-cyan-500' },
+            { icon: Share2, text: isArabic ? 'شاركه مع أصدقائك' : 'Share it with friends', tone: 'border-cyan-400/18 bg-cyan-500/8 text-cyan-500' },
             { icon: UsersRound, text: isArabic ? 'تابع العملاء المنضمين ومكافآتك' : 'Track joined customers and rewards', tone: 'border-emerald-400/18 bg-emerald-500/8 text-emerald-500' },
             { icon: Clock3, text: isArabic ? 'تستمر المكافآت 30 يومًا لكل مستخدم تتم إضافته' : 'Rewards continue for 30 days per joined user', tone: 'border-amber-400/18 bg-amber-500/8 text-amber-500' },
           ].map((step, index) => {
@@ -875,7 +875,7 @@ const Referral = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[1.5rem] border border-fuchsia-300/22 bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.86),rgb(192_38_211/0.06))] shadow-[0_24px_70px_-45px_rgb(217_70_239/0.8),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl">
+      <section className="overflow-hidden rounded-[1.5rem] border border-amber-300/22 bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.86),rgb(192_38_211/0.06))] shadow-[0_24px_70px_-45px_rgb(217_70_239/0.8),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-xl">
         <div className="flex items-center gap-3 border-b border-[color:rgb(var(--color-border-rgb)/0.55)] px-4 py-4 sm:px-6">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:rgb(var(--color-primary-rgb)/0.1)] text-[var(--color-primary)]">
             <ReceiptText className="h-5 w-5" />
@@ -891,7 +891,7 @@ const Referral = () => {
             const status = getWithdrawalStatus(withdrawal.status);
             const StatusIcon = status.icon;
             return (
-              <article key={withdrawal.id} className="flex flex-wrap items-center gap-3 rounded-[1.15rem] border border-[color:rgb(var(--color-border-rgb)/0.52)] bg-[linear-gradient(135deg,rgb(var(--color-surface-rgb)/0.66),rgb(124_58_237/0.045))] p-3.5 transition-all hover:-translate-y-0.5 hover:border-fuchsia-300/30 hover:shadow-[0_14px_34px_-28px_rgb(217_70_239/0.75)]">
+              <article key={withdrawal.id} className="flex flex-wrap items-center gap-3 rounded-[1.15rem] border border-[color:rgb(var(--color-border-rgb)/0.52)] bg-[linear-gradient(135deg,rgb(var(--color-surface-rgb)/0.66),rgb(124_58_237/0.045))] p-3.5 transition-all hover:-translate-y-0.5 hover:border-amber-300/30 hover:shadow-[0_14px_34px_-28px_rgb(217_70_239/0.75)]">
                 <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${status.className}`}>
                   <StatusIcon className={`h-5 w-5 ${withdrawal.status === 'processing' ? 'animate-pulse' : ''}`} />
                 </span>
@@ -900,7 +900,7 @@ const Referral = () => {
                     <p className="text-sm font-black text-[var(--color-text)]">
                       {withdrawal.method === 'vodafone' ? (isArabic ? 'فودافون كاش' : 'Vodafone Cash') : (isArabic ? 'محفظة البرنامج' : 'App wallet')}
                     </p>
-                    {withdrawal.isTest ? <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[0.56rem] font-black text-violet-500">{isArabic ? 'تجريبي' : 'Test'}</span> : null}
+                    {withdrawal.isTest ? <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-[0.56rem] font-black text-cyan-500">{isArabic ? 'تجريبي' : 'Test'}</span> : null}
                   </div>
                   <p dir="ltr" className="mt-0.5 text-left text-[0.68rem] font-bold text-[var(--color-text-secondary)]">{formatWithdrawalDate(withdrawal.createdAt)}</p>
                 </div>
@@ -930,7 +930,7 @@ const Referral = () => {
         <span className="pointer-events-none absolute -end-16 -top-16 -z-10 h-52 w-52 rotate-12 bg-[#f59e0b]/10" />
         <div className="flex items-center gap-3 border-b-2 border-[#f59e0b]/35 pb-5">
           <span className="grid h-12 w-12 shrink-0 place-items-center bg-[#0b1f33] text-[#fbbf24] shadow-[5px_5px_0_#f59e0b]"><UserRoundPlus className="h-5.5 w-5.5" /></span>
-          <div><h1 className="text-lg font-black text-[var(--color-text)]">{isApprovedSubAgent ? (isArabic ? 'مبروك، أصبحت وكيلًا فرعيًا' : 'Congratulations, you are now a sub-agent') : (isArabic ? 'انضم كوكيل فرعي' : 'Become a sub-agent')}</h1><p className="mt-0.5 text-xs font-semibold text-[var(--color-text-secondary)]">{isApprovedSubAgent ? (isArabic ? 'تم قبول طلبك وترقية حسابك في Kanz Coins بنجاح.' : 'Your Kanz Coins account was successfully upgraded.') : (isArabic ? 'أرسل رسالة وصورة تثبت وجود عملاء وسيتم مراجعة طلبك.' : 'Send a message and customer proof for review.')}</p></div>
+          <div><h1 className="text-lg font-black text-[var(--color-text)]">{isApprovedSubAgent ? (isArabic ? 'مبروك، أصبحت وكيلًا فرعيًا' : 'Congratulations, you are now a sub-agent') : (isArabic ? 'انضم كوكيل فرعي' : 'Become a sub-agent')}</h1><p className="mt-0.5 text-xs font-semibold text-[var(--color-text-secondary)]">{isApprovedSubAgent ? (isArabic ? 'تم قبول طلبك وترقية حسابك في KA-CARD بنجاح.' : 'Your KA-CARD account was successfully upgraded.') : (isArabic ? 'أرسل رسالة وصورة تثبت وجود عملاء وسيتم مراجعة طلبك.' : 'Send a message and customer proof for review.')}</p></div>
         </div>
 
         {isApprovedSubAgent ? (
@@ -938,7 +938,7 @@ const Referral = () => {
             <span className="absolute inset-x-[22%] top-0 h-px bg-gradient-to-r from-transparent via-emerald-300 to-transparent shadow-[0_0_16px_2px_rgb(52_211_153/0.7)]" />
             <span className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-emerald-300/35 bg-emerald-500/12 text-emerald-500 shadow-[0_18px_38px_-24px_rgb(16_185_129/0.9)]"><Crown className="h-9 w-9" /></span>
             <h2 className="mt-4 inline-flex items-center justify-center gap-2 text-xl font-black text-[var(--color-text)] sm:text-2xl"><span>{isArabic ? 'مبروك، أصبحت وكيلًا فرعيًا' : 'Congratulations, you are now a sub-agent'}</span><BadgeCheck className="h-6 w-6 shrink-0 fill-emerald-500 text-white drop-shadow-[0_3px_7px_rgb(16_185_129/0.5)]" /></h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm font-semibold leading-6 text-[var(--color-text-secondary)]">{isArabic ? 'تمت الموافقة على طلبك في Kanz Coins وتغيير عضويتك من عضو المتجر إلى وكيل فرعي.' : 'Kanz Coins approved your request and changed your Store Member account to a Sub-agent account.'}</p>
+            <p className="mx-auto mt-2 max-w-lg text-sm font-semibold leading-6 text-[var(--color-text-secondary)]">{isArabic ? 'تمت الموافقة على طلبك في KA-CARD وتغيير عضويتك من عضو المتجر إلى وكيل فرعي.' : 'KA-CARD approved your request and changed your Store Member account to a Sub-agent account.'}</p>
             <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-xs font-black text-white"><CheckCircle2 className="h-4 w-4" />{isArabic ? 'وكيل فرعي معتمد' : 'Approved sub-agent'}</span>
           </div>
         ) : agentRequest ? (
@@ -962,7 +962,7 @@ const Referral = () => {
         <div className="mt-7 overflow-hidden border-2 border-[#0b1f33]/20 bg-white/45 dark:bg-[#071522]/45">
           <div className="flex items-center justify-between gap-3 border-b border-[color:rgb(var(--color-border-rgb)/0.55)] px-4 py-3">
             <div className="flex items-center gap-2"><ReceiptText className="h-4 w-4 text-cyan-500" /><h2 className="text-sm font-black text-[var(--color-text)]">{isArabic ? 'حالة الطلبات' : 'Request status'}</h2></div>
-            <span className="rounded-full bg-violet-500/10 px-2.5 py-1 text-[0.65rem] font-black text-violet-500">{agentRequestHistory.length}</span>
+            <span className="rounded-full bg-cyan-500/10 px-2.5 py-1 text-[0.65rem] font-black text-cyan-500">{agentRequestHistory.length}</span>
           </div>
           {agentRequestHistory.length ? (
             <div className="space-y-2 p-3">
@@ -1035,9 +1035,9 @@ const Referral = () => {
           </div>
         ) : (
         <form onSubmit={handleWithdrawalSubmit} className="space-y-5">
-          <div className="referral-available-earnings relative isolate overflow-hidden rounded-[1.25rem] border border-fuchsia-300/30 bg-[linear-gradient(135deg,#4c1d95,#7c3aed_48%,#c026d3)] p-4 text-center text-white shadow-[0_22px_54px_-28px_rgb(124_58_237/0.95)]">
+          <div className="referral-available-earnings relative isolate overflow-hidden rounded-[1.25rem] border border-amber-300/30 bg-[linear-gradient(135deg,#4c1d95,#087f9b_48%,#b37a18)] p-4 text-center text-white shadow-[0_22px_54px_-28px_rgb(124_58_237/0.95)]">
             <span className="pointer-events-none absolute -end-8 -top-12 -z-10 h-28 w-28 rounded-full bg-white/15 blur-2xl" />
-            <p className="text-xs font-bold text-violet-100">{isArabic ? 'إجمالي أرباحك المتاحة' : 'Total available earnings'}</p>
+            <p className="text-xs font-bold text-cyan-100">{isArabic ? 'إجمالي أرباحك المتاحة' : 'Total available earnings'}</p>
             <p dir="ltr" className="mt-1 text-4xl font-black tracking-tight text-white drop-shadow-[0_4px_14px_rgb(0_0_0/0.28)]">
               {rewardTotal.toLocaleString('en-US')} <span className="text-base font-black text-amber-200">{currency}</span>
             </p>
@@ -1182,7 +1182,7 @@ const Referral = () => {
                   <p className="text-xs font-bold opacity-75">{isArabic ? 'حالة العملية' : 'Transfer status'}</p>
                   <p className="mt-0.5 text-lg font-black">{status.label}</p>
                 </div>
-                {selectedWithdrawal.isTest ? <span className="rounded-full bg-violet-500/12 px-2 py-1 text-[0.58rem] font-black text-violet-500">{isArabic ? 'تجريبي' : 'Test'}</span> : null}
+                {selectedWithdrawal.isTest ? <span className="rounded-full bg-cyan-500/12 px-2 py-1 text-[0.58rem] font-black text-cyan-500">{isArabic ? 'تجريبي' : 'Test'}</span> : null}
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">

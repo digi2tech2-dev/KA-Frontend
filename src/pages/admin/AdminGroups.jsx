@@ -63,7 +63,7 @@ const AdminGroups = () => {
   const { users, loadUsers, updateUserGroup } = useAdminStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
-  const [formData, setFormData] = useState({ name: '', discount: 0 });
+  const [formData, setFormData] = useState({ name: '', discount: 0, billingMode: 'standard' });
   const [isSaving, setIsSaving] = useState(false);
   const [groupPendingDelete, setGroupPendingDelete] = useState(null);
   const [transferTargetGroupId, setTransferTargetGroupId] = useState('');
@@ -85,7 +85,7 @@ const AdminGroups = () => {
 
   const resetForm = () => {
     setEditingGroup(null);
-    setFormData({ name: '', discount: 0 });
+    setFormData({ name: '', discount: 0, billingMode: 'standard' });
   };
 
   const closeEditModal = (force = false) => {
@@ -100,6 +100,7 @@ const AdminGroups = () => {
       setFormData({
         name: String(group.name || ''),
         discount: Number(group.discount ?? group.percentage ?? 0),
+        billingMode: group.billingMode === 'quantity_only' ? 'quantity_only' : 'standard',
       });
     } else {
       resetForm();
@@ -127,14 +128,14 @@ const AdminGroups = () => {
 
     try {
       if (editingGroup) {
-        await updateGroup(editingGroup.id, { name: trimmedName, discount: normalizedDiscount });
+        await updateGroup(editingGroup.id, { name: trimmedName, discount: normalizedDiscount, billingMode: formData.billingMode });
         await Promise.allSettled([
           loadGroups({ force: true }),
           loadUsers({ force: true }),
         ]);
         addToast(t('groupUpdated'), 'success');
       } else {
-        await addGroup({ name: trimmedName, discount: normalizedDiscount });
+        await addGroup({ name: trimmedName, discount: normalizedDiscount, billingMode: formData.billingMode });
         await loadGroups({ force: true });
         addToast(t('groupAdded'), 'success');
       }
@@ -222,7 +223,7 @@ const AdminGroups = () => {
       icon: Users,
       label: tx('مجموعات بها أعضاء', 'Groups With Members'),
       value: groupsWithMembersCount,
-      toneClassName: 'from-sky-500/16 via-indigo-500/10 to-transparent',
+      toneClassName: 'from-cyan-500/16 via-indigo-500/10 to-transparent',
     },
     {
       id: 'groups-empty',
@@ -407,6 +408,24 @@ const AdminGroups = () => {
               onChange={(event) => setFormData((current) => ({ ...current, discount: Number(event.target.value) }))}
             />
           </div>
+
+          <label className="block space-y-2 text-sm font-semibold text-[var(--color-text)]">
+            <span>{tx('نظام الفوترة لهذه المجموعة', 'Billing mode for this group')}</span>
+            <select
+              className={selectClassName}
+              value={formData.billingMode}
+              onChange={(event) => setFormData((current) => ({ ...current, billingMode: event.target.value }))}
+            >
+              <option value="standard">{tx('السعر — خصم من المحفظة', 'Price — charge wallet')}</option>
+              <option value="quantity_only">{tx('الكمية — خصم من الحصة', 'Quantity — consume quota')}</option>
+            </select>
+            <span className="block text-xs font-normal leading-5 text-[var(--color-text-secondary)]">
+              {tx(
+                'يُطبق هذا الاختيار فقط على المستخدمين المنضمين إلى هذه المجموعة، ولا يغيّر إعدادات أي مجموعة أخرى.',
+                'This applies only to users assigned to this group and does not change any other group.'
+              )}
+            </span>
+          </label>
 
           {editingGroup ? (
             <section className="rounded-[1.5rem] border border-[color:rgb(var(--color-border-rgb)/0.9)] bg-[color:rgb(var(--color-elevated-rgb)/0.72)] p-4">

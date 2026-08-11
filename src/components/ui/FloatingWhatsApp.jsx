@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/useAuthStore';
 import { isAdminRole } from '../../utils/authRoles';
 import { buildWhatsAppLink, getAdminWhatsAppNumber } from '../../utils/whatsapp';
-import floatingPromoOne from '../../assets/عائم1.PNG';
-import floatingPromoTwo from '../../assets/عائم2.PNG';
+import floatingPromoTwo from '../../assets/floating-promo.png';
 
 const FloatingWhatsApp = () => {
   const { i18n } = useTranslation();
@@ -23,8 +22,8 @@ const FloatingWhatsApp = () => {
     .startsWith('ar');
 
   const message = isArabic
-    ? 'مرحباً، أحتاج مساعدة من فريق KANZ COINS'
-    : 'Hello, I need help from the KANZ COINS team';
+    ? 'مرحباً، أحتاج مساعدة من فريق KA-CARD'
+    : 'Hello, I need help from the KA-CARD team';
   const href = buildWhatsAppLink({
     number: getAdminWhatsAppNumber(),
     message,
@@ -35,15 +34,8 @@ const FloatingWhatsApp = () => {
     <div className="floating-whatsapp">
       <span className="floating-whatsapp-promos">
         <Link
-          to="/wallet/add-balance"
-          className="floating-whatsapp-promo floating-whatsapp-promo--one"
-          aria-label={isArabic ? 'فتح المحفظة' : 'Open wallet'}
-        >
-          <img src={floatingPromoOne} alt="" className="floating-whatsapp-promo-image" />
-        </Link>
-        <Link
           to="/referral"
-          className="floating-whatsapp-promo floating-whatsapp-promo--two"
+          className="floating-whatsapp-promo"
           aria-label={isArabic ? 'افتح رابط الإحالة اكسب واسحب' : 'Open referrals, earn and withdraw'}
         >
           <img src={floatingPromoTwo} alt="" className="floating-whatsapp-promo-image" />

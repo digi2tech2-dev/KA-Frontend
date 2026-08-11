@@ -1,10 +1,10 @@
-# Kanz Coins Frontend
+# KA CARD Frontend
 
-React/Vite frontend for the Kanz Coins store, wallet, deposit, target-order, and administration panels. This document describes the current implementation in this repository; the source code and configuration files are the source of truth.
+React/Vite frontend for the KA CARD store, wallet, deposit, target-order, and administration panels. This document describes the current implementation in this repository; the source code and configuration files are the source of truth.
 
 ## Application Overview
 
-Kanz Coins is a storefront and account portal for buying digital products and services with an internal wallet balance. The frontend supports:
+KA CARD is a storefront and account portal for buying digital products and services with an internal wallet balance. The frontend supports:
 
 - Public browsing of the catalog, About, contact, creator, auth, and account-state pages.
 - Customer registration, email-verification gating, login, Google OAuth callback handling, two-factor login, account settings, product purchases, wallet deposits, deposit history, order history, target requests, referral sharing, notifications, and WhatsApp contact actions.
@@ -28,7 +28,6 @@ The package versions below come from `package.json`.
 | Localization | i18next `^25.8.14`, react-i18next `^16.5.6`, i18next browser detector |
 | Animation | Framer Motion `^12.35.0`, Barba installed but not part of the main route setup |
 | Icons | `lucide-react` `^0.546.0` |
-| AI receipt validation | `@google/genai` `^2.12.0` in browser code |
 | Utilities | `clsx`, `tailwind-merge` |
 | Build-time tooling | TypeScript `~5.8.2` for `tsc --noEmit`; `sharp` and `to-ico` for favicon generation |
 
@@ -94,7 +93,7 @@ Startup begins in `src/main.jsx`.
 
 `src/App.jsx` sets up the app shell:
 
-- `ThemeProvider` reads/writes `localStorage["kanz-coins-theme"]` and applies `.dark` plus `data-theme`.
+- `ThemeProvider` reads/writes `localStorage["ka-card-theme"]` and applies `.dark` plus `data-theme`.
 - `LanguageProvider` synchronizes i18next, `document.documentElement.lang`, and `dir`.
 - `ToastProvider` provides toast notifications.
 - `SessionBootstrap` restores and refreshes authenticated state, loads initial products/settings, refreshes profile on focus/visibility/online/interval, and listens for forced logout events.
@@ -159,10 +158,10 @@ To clear persisted frontend state in the browser, remove these keys as needed:
 
 - `auth-storage`
 - `auth:logout-reason`
-- `kanz-coins-theme`
-- `kanz-coins:categories-cache:v1`
-- `kanz-coins:currencies-cache:v1`
-- `kanz-coins:groups-cache:v1`
+- `ka-card-theme`
+- `ka-card:categories-cache:v1`
+- `ka-card:currencies-cache:v1`
+- `ka-card:groups-cache:v1`
 - referral-related localStorage keys documented in the referral section
 
 ## Environment Variables
@@ -177,9 +176,6 @@ Vite only exposes variables prefixed with `VITE_` to browser code through `impor
 | `VITE_SITE_URL` | Optional | none | SEO canonical URL | `https://app.example.com` | Used before `VITE_PUBLIC_SITE_URL`. |
 | `VITE_PUBLIC_SITE_URL` | Optional | none | SEO canonical URL fallback | `https://app.example.com` | Public URL only. |
 | `VITE_ADMIN_WHATSAPP_NUMBER` | Optional | hardcoded source fallback exists | WhatsApp support links | `201000000000` | Use a safe public support number. The repository still contains hardcoded phone/link fallbacks. |
-| `VITE_GEMINI_MODEL` | Optional | model fallback chain | Browser receipt validation | `gemini-3.5-flash` | Public. Do not treat as secret. |
-| `VITE_GEMINI_API_KEY` | Optional unless receipt AI is required | none | Browser receipt validation | empty or test key | Public browser-exposed key. Production validation should move to the backend. |
-| `VITE_GEMINI_API_KEY_1` through `VITE_GEMINI_API_KEY_13` | Optional | none | Receipt-validation failover keys | empty | Also public. Do not put private production secrets here. |
 | `VITE_APP_ENV` | Optional/stale | none | Legacy define in Vite config | `development` | No current application feature reads it directly. |
 | `VITE_APP_MODE` | Optional/stale | none | Legacy/example value | `development` | No source-code usage found. |
 | `APP_URL` | Not available to browser code | none | External hosting systems only | `http://localhost:3000` | Not read by current frontend source. Use `VITE_PUBLIC_APP_URL` for browser code. |
@@ -418,12 +414,12 @@ All stores are Zustand stores under `src/store`.
 | --- | --- | --- | --- |
 | `useAuthStore` | Login, signup, Google OAuth, 2FA, profile refresh, account status, logout | Persists to `localStorage["auth-storage"]`; uses `auth:logout-reason` for expired-token messaging | `auth`, `users.getProfile`, `users.updateProfile` |
 | `useAdminStore` | Users, deleted users, wallets, user transactions, admin activity feed | No durable store persistence; page/cache TTLs in memory | `users`, `adminWallets`, `auth.register`, `auth.resendVerification` |
-| `useMediaStore` | Products and categories | Real mode keeps category cache in `sessionStorage["kanz-coins:categories-cache:v1"]`; products are not persisted in real mode | `products`, `categories`, provider product helpers |
+| `useMediaStore` | Products and categories | Real mode keeps category cache in `sessionStorage["ka-card:categories-cache:v1"]`; products are not persisted in real mode | `products`, `categories`, provider product helpers |
 | `useOrderStore` | Customer/admin orders and order-status changes | No durable persistence; 15-second real-mode cache TTL and fetched scopes | `orders`, `products`, `system.currencies`, notifications, auth |
 | `useTopupStore` | Deposits/top-ups, approval/rejection, summaries | No durable persistence; 15-second real-mode cache TTL | `topups`, notifications, auth, admin wallets |
 | `useTargetStore` | Target apps and target purchase requests | No durable persistence | `targetApps`, `targetPurchases` |
-| `useSystemStore` | Currencies and payment settings | Currencies cache in `sessionStorage["kanz-coins:currencies-cache:v1"]`; payment settings are polled | `system.currencies`, `system.paymentSettings`, `settings` |
-| `useGroupStore` | Customer groups | Real mode cache in `sessionStorage["kanz-coins:groups-cache:v1"]` | `groups` |
+| `useSystemStore` | Currencies and payment settings | Currencies cache in `sessionStorage["ka-card:currencies-cache:v1"]`; payment settings are polled | `system.currencies`, `system.paymentSettings`, `settings` |
+| `useGroupStore` | Customer groups | Real mode cache in `sessionStorage["ka-card:groups-cache:v1"]` | `groups` |
 | `useNotificationStore` | Toast/in-app notifications and unread count | No durable persistence; caps in-memory list at 30 | `notifications` where implemented |
 
 Cross-store behavior is common:
@@ -540,7 +536,7 @@ Customers use `/orders` and `/orders/:orderId`. The order store loads `/me/order
 Customers add balance through:
 
 1. `/wallet/add-balance` to enter/select amount and payment method.
-2. `/wallet/payment-details/:methodId` to view receiver details, enter sender/transaction data, upload proof, optionally run AI receipt validation, and submit.
+2. `/wallet/payment-details/:methodId` to view receiver details, enter sender/transaction data, upload proof, and submit.
 3. `/wallet/topups` or `/wallet/topup-history` to view deposit history.
 
 The payment-details form calculates payment fees and payable amount. It supports method-specific sender fields such as wallet number, wallet address, and transaction/reference number. Deposit creation submits multipart FormData to `/me/deposits` with receipt file and payment metadata.
@@ -561,10 +557,10 @@ The payment-details form calculates payment fees and payable amount. It supports
 
 `/referral` is customer-only. It builds referral links using `VITE_PUBLIC_APP_URL` and stores referral withdrawal/admin demo data locally. Related localStorage keys include:
 
-- `kanzcoins_referral_withdrawal_methods`
-- `kanzcoins_referral_withdrawal_requests`
+- `kacard_referral_withdrawal_methods`
+- `kacard_referral_withdrawal_requests`
 - `oscar_sub_agent_requests`
-- `kanzcoins_admin_referral_commission_rate`
+- `kacard_admin_referral_commission_rate`
 
 This feature should be treated as local/demo behavior unless backend integration is added.
 
@@ -643,21 +639,14 @@ Deposits:
 - Pending deposits can be updated through `/admin/deposits/:id` where supported.
 - Approval creates wallet-credit behavior on the backend; the frontend refreshes affected stores and profile data.
 
-## Receipt Validation And AI Integration
+## Receipt Upload Validation
 
-Receipt validation is implemented in `src/components/wallet/UploadReceiptBox.jsx` and runs in the browser.
+Basic receipt-file validation is implemented in `src/components/wallet/UploadReceiptBox.jsx` and runs locally in the browser.
 
-- Service: `@google/genai` / Google Gemini.
-- Environment variables: `VITE_GEMINI_MODEL`, `VITE_GEMINI_API_KEY`, and optional failover keys `VITE_GEMINI_API_KEY_1` through `VITE_GEMINI_API_KEY_13`.
 - Supported receipt MIME types: JPEG, PNG, WebP, HEIC, and HEIF.
 - Maximum receipt size: 20 MB.
-- The browser converts the uploaded image to base64 and sends it to Gemini with validation instructions.
-- The prompt includes expected amount/receiver context so the model can compare receipt content.
-- The UI then applies deterministic checks for confidence, amount match, receiver match, and transaction-id match where data exists.
-- Validation fails closed on missing keys, unsupported files, model/key errors, timeouts, malformed responses, or low confidence.
-- Retry/failover attempts multiple configured keys/models with backoff.
-
-Security warning: every `VITE_GEMINI_*` value is public in the browser bundle, and receipt images are sent from the browser to Google. Production deployments should move receipt validation to a backend service where API keys, logging, rate limits, audit policy, and privacy controls are server-side.
+- Receipt files are not sent to any third-party AI service by the frontend.
+- Final payment-proof verification remains an administrative/backend responsibility.
 
 ## Localization
 
@@ -688,7 +677,7 @@ Theme behavior is implemented in `src/context/ThemeContext.jsx`, `src/theme/toke
 
 - Supported themes: `dark` and `light`.
 - Default theme: `dark`.
-- Persistence key: `kanz-coins-theme`.
+- Persistence key: `ka-card-theme`.
 - Theme is applied to `document.documentElement` with `.dark` and `data-theme`.
 - `index.html` includes an inline bootstrap script so the theme is applied before React loads.
 - Design tokens are CSS variables in `src/theme/tokens.css`.
@@ -789,16 +778,15 @@ Do not assume tests exist or pass unless a script is added and run.
 | Missing translations | Add keys to both `src/locales/ar/common.json` and `src/locales/en/common.json`; the app falls back to Arabic/legacy translations. |
 | Role/permission redirects | Check normalized role, account status, and `user.permissions`. Admins bypass permissions; supervisors do not. |
 | Google OAuth callback issues | Confirm backend Google config, frontend callback URL, and that the backend redirects back to this frontend with expected query parameters. |
-| Receipt validation failures | Configure browser-exposed `VITE_GEMINI_*` variables, use supported image types under 20 MB, and remember validation fails closed on low confidence or mismatched amount/receiver data. |
+| Receipt upload failures | Use a supported image type under 20 MB and verify the backend upload endpoint is available. |
 
 ## Security And Privacy Notes
 
 - All `VITE_*` environment variables are public in the browser bundle.
-- Do not put private Gemini, backend, OAuth, payment, or admin secrets in frontend env files.
+- Do not put private backend, OAuth, payment, or admin secrets in frontend env files.
 - Auth tokens and refresh tokens are stored in localStorage key `auth-storage`; XSS can steal them.
 - Avoid rendering untrusted backend HTML. React escapes normal text rendering, but future use of raw HTML would require sanitization.
 - Uploaded files require backend validation. Frontend checks do not replace server-side MIME, size, malware, and authorization checks.
-- Receipt images are sent to Google Gemini from browser code when validation is enabled.
 - Use HTTPS in production for auth, deposits, OAuth, and uploads.
 - External image URLs can leak client IP/user-agent data to third-party hosts.
 - The repository contains hardcoded WhatsApp phone/link values and a WhatsApp group invite; review and replace with environment/config-driven public support links before production.
@@ -814,6 +802,5 @@ Do not assume tests exist or pass unless a script is added and run.
 - `PERMISSIONS.ADMIN_SUPERVISORS` is referenced but not defined, weakening supervisor-management route protection.
 - Referral pages currently rely on browser localStorage/demo data rather than confirmed backend integration.
 - `APP_URL`, `VITE_APP_MODE`, and non-Vite `ADMIN_WHATSAPP_NUMBER` are stale or ineffective for browser code.
-- Browser-side Gemini receipt validation exposes API keys and sends receipt images directly from the client.
 - The `clean` script is Unix-specific.
 - There is no frontend test script, ESLint script, or Prettier script.

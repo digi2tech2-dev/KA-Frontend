@@ -247,11 +247,11 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         type="button"
         onClick={item.onClick}
         className={cn(
-          'kanz-sidebar-nav-item group relative flex w-full items-center gap-2 overflow-hidden px-2.5 py-1.5 text-[var(--color-text-secondary)] transition-all',
+          'ka-sidebar-nav-item group relative flex w-full items-center gap-2 overflow-hidden px-2.5 py-1.5 text-[var(--color-text-secondary)] transition-all',
           !isExpanded && 'justify-center'
         )}
       >
-        <span className="kanz-sidebar-icon-bubble">
+        <span className="ka-sidebar-icon-bubble">
           <item.icon className="h-5 w-5" strokeWidth={2.15} />
         </span>
         {isExpanded && <span className="truncate text-[0.8rem] font-semibold">{item.label}</span>}
@@ -263,7 +263,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         onClick={closeSidebarOnMobile}
         className={({ isActive }) =>
           cn(
-            'kanz-sidebar-nav-item group relative flex items-center gap-2 overflow-hidden px-2.5 py-1.5 transition-all',
+            'ka-sidebar-nav-item group relative flex items-center gap-2 overflow-hidden px-2.5 py-1.5 transition-all',
             !isExpanded && 'justify-center',
             isActive
               ? 'is-active text-[var(--color-text)]'
@@ -273,7 +273,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       >
         {({ isActive }) => (
           <>
-            <span className={cn('kanz-sidebar-icon-bubble', isActive && 'is-active')}>
+            <span className={cn('ka-sidebar-icon-bubble', isActive && 'is-active')}>
               <item.icon className="h-5 w-5" strokeWidth={2.15} />
             </span>
             {isExpanded && <span className="truncate text-[0.8rem] font-semibold">{item.label}</span>}
@@ -316,7 +316,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         )}
       >
         <div className={cn(
-          'app-shell-sidebar-panel kanz-sidebar-panel relative flex h-full flex-col rounded-[32px] border backdrop-blur-[24px]',
+          'app-shell-sidebar-panel ka-sidebar-panel relative flex h-full flex-col rounded-[32px] border backdrop-blur-[24px]',
           isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
         )}>
           <div className="relative z-10 px-4 pb-4 pt-5">
@@ -346,7 +346,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                   type="button"
                   onClick={() => setIsOpen(!isOpen)}
                   className={cn(
-                    'kanz-sidebar-collapse absolute top-1 inline-flex h-9 w-9 items-center justify-center rounded-full transition-all',
+                    'ka-sidebar-collapse absolute top-1 inline-flex h-9 w-9 items-center justify-center rounded-full transition-all',
                     dir === 'rtl' ? 'left-0' : 'right-0',
                     !isExpanded && 'mx-auto'
                   )}
@@ -360,17 +360,17 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             {isExpanded && (
               <>
                 <div className="mt-4">
-                  <LanguageSwitcher showIcon variant="sidebar" className="kanz-sidebar-language w-full justify-center" />
+                  <LanguageSwitcher showIcon variant="sidebar" className="ka-sidebar-language w-full justify-center" />
                 </div>
 
-                <div className="kanz-sidebar-user-card mt-2 px-2.5 py-2">
+                <div className="ka-sidebar-user-card mt-2 px-2.5 py-2">
                   <div className="flex items-center gap-2.5">
                     <div className="relative flex shrink-0 flex-col items-center">
                       {userId ? (
                         <button
                           type="button"
                           onClick={handleCopyUserId}
-                          className="kanz-sidebar-id-chip absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2"
+                          className="ka-sidebar-id-chip absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2"
                           title={copiedUserId ? 'تم نسخ ID المستخدم' : 'اضغط لنسخ ID المستخدم'}
                           aria-label={copiedUserId ? 'تم نسخ ID المستخدم' : 'نسخ ID المستخدم'}
                         >
@@ -383,7 +383,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                         <button
                           type="button"
                           onClick={handleOpenMyAccount}
-                          className="kanz-sidebar-avatar h-9 w-9"
+                          className="ka-sidebar-avatar h-9 w-9"
                           aria-label={dir === 'rtl' ? 'فتح الحساب' : 'Open account'}
                         >
                           <img
@@ -408,7 +408,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                     <button
                       type="button"
                       onClick={handleLogoutClick}
-                      className="kanz-sidebar-user-action h-8 w-8"
+                      className="ka-sidebar-user-action h-8 w-8"
                       aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
                     >
                       <LogOut className="h-4 w-4" />
@@ -465,7 +465,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             <button
               type="button"
               onClick={handleLogoutClick}
-              className={cn('kanz-sidebar-logout-pill w-full', !isExpanded && 'is-icon-only')}
+              className={cn('ka-sidebar-logout-pill w-full', !isExpanded && 'is-icon-only')}
               aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
             >
               <LogOut className="h-5 w-5" />

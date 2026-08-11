@@ -13,7 +13,7 @@ const SiteCopyrightFooter = ({ isArabic, showEngineerContact = true }) => (
             {isArabic ? 'حقوق الملكية محفوظة بعناية' : 'Copyright protected'}
           </span>
           <span className="hidden h-1 w-1 rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.62)] sm:inline-flex" />
-          <span>© 2026 KANZ COINS</span>
+          <span>© 2026 KA-CARD</span>
           <span className="hidden h-1 w-1 rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.62)] sm:inline-flex" />
           <span>
             {isArabic

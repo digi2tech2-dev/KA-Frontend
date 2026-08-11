@@ -51,7 +51,7 @@ const Seo = ({
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
 
-    const safeTitle = title || 'KANZ COINS';
+    const safeTitle = title || 'KA CARD';
     document.title = safeTitle;
     document.documentElement.lang = language === 'ar' ? 'ar' : 'en';
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
@@ -61,8 +61,10 @@ const Seo = ({
     upsertMeta('meta[name="robots"]', { name: 'robots' }, 'content', 'index, follow, max-image-preview:large');
     upsertMeta('meta[property="og:title"]', { property: 'og:title' }, 'content', safeTitle);
     upsertMeta('meta[property="og:description"]', { property: 'og:description' }, 'content', description);
+    upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'content', 'KA CARD');
     upsertMeta('meta[property="og:type"]', { property: 'og:type' }, 'content', 'website');
     upsertMeta('meta[property="og:locale"]', { property: 'og:locale' }, 'content', language === 'ar' ? 'ar_EG' : 'en_US');
+    upsertMeta('meta[property="og:locale:alternate"]', { property: 'og:locale:alternate' }, 'content', language === 'ar' ? 'en_US' : 'ar_EG');
     upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'content', image ? 'summary_large_image' : 'summary');
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, 'content', safeTitle);
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, 'content', description);
@@ -74,7 +76,9 @@ const Seo = ({
 
     if (image) {
       upsertMeta('meta[property="og:image"]', { property: 'og:image' }, 'content', image);
+      upsertMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, 'content', 'KA CARD');
       upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, 'content', image);
+      upsertMeta('meta[name="twitter:image:alt"]', { name: 'twitter:image:alt' }, 'content', 'KA CARD');
     }
 
     removeManagedJsonLd();

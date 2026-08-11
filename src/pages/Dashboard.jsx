@@ -9,12 +9,12 @@ import HeroSlider from '../components/home/HeroSlider';
 import CategoryCard from '../components/home/CategoryCard';
 import ProductSearchBar from '../components/products/ProductSearchBar';
 import ProductPurchaseDialog from '../components/products/ProductPurchaseDialog';
-import slideOneHeroImage from '../assets/slide-1.webp';
-import slideTwoHeroImage from '../assets/slide-2.webp';
-import slideThreeHeroImage from '../assets/slide-3.webp';
-import slideFourHeroImage from '../assets/slide-4.webp';
+import slideOneHeroImage from '../assets/slide-1.jpg';
+import slideTwoHeroImage from '../assets/slide-2.jpg';
+import slideThreeHeroImage from '../assets/slide-3.jpg';
+import slideFourHeroImage from '../assets/slide-4.jpg';
 import targetBannerImage from '../assets/تارجت.jpg';
-import coinsImage from '../assets/logo.PNG';
+import coinsImage from '../assets/logo.svg';
 import { resolveImageUrl } from '../utils/imageUrl';
 import {
   createStorefrontCategories,
@@ -57,7 +57,7 @@ const Dashboard = () => {
     };
   }, [loadProducts]);
 
-  const slideTwoUrl = 'https://chat.whatsapp.com/FE7DF2bKaaWG3snAGaFjpg';
+  const slideTwoUrl = 'https://chat.whatsapp.com/H4FHROhJBEFLYGRc8aqtA0';
   const heroSlides = useMemo(() => ([
     { id: 'landing-slide-1', image: slideOneHeroImage, title: '' },
     { id: 'landing-slide-2', image: slideTwoHeroImage, title: '', href: slideTwoUrl },

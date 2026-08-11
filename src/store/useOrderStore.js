@@ -291,6 +291,14 @@ const useOrderStore = create((set, get) => ({
             ordersLastLoadedScope: state.ordersLastLoadedScope || `user:${nextOrder.userId}`,
           }));
 
+          if (created?.quota) {
+            useAuthStore.getState().updateUserSession({
+              quantityLimit: Number(created.quota.limit ?? created.quota.quantityLimit ?? 0),
+              quantityUsed: Number(created.quota.used ?? created.quota.quantityUsed ?? 0),
+              quota: created.quota,
+            });
+          }
+
           // Fire-and-forget: don't let a notification failure mask a successful order.
           try {
             const orderNumber = nextOrder?.orderNumber || nextOrder?.displayOrderId || nextOrder?.id;
@@ -316,6 +324,7 @@ const useOrderStore = create((set, get) => ({
           return {
             order: nextOrder,
             updatedBalance: created?.updatedBalance,
+            quota: created?.quota || null,
           };
         } catch (err) {
           // Refetch products so the UI picks up the latest prices after a provider price jump.

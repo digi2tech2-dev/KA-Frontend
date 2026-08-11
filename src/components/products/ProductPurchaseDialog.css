@@ -483,7 +483,7 @@
 
 .purchase-dialog-summary-cell.is-clickable:hover {
   transform: translateY(-1px);
-  border-color: rgb(192 38 211 / 0.36);
+  border-color: rgb(179 122 24 / 0.36);
   background: rgb(5 18 21 / 0.78);
 }
 
@@ -524,7 +524,7 @@
   grid-template-columns: 1.9rem minmax(0, 0.82fr) minmax(0, 1.18fr);
   align-items: center;
   gap: 0.45rem;
-  border: 1px solid rgb(244 114 208 / 0.16);
+  border: 1px solid rgb(240 207 122 / 0.16);
   border-radius: 0.9rem;
   background: rgb(3 12 14 / 0.62);
   padding: 0.56rem;
@@ -537,8 +537,8 @@
   height: 1.65rem;
   place-items: center;
   border-radius: 0.55rem;
-  background: rgb(124 58 237 / 0.14);
-  color: #f472d0;
+  background: rgb(8 127 155 / 0.14);
+  color: #f0cf7a;
 }
 
 .purchase-dialog-summary-row p {
@@ -579,7 +579,7 @@
   border-radius: 999px;
   background:
     linear-gradient(rgb(7 12 30), rgb(7 12 30)) padding-box,
-    conic-gradient(from 20deg, #2563eb, #f472d0, #a855f7, #2563eb) border-box;
+    conic-gradient(from 20deg, #087f9b, #f0cf7a, #42d7e9, #087f9b) border-box;
   animation: purchase-dialog-spin 1.1s linear infinite;
 }
 
@@ -775,7 +775,7 @@
 
 :root:not(.dark) .purchase-dialog-summary-cell > span,
 :root:not(.dark) .purchase-dialog-summary-row > span {
-  background: rgb(124 58 237 / 0.1);
+  background: rgb(8 127 155 / 0.1);
   color: #b07e16;
 }
 
@@ -884,9 +884,9 @@
 
 /* Premium storefront treatment — follows the purple/pink brand palette. */
 .purchase-dialog-overlay {
-  --purchase-accent: var(--color-primary, #7c3aed);
-  --purchase-accent-rgb: var(--color-primary-rgb, 124 58 237);
-  --purchase-pink: #f472d0;
+  --purchase-accent: var(--color-primary, #087f9b);
+  --purchase-accent-rgb: var(--color-primary-rgb, 8 127 155);
+  --purchase-pink: #f0cf7a;
   --purchase-gold: #f2c76e;
   color: var(--color-text, #f8fafc);
 }
@@ -894,7 +894,7 @@
 .purchase-dialog-backdrop {
   background:
     radial-gradient(circle at 50% 18%, rgb(var(--purchase-accent-rgb) / 0.22), transparent 34%),
-    radial-gradient(circle at 18% 82%, rgb(244 114 208 / 0.12), transparent 28%),
+    radial-gradient(circle at 18% 82%, rgb(240 207 122 / 0.12), transparent 28%),
     rgb(4 2 14 / 0.82);
   backdrop-filter: blur(18px) saturate(1.15);
   -webkit-backdrop-filter: blur(18px) saturate(1.15);
@@ -906,7 +906,7 @@
   border-radius: 1.65rem;
   background:
     linear-gradient(155deg, rgb(var(--color-card-rgb) / 0.98), rgb(var(--color-surface-rgb) / 0.96)) padding-box,
-    linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.58), rgb(244 114 208 / 0.32), rgb(242 199 110 / 0.22)) border-box;
+    linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.58), rgb(240 207 122 / 0.32), rgb(242 199 110 / 0.22)) border-box;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.09),
     0 34px 90px -42px rgb(0 0 0 / 0.96),
@@ -924,7 +924,7 @@
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 82% 0%, rgb(244 114 208 / 0.12), transparent 28%),
+    radial-gradient(circle at 82% 0%, rgb(240 207 122 / 0.12), transparent 28%),
     radial-gradient(circle at 10% 42%, rgb(var(--purchase-accent-rgb) / 0.1), transparent 34%);
 }
 
@@ -954,7 +954,7 @@
   margin: -0.15rem -0.15rem 0.9rem;
   border-bottom: 0;
   border-radius: 1.2rem;
-  background: linear-gradient(125deg, rgb(var(--purchase-accent-rgb) / 0.13), rgb(244 114 208 / 0.055) 60%, transparent);
+  background: linear-gradient(125deg, rgb(var(--purchase-accent-rgb) / 0.13), rgb(240 207 122 / 0.055) 60%, transparent);
   padding: 0.7rem 2.75rem 0.7rem 0.7rem;
   padding-inline-end: 2.75rem;
 }
@@ -1051,8 +1051,8 @@
   border: 1px solid transparent;
   border-radius: 1.05rem;
   background:
-    linear-gradient(135deg, rgb(var(--purchase-accent-rgb) / 0.2), rgb(244 114 208 / 0.12)) padding-box,
-    linear-gradient(110deg, rgb(var(--purchase-accent-rgb) / 0.64), rgb(244 114 208 / 0.5), rgb(242 199 110 / 0.46)) border-box;
+    linear-gradient(135deg, rgb(var(--purchase-accent-rgb) / 0.2), rgb(240 207 122 / 0.12)) padding-box,
+    linear-gradient(110deg, rgb(var(--purchase-accent-rgb) / 0.64), rgb(240 207 122 / 0.5), rgb(242 199 110 / 0.46)) border-box;
   padding: 0.9rem 1rem;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.1),
@@ -1091,12 +1091,12 @@
 
 .purchase-dialog-primary {
   border: 1px solid rgb(255 255 255 / 0.12);
-  background: linear-gradient(120deg, #6d28d9, var(--purchase-accent) 54%, #db2777);
+  background: linear-gradient(120deg, #075a75, var(--purchase-accent) 54%, #db2777);
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.2),
     0 20px 38px -24px rgb(var(--purchase-accent-rgb) / 0.92),
-    0 12px 28px -24px rgb(244 114 208 / 0.8);
+    0 12px 28px -24px rgb(240 207 122 / 0.8);
 }
 
 .purchase-dialog-secondary {
@@ -1123,7 +1123,7 @@
 :root:not(.dark) .purchase-dialog-card {
   background:
     linear-gradient(155deg, rgb(255 255 255 / 0.99), rgb(250 247 255 / 0.98)) padding-box,
-    linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.45), rgb(244 114 208 / 0.28), rgb(242 199 110 / 0.28)) border-box;
+    linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.45), rgb(240 207 122 / 0.28), rgb(242 199 110 / 0.28)) border-box;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.96),
     0 34px 86px -42px rgb(48 25 75 / 0.52),
@@ -1131,11 +1131,11 @@
 }
 
 :root:not(.dark) .purchase-dialog-product {
-  background: linear-gradient(125deg, rgb(var(--purchase-accent-rgb) / 0.1), rgb(244 114 208 / 0.045) 62%, transparent);
+  background: linear-gradient(125deg, rgb(var(--purchase-accent-rgb) / 0.1), rgb(240 207 122 / 0.045) 62%, transparent);
 }
 
 :root:not(.dark) .purchase-dialog-product h2 {
-  background: linear-gradient(110deg, #24113b 18%, #6d28d9 62%, #be185d);
+  background: linear-gradient(110deg, #24113b 18%, #075a75 62%, #be185d);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -1144,7 +1144,7 @@
 :root:not(.dark) .purchase-dialog-image {
   border-color: rgb(var(--purchase-accent-rgb) / 0.18);
   background: radial-gradient(circle at 50% 38%, #fff, #f4efff);
-  color: #7c3aed;
+  color: #087f9b;
 }
 
 :root:not(.dark) .purchase-dialog-field input,
@@ -1165,12 +1165,12 @@
 
 :root:not(.dark) .purchase-dialog-total {
   background:
-    linear-gradient(135deg, rgb(var(--purchase-accent-rgb) / 0.105), rgb(244 114 208 / 0.08)) padding-box,
-    linear-gradient(110deg, rgb(var(--purchase-accent-rgb) / 0.48), rgb(244 114 208 / 0.38), rgb(202 145 42 / 0.42)) border-box;
+    linear-gradient(135deg, rgb(var(--purchase-accent-rgb) / 0.105), rgb(240 207 122 / 0.08)) padding-box,
+    linear-gradient(110deg, rgb(var(--purchase-accent-rgb) / 0.48), rgb(240 207 122 / 0.38), rgb(202 145 42 / 0.42)) border-box;
 }
 
 :root:not(.dark) .purchase-dialog-total strong {
-  color: #6d28d9;
+  color: #075a75;
   text-shadow: none;
 }
 
@@ -1211,7 +1211,7 @@
   place-items: center;
   border: 1px solid rgb(var(--purchase-accent-rgb) / 0.38);
   border-radius: 1.45rem;
-  background: linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.24), rgb(244 114 208 / 0.12));
+  background: linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.24), rgb(240 207 122 / 0.12));
   color: #e9d5ff;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.14),
@@ -1312,8 +1312,8 @@
 
 :root:not(.dark) .purchase-dialog-topup-icon {
   border-color: rgb(var(--purchase-accent-rgb) / 0.24);
-  background: linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.13), rgb(244 114 208 / 0.08));
-  color: #6d28d9;
+  background: linear-gradient(145deg, rgb(var(--purchase-accent-rgb) / 0.13), rgb(240 207 122 / 0.08));
+  color: #075a75;
 }
 
 :root:not(.dark) .purchase-dialog-topup-kicker,
@@ -1376,5 +1376,355 @@
     max-height: calc(100dvh - 0.7rem);
     border-radius: 1.25rem;
     padding: 0.65rem;
+  }
+}
+
+/* Purchase experience V4 — premium KA-CARD checkout, UI-only. */
+.purchase-dialog-card:not(.is-wallet-flow) {
+  width: min(100%, 30rem);
+  border-radius: 1.75rem;
+  padding: 1.15rem;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgb(255 255 255 / 0.035), transparent 34%, transparent 68%, rgb(var(--color-primary-rgb) / 0.055));
+}
+
+.purchase-dialog-product {
+  min-height: 6.8rem;
+  margin: 0 0 1rem;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.18);
+  border-radius: 1.3rem;
+  padding: 0.8rem 3rem 0.8rem 0.8rem;
+  padding-inline-end: 3rem;
+}
+
+.purchase-dialog-image {
+  border-width: 1px;
+  border-radius: 1rem;
+}
+
+.purchase-dialog-price-card {
+  margin-top: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.purchase-dialog-copy-card {
+  position: relative;
+  min-height: 4.8rem;
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.2);
+  border-radius: 1.15rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(125deg, rgb(var(--color-primary-rgb) / 0.09), rgb(var(--color-secondary-rgb) / 0.06));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.065);
+}
+
+.purchase-dialog-copy-card::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: -1.3rem;
+  top: -1.5rem;
+  width: 5rem;
+  height: 5rem;
+  border: 1rem solid rgb(var(--color-primary-rgb) / 0.045);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.purchase-dialog-copy-card strong {
+  font-size: 1rem;
+  letter-spacing: 0.045em;
+}
+
+.purchase-dialog-copy-card svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-primary);
+}
+
+.purchase-dialog-field {
+  position: relative;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.purchase-dialog-field > span {
+  padding-inline: 0.2rem;
+  font-size: 0.76rem;
+  letter-spacing: 0;
+}
+
+.purchase-dialog-field input,
+.purchase-dialog-field select {
+  min-height: 3.55rem;
+  border-width: 1px !important;
+  border-radius: 1rem;
+  padding-inline: 1rem;
+  font-size: 0.9rem;
+  font-weight: 750;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.purchase-dialog-field input:hover,
+.purchase-dialog-field select:hover {
+  border-color: rgb(var(--color-primary-rgb) / 0.42) !important;
+}
+
+.purchase-dialog-field input:focus,
+.purchase-dialog-field select:focus {
+  transform: translateY(-1px);
+}
+
+.purchase-dialog-quantity-limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.purchase-dialog-quantity-limits span {
+  min-height: 2.45rem;
+  border-radius: 0.8rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.68rem;
+}
+
+.purchase-dialog-total {
+  min-height: 4.8rem;
+  margin-top: 1rem;
+  border-radius: 1.2rem;
+  padding: 1rem 1.1rem;
+}
+
+.purchase-dialog-total > span {
+  font-size: 0.75rem;
+}
+
+.purchase-dialog-total strong {
+  font-family: "Orbitron", "Poppins", sans-serif;
+  font-size: clamp(1.15rem, 4vw, 1.42rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.purchase-dialog-actions {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) 7.25rem;
+  gap: 0.7rem;
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+}
+
+.purchase-dialog-actions::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-primary-rgb) / 0.25), transparent);
+}
+
+.purchase-dialog-primary,
+.purchase-dialog-secondary {
+  min-height: 3.6rem;
+  border-radius: 1rem;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.purchase-dialog-primary {
+  gap: 0.65rem;
+  border-color: rgb(255 237 180 / 0.3);
+  background: linear-gradient(115deg, #fff0ad 0%, #e8bd5b 34%, #a9660c 68%, #dfaa3d 100%);
+  color: #171006;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.42), 0 20px 38px -22px rgb(232 189 91 / 0.6);
+}
+
+.purchase-dialog-primary:hover:not(:disabled) {
+  filter: brightness(1.06) saturate(1.04);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.48), 0 24px 44px -22px rgb(232 189 91 / 0.76);
+}
+
+.purchase-dialog-secondary {
+  border-color: rgb(var(--color-border-rgb) / 0.72);
+  background: rgb(var(--color-card-rgb) / 0.58);
+}
+
+.purchase-dialog-error {
+  margin-top: 0.85rem;
+  border-radius: 0.9rem;
+}
+
+:root.dark .purchase-dialog-backdrop {
+  background: radial-gradient(circle at 50% 14%, rgb(232 189 91 / 0.12), transparent 34%), rgb(2 2 1 / 0.88);
+}
+
+:root.dark .purchase-dialog-card:not(.is-wallet-flow) {
+  background:
+    linear-gradient(155deg, rgb(24 21 14 / 0.99), rgb(8 7 5 / 0.985)) padding-box,
+    linear-gradient(145deg, rgb(255 226 148 / 0.46), rgb(155 92 11 / 0.48), rgb(232 189 91 / 0.2)) border-box;
+  box-shadow: inset 0 1px 0 rgb(255 244 210 / 0.07), 0 36px 96px -38px #000, 0 18px 54px -38px rgb(232 189 91 / 0.42);
+}
+
+:root.dark .purchase-dialog-product {
+  border-color: rgb(232 189 91 / 0.17);
+  background: linear-gradient(125deg, rgb(232 189 91 / 0.09), rgb(20 18 13 / 0.72) 60%, rgb(5 5 4 / 0.5));
+}
+
+:root.dark .purchase-dialog-product h2 {
+  background: linear-gradient(110deg, #fff9e9 15%, #e8bd5b 62%, #fff0ad);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+:root.dark .purchase-dialog-copy-card,
+:root.dark .purchase-dialog-field input,
+:root.dark .purchase-dialog-field select {
+  border-color: rgb(232 189 91 / 0.18) !important;
+  background: linear-gradient(135deg, rgb(30 27 19 / 0.92), rgb(12 11 8 / 0.9)) !important;
+}
+
+:root.dark .purchase-dialog-field input:focus,
+:root.dark .purchase-dialog-field select:focus {
+  border-color: rgb(232 189 91 / 0.68) !important;
+  box-shadow: 0 0 0 3px rgb(232 189 91 / 0.1), 0 16px 30px -24px rgb(232 189 91 / 0.64);
+}
+
+:root.dark .purchase-dialog-quantity-limits span {
+  border-color: rgb(232 189 91 / 0.14);
+  background: rgb(232 189 91 / 0.065);
+}
+
+:root.dark .purchase-dialog-total {
+  background:
+    linear-gradient(135deg, rgb(232 189 91 / 0.14), rgb(12 11 8 / 0.78)) padding-box,
+    linear-gradient(110deg, rgb(255 226 148 / 0.52), rgb(155 92 11 / 0.64), rgb(232 189 91 / 0.34)) border-box;
+}
+
+:root.dark .purchase-dialog-total strong,
+:root.dark .purchase-dialog-quantity-limits strong {
+  color: #f2ce78;
+}
+
+:root:not(.dark) .purchase-dialog-backdrop {
+  background: radial-gradient(circle at 50% 15%, rgb(179 122 24 / 0.12), transparent 36%), rgb(16 38 56 / 0.28);
+}
+
+:root:not(.dark) .purchase-dialog-card:not(.is-wallet-flow) {
+  background:
+    linear-gradient(155deg, #ffffff, #f8f5ec) padding-box,
+    linear-gradient(145deg, rgb(8 127 155 / 0.3), rgb(179 122 24 / 0.38), rgb(16 38 56 / 0.16)) border-box;
+  box-shadow: inset 0 1px 0 #fff, 0 34px 88px -42px rgb(16 38 56 / 0.34), 0 16px 46px -38px rgb(179 122 24 / 0.38);
+}
+
+:root:not(.dark) .purchase-dialog-product {
+  border-color: rgb(179 122 24 / 0.18);
+  background: linear-gradient(125deg, #fffaf0, rgb(232 242 245 / 0.72));
+}
+
+:root:not(.dark) .purchase-dialog-product h2 {
+  background: linear-gradient(110deg, #102638 20%, #087f9b 60%, #9a650e);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+:root:not(.dark) .purchase-dialog-copy-card {
+  border-color: rgb(179 122 24 / 0.22);
+  background: linear-gradient(125deg, #fffaf0, #eef7f8);
+}
+
+:root:not(.dark) .purchase-dialog-field input,
+:root:not(.dark) .purchase-dialog-field select {
+  border-color: rgb(16 38 56 / 0.15) !important;
+  background: #fff !important;
+  color: #102638 !important;
+  box-shadow: inset 0 1px 0 #fff, 0 12px 28px -26px rgb(16 38 56 / 0.28);
+}
+
+:root:not(.dark) .purchase-dialog-field input:focus,
+:root:not(.dark) .purchase-dialog-field select:focus {
+  border-color: rgb(8 127 155 / 0.62) !important;
+  box-shadow: 0 0 0 3px rgb(8 127 155 / 0.1), 0 16px 30px -26px rgb(8 127 155 / 0.5);
+}
+
+:root:not(.dark) .purchase-dialog-quantity-limits span {
+  border-color: rgb(8 127 155 / 0.13);
+  background: rgb(8 127 155 / 0.055);
+}
+
+:root:not(.dark) .purchase-dialog-total {
+  background:
+    linear-gradient(135deg, rgb(8 127 155 / 0.1), rgb(255 250 240 / 0.92)) padding-box,
+    linear-gradient(110deg, rgb(8 127 155 / 0.44), rgb(179 122 24 / 0.52), rgb(16 38 56 / 0.2)) border-box;
+}
+
+:root:not(.dark) .purchase-dialog-total strong {
+  color: #0a627b;
+}
+
+:root:not(.dark) .purchase-dialog-primary {
+  border-color: rgb(179 122 24 / 0.3);
+  background: linear-gradient(115deg, #102638 0%, #17435c 48%, #087f9b 72%, #b37a18 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 20px 38px -24px rgb(16 38 56 / 0.62);
+}
+
+:root:not(.dark) .purchase-dialog-secondary {
+  border-color: rgb(16 38 56 / 0.14);
+  background: #fff;
+  color: #4e6673;
+}
+
+@media (max-width: 480px) {
+  .purchase-dialog-overlay {
+    padding: 0.35rem;
+    align-items: flex-end;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) {
+    width: 100%;
+    max-height: calc(100dvh - 0.7rem);
+    border-radius: 1.5rem 1.5rem 1.15rem 1.15rem;
+    padding: 0.85rem;
+  }
+
+  .purchase-dialog-product {
+    min-height: 5.6rem;
+    grid-template-columns: 4.7rem minmax(0, 1fr);
+    padding: 0.65rem 2.6rem 0.65rem 0.65rem;
+    padding-inline-end: 2.6rem;
+  }
+
+  .purchase-dialog-field {
+    margin-top: 0.8rem;
+  }
+
+  .purchase-dialog-field input,
+  .purchase-dialog-field select {
+    min-height: 3.25rem;
+  }
+
+  .purchase-dialog-copy-card,
+  .purchase-dialog-total {
+    min-height: 4.25rem;
+  }
+
+  .purchase-dialog-actions {
+    grid-template-columns: minmax(0, 1fr) 6.5rem;
+  }
+
+  .purchase-dialog-primary,
+  .purchase-dialog-secondary {
+    min-height: 3.35rem;
   }
 }

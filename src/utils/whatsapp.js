@@ -1,4 +1,8 @@
-const FALLBACK_WHATSAPP_NUMBER = '01050028058';
+const SUPPORT_CONTACTS = Object.freeze([
+  { nameAr: 'أحمد الفهد', nameEn: 'Ahmed Al Fahd', number: '01012286661' },
+  { nameAr: 'جاسر براند', nameEn: 'Jaser Brand', number: '01503222311' },
+]);
+const FALLBACK_WHATSAPP_NUMBER = SUPPORT_CONTACTS[0].number;
 const ENV_ADMIN_WHATSAPP_NUMBER =
   import.meta.env.VITE_ADMIN_WHATSAPP_NUMBER
   || import.meta.env.ADMIN_WHATSAPP_NUMBER
@@ -25,3 +29,4 @@ export const buildWhatsAppLink = ({ number, message = '' }) => {
 
 export const getDefaultWhatsAppNumber = () => FALLBACK_WHATSAPP_NUMBER;
 export const getAdminWhatsAppNumber = () => normalizeWhatsAppNumber(ENV_ADMIN_WHATSAPP_NUMBER || FALLBACK_WHATSAPP_NUMBER);
+export const getSupportContacts = () => SUPPORT_CONTACTS;

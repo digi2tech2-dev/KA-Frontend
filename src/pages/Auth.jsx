@@ -39,7 +39,7 @@ import {
   readReferralBridge,
   readReferralCodeFromSearch,
 } from '../utils/referralCode';
-import brandIconImage from '../assets/logo.PNG';
+import brandIconImage from '../assets/logo.svg';
 import styles from './Auth.module.css';
 
 const GoogleMark = () => (
@@ -664,13 +664,13 @@ const countryOptions = useMemo(() => {
             <div className={styles.brandIcon}>
               <img
                 src={brandIconImage}
-                alt="KANZ COINS"
+                alt="KA-CARD"
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
               />
             </div>
-            <h1 className={styles.brandName}><span>KANZ</span> COINS</h1>
+            <h1 className={styles.brandName}><span>KA</span>—CARD</h1>
             <div className={styles.brandDivider}><span /></div>
           </div>
 
@@ -1101,8 +1101,8 @@ const countryOptions = useMemo(() => {
         <div className="space-y-3 text-sm leading-7 text-[var(--color-text-secondary)]">
           <p>
             {dir === 'rtl'
-              ? 'باستخدام KANZ COINS، فإنك توافق على إدخال بيانات صحيحة والحفاظ على سرية حسابك وعدم استخدام المنصة في أي نشاط مخالف.'
-              : 'By using KANZ COINS, you agree to provide accurate information, protect your account, and avoid any prohibited activity.'}
+              ? 'باستخدام KA-CARD، فإنك توافق على إدخال بيانات صحيحة والحفاظ على سرية حسابك وعدم استخدام المنصة في أي نشاط مخالف.'
+              : 'By using KA-CARD, you agree to provide accurate information, protect your account, and avoid any prohibited activity.'}
           </p>
           <p>
             {dir === 'rtl'

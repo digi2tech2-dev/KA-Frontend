@@ -2,14 +2,14 @@ export const translations = {
   ar: {
     // Auth
     welcomeBack: "مرحبًا بعودتك",
-    signInToAccount: "سجل الدخول إلى حسابك في KANZ COINS",
-    globalSignInTitle: "بوابتك العالمية إلى KANZ COINS",
+    signInToAccount: "سجل الدخول إلى حسابك في KA-CARD",
+    globalSignInTitle: "بوابتك العالمية إلى KA-CARD",
     globalSignInDescription: "سجّل الدخول بأمان من أي مكان، وتابع رصيدك وطلباتك بعملتك المفضلة.",
     worldwideAccess: "وصول عالمي",
     secureAccountAccess: "حساب آمن",
     fastVerification: "تحقق سريع",
     createAccount: "إنشاء حساب",
-    joinToday: "انضم في عالم KANZ COINS حالا",
+    joinToday: "انضم في عالم KA-CARD حالا",
     signIn: "تسجيل الدخول",
     signUp: "إنشاء حساب",
     forgotPassword: "نسيت كلمة المرور؟",
@@ -127,7 +127,7 @@ export const translations = {
     topupTrend: "اتجاه الشحنات",
 
     // Landing
-    brand: "KANZ COINS",
+    brand: "KA-CARD",
     landingHero: "وجهتك المميزة لشراء رصيد الألعاب، واشتراكات التطبيقات، والمنتجات الرقمية.",
     landingHeroSub: "توصيل فوري، ومدفوعات آمنة.",
     getStarted: "ابدأ الآن",

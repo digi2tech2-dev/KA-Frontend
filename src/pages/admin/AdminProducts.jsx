@@ -1359,7 +1359,7 @@ const AdminProducts = () => {
                     </div>
                 )}
                 {isUnavailable || isHidden ? (
-                    <span className="absolute inset-x-1 bottom-1 truncate rounded-md border border-amber-200/50 bg-[linear-gradient(180deg,rgb(255_255_255/0.86),rgb(255_248_226/0.82))] px-1 py-0.5 text-center text-[8px] font-bold leading-none text-amber-800 shadow-[0_8px_14px_-12px_rgb(15_23_42/0.38)] dark:border-violet-200/24 dark:bg-[linear-gradient(180deg,rgb(15_23_42/0.72),rgb(124_58_237/0.42))] dark:text-violet-50">
+                    <span className="absolute inset-x-1 bottom-1 truncate rounded-md border border-amber-200/50 bg-[linear-gradient(180deg,rgb(255_255_255/0.86),rgb(255_248_226/0.82))] px-1 py-0.5 text-center text-[8px] font-bold leading-none text-amber-800 shadow-[0_8px_14px_-12px_rgb(15_23_42/0.38)] dark:border-cyan-200/24 dark:bg-[linear-gradient(180deg,rgb(15_23_42/0.72),rgb(124_58_237/0.42))] dark:text-cyan-50">
                         {isHidden ? (isEnglish ? 'Hidden' : 'مخفي') : (isEnglish ? 'Unavailable' : 'غير متوفر')}
                     </span>
                 ) : null}

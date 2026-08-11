@@ -487,6 +487,10 @@ const normaliseUser = (u) => {
   const groupPercentage = groupPercentageRaw === undefined || groupPercentageRaw === null
     ? null
     : Number(groupPercentageRaw);
+  const rawBillingMode = u.billingMode || (typeof rawGroup === 'object' ? rawGroup.billingMode : '') || 'standard';
+  const billingMode = String(rawBillingMode).toLowerCase() === 'quantity' ? 'quantity_only' : String(rawBillingMode).toLowerCase();
+  const quantityLimit = Math.max(0, Number(u.quantityLimit ?? u.quota?.limit ?? 0) || 0);
+  const quantityUsed = Math.max(0, Number(u.quantityUsed ?? u.quota?.used ?? 0) || 0);
 
   // Flatten populated currency ref if it were ever an object
   const rawCurrency = u.currency;
@@ -523,6 +527,10 @@ const normaliseUser = (u) => {
     groupId: String(groupId),
     groupName,
     groupPercentage: Number.isFinite(groupPercentage) ? groupPercentage : null,
+    billingMode,
+    quantityLimit,
+    quantityUsed,
+    quota: { limit: quantityLimit, used: quantityUsed, remaining: Math.max(0, quantityLimit - quantityUsed) },
     // Flattened currency
     currency: walletSummary.currency || currency,
     // joinDate aliasing
@@ -531,7 +539,7 @@ const normaliseUser = (u) => {
     approvedAt: u.approvedAt || u.activatedAt || null,
     rejectedAt: u.rejectedAt || u.deniedAt || null,
     // ensure avatar — resolve relative paths and fallback
-    avatar: resolveUserAvatar(u, u.name || u.email || 'Kanz Coins User'),
+    avatar: resolveUserAvatar(u, u.name || u.email || 'KA-CARD User'),
     permissions: Array.isArray(u.permissions) ? u.permissions.map((item) => String(item || '').trim()).filter(Boolean) : [],
     twoFactorEnabled: Boolean(u.twoFactorEnabled ?? u.isTwoFactorEnabled),
     isTwoFactorEnabled: Boolean(u.isTwoFactorEnabled ?? u.twoFactorEnabled),
@@ -701,6 +709,7 @@ const normaliseGroup = (g) => {
     // BE uses "percentage", FE uses "discount"
     discount: g.percentage ?? g.discount ?? 0,
     percentage: g.percentage ?? g.discount ?? 0,
+    billingMode: String(g.billingMode || 'standard').toLowerCase() === 'quantity' ? 'quantity_only' : String(g.billingMode || 'standard').toLowerCase(),
     isActive: g.isActive !== false,
   };
 };
@@ -934,6 +943,10 @@ const normaliseOrder = (o) => {
     status: (o.status || 'pending').toLowerCase(),
     // Pricing aliases for FE
     priceCoins: o.chargedAmount ?? o.totalPrice ?? o.priceCoins ?? 0,
+    billingModeSnapshot: String(o.billingModeSnapshot || o.billingMode || 'standard').toLowerCase() === 'quantity' ? 'quantity_only' : String(o.billingModeSnapshot || o.billingMode || 'standard').toLowerCase(),
+    billingMode: String(o.billingModeSnapshot || o.billingMode || 'standard').toLowerCase() === 'quantity' ? 'quantity_only' : String(o.billingModeSnapshot || o.billingMode || 'standard').toLowerCase(),
+    chargedAmount: Number(o.chargedAmount ?? o.totalPrice ?? o.priceCoins ?? 0),
+    quantityCharged: Number(o.quantityCharged ?? 0),
     unitPriceBase: o.basePriceSnapshot ?? o.unitPriceBase ?? 0,
     unitPrice: o.finalPriceCharged ?? o.unitPrice ?? 0,
     quantity: o.quantity || 1,
@@ -1799,6 +1812,13 @@ const isAdmin = () => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 const realApi = {
+
+  quota: {
+    getMine: async () => {
+      const res = await http.get('/me/quota');
+      return unwrap(res)?.quota || unwrap(res);
+    },
+  },
 
   uploads: {
     orderFieldImage: async (file) => {
@@ -2703,6 +2723,15 @@ const realApi = {
 
   // ── Users (Admin) ────────────────────────────────────────────────────────
   users: {
+    setQuota: async (userId, quantityLimit, reason = '') => {
+      const res = await http.patch(`/admin/users/${userId}/quota`, { quantityLimit, ...(reason ? { reason } : {}) });
+      return unwrap(res)?.quota || unwrap(res);
+    },
+
+    resetQuota: async (userId, reason = '') => {
+      const res = await http.post(`/admin/users/${userId}/quota/reset`, reason ? { reason } : {});
+      return unwrap(res)?.quota || unwrap(res);
+    },
     /**
      * GET /admin/users → sendPaginated(res, users[], pagination)
      * unwrap() returns the users array directly from paginated envelope.
@@ -3177,6 +3206,7 @@ const realApi = {
         name: groupData.name,
         percentage: groupData.discount ?? groupData.percentage ?? 0,
         isActive: groupData.isActive !== false,
+        billingMode: groupData.billingMode || 'standard',
       };
       const res = await http.post('/admin/groups', body);
       return normaliseGroup(unwrap(res)?.group || unwrap(res));
@@ -3190,6 +3220,7 @@ const realApi = {
         body.percentage = updates.discount ?? updates.percentage;
       }
       if (updates.isActive !== undefined) body.isActive = updates.isActive;
+      if (updates.billingMode !== undefined) body.billingMode = updates.billingMode;
       const res = await http.patch(`/admin/groups/${id}`, body);
       return normaliseGroup(unwrap(res)?.group || unwrap(res));
     },
@@ -3579,7 +3610,11 @@ const realApi = {
           // Parse defensively so a normalisation hiccup never masks a successful creation.
           try {
             const data = unwrap(res);
-            return { order: normaliseOrder(data?.order || data), updatedBalance: (data?.updatedBalance ?? data?.order?.updatedBalance ?? res.data?.updatedBalance) };
+            return {
+              order: normaliseOrder(data?.order || data),
+              updatedBalance: (data?.updatedBalance ?? data?.order?.updatedBalance ?? res.data?.updatedBalance),
+              quota: data?.quota || null,
+            };
           } catch (_parseError) {
             // Normalisation failed, but the order WAS created. Return raw data.
             const raw = res.data?.data?.order || res.data?.data || res.data?.order || res.data || {};
@@ -3590,10 +3625,13 @@ const realApi = {
                 ...raw,
               },
               updatedBalance: raw.updatedBalance,
+              quota: raw.quota || res.data?.quota || null,
             };
           }
         } catch (error) {
           // HTTP-level error (4xx/5xx) — try the next endpoint.
+          const status = error?.response?.status;
+          if (status && status !== 404 && status < 500) throw error;
           lastError = error;
         }
       }

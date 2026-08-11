@@ -8,7 +8,7 @@ const isRealProvider = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCas
 const PAYMENT_SETTINGS_POLL_INTERVAL = 15 * 1000;
 const PAYMENT_SETTINGS_BROADCAST_CHANNEL = 'payment-settings-updates';
 
-const CURRENCIES_CACHE_KEY = 'kanz-coins:currencies-cache:v1';
+const CURRENCIES_CACHE_KEY = 'ka-card:currencies-cache:v1';
 const CURRENCIES_CACHE_TTL = isRealProvider ? 60 * 1000 : 5 * 60 * 1000;
 
 let currenciesRequest = null;

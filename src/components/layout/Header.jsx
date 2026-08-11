@@ -101,7 +101,7 @@ const Header = ({ toggleSidebar }) => {
     if (normalizedType === 'success') return 'border-emerald-400/30 bg-emerald-500/10';
     if (normalizedType === 'warning') return 'border-amber-400/30 bg-amber-500/10';
     if (normalizedType === 'error') return 'border-red-400/30 bg-red-500/10';
-    return 'border-sky-400/30 bg-sky-500/10';
+    return 'border-cyan-400/30 bg-cyan-500/10';
   };
 
   const getNotificationMeta = (notification) => {
@@ -128,7 +128,7 @@ const Header = ({ toggleSidebar }) => {
       return {
         icon: CreditCard,
         label: 'عملية رصيد',
-        className: 'bg-indigo-500/12 text-indigo-500 ring-violet-400/24',
+        className: 'bg-indigo-500/12 text-indigo-500 ring-cyan-400/24',
       };
     }
 
@@ -144,7 +144,7 @@ const Header = ({ toggleSidebar }) => {
       return {
         icon: ShoppingBag,
         label: 'طلب',
-        className: 'bg-sky-500/12 text-sky-500 ring-sky-400/24',
+        className: 'bg-cyan-500/12 text-cyan-500 ring-cyan-400/24',
       };
     }
 
@@ -199,7 +199,7 @@ const Header = ({ toggleSidebar }) => {
   return (
     <header dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-full">
       <div className={cn(
-        'app-shell-header-panel kanz-coins-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0.5 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-1',
+        'app-shell-header-panel ka-card-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0.5 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-1',
         isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
       )}>
         <div dir="ltr" className="grid min-h-[2.55rem] min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:min-h-[2.9rem] sm:gap-4">
@@ -230,7 +230,7 @@ const Header = ({ toggleSidebar }) => {
               >
                 <Bell className="h-3.5 w-3.5" />
                 {unreadCount > 0 ? (
-                  <span className="absolute -end-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(135deg,#c026d3,#f472d0)] px-1 text-[10px] font-black text-white shadow-[0_0_18px_rgb(244_63_221/0.52)]">
+                  <span className="absolute -end-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(135deg,#b37a18,#f0cf7a)] px-1 text-[10px] font-black text-white shadow-[0_0_18px_rgb(244_63_221/0.52)]">
                     {unreadCount > 9 ? '+9' : unreadCount}
                   </span>
                 ) : null}

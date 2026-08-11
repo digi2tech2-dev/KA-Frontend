@@ -1,7 +1,7 @@
 import resolveImageUrl from './imageUrl';
 
-const STORE_NAME = 'KANZ COINS';
-const DEFAULT_DESCRIPTION = 'KANZ COINS لخدمات شحن تطبيقات الدردشة الصوتية، شحن الألعاب، الاشتراكات، البطاقات الرقمية، وخدمات المنتجات الرقمية بسرعة ودقة.';
+const STORE_NAME = 'KA CARD';
+const DEFAULT_DESCRIPTION = 'KA CARD منصة متكاملة لشحن الألعاب وتطبيقات الدردشة الصوتية وشراء الاشتراكات والبطاقات والخدمات الرقمية بسرعة وأمان.';
 
 const SEARCH_PHRASES = [
   'شحن تطبيقات دردشة صوتية',
@@ -13,7 +13,8 @@ const SEARCH_PHRASES = [
   'اشتراكات رقمية',
   'بطاقات رقمية',
   'شحن منتجات رقمية',
-  'KANZ COINS',
+  'KA CARD',
+  'KA-CARD',
 ];
 
 const cleanText = (value) => String(value || '')
@@ -55,8 +56,8 @@ export const getProductSeoDescription = (product, language = 'ar') => {
   const productName = getProductSeoName(product, language);
   const description = cleanText(product?.displayDescription || product?.descriptionAr || product?.description);
   const fallback = language === 'ar'
-    ? `شحن ${productName} عبر KANZ COINS ضمن خدمات شحن تطبيقات الدردشة الصوتية، الألعاب، الاشتراكات، والمنتجات الرقمية.`
-    : `Top up ${productName} through KANZ COINS for voice chat apps, games, subscriptions, and digital products.`;
+    ? `شحن ${productName} عبر KA-CARD ضمن خدمات شحن تطبيقات الدردشة الصوتية، الألعاب، الاشتراكات، والمنتجات الرقمية.`
+    : `Top up ${productName} through KA-CARD for voice chat apps, games, subscriptions, and digital products.`;
 
   return truncateText(description || fallback, 220);
 };
@@ -94,8 +95,8 @@ export const buildStoreSeo = ({
 
   const seoTitle = title || (
     language === 'ar'
-      ? `${STORE_NAME} | شحن تطبيقات الدردشة الصوتية والألعاب والاشتراكات`
-      : `${STORE_NAME} | Voice Chat App, Game Topups and Digital Subscriptions`
+      ? `${STORE_NAME} | شحن الألعاب والتطبيقات والبطاقات الرقمية`
+      : `${STORE_NAME} | Games, Apps and Digital Cards`
   );
   const seoDescription = truncateText(description || DEFAULT_DESCRIPTION, 160);
   const keywords = [...SEARCH_PHRASES, ...categoryNames, ...productKeywords].join(', ');
@@ -140,13 +141,16 @@ export const buildStoreSeo = ({
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: STORE_NAME,
+      alternateName: 'KA-CARD',
       url: origin || canonicalUrl,
-      logo: origin ? `${origin}/android-chrome-192x192.png?v=kanz-coins` : '/android-chrome-192x192.png?v=kanz-coins',
+      logo: origin ? `${origin}/android-chrome-192x192.png?v=ka-card` : '/android-chrome-192x192.png?v=ka-card',
+      description: seoDescription,
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: STORE_NAME,
+      alternateName: 'KA-CARD',
       url: origin || canonicalUrl,
       inLanguage: language === 'ar' ? 'ar-EG' : 'en',
     },
@@ -157,6 +161,7 @@ export const buildStoreSeo = ({
       url: canonicalUrl,
       description: seoDescription,
       areaServed: 'EG',
+      currenciesAccepted: 'EGP, USD',
     },
   ];
 
@@ -164,7 +169,7 @@ export const buildStoreSeo = ({
     jsonLd.push({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      name: language === 'ar' ? 'منتجات KANZ COINS' : 'KANZ COINS Products',
+      name: language === 'ar' ? 'منتجات KA-CARD' : 'KA-CARD Products',
       description: seoDescription,
       itemListElement: productList,
     });

@@ -5,10 +5,10 @@ import apiClient from '../services/client';
 const dataProvider = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase();
 const isRealProvider = dataProvider === 'real';
 
-const CATEGORIES_CACHE_KEY = 'kanz-coins:categories-cache:v1';
+const CATEGORIES_CACHE_KEY = 'ka-card:categories-cache:v1';
 const LEGACY_PRODUCT_CACHE_KEYS = [
   'coins:media-cache:v2',
-  'kanz-coins:media-cache:v2',
+  'ka-card:media-cache:v2',
 ];
 const PRODUCTS_CACHE_TTL = 5 * 60 * 1000;
 let productsRequest = null;

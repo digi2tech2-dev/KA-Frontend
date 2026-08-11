@@ -20,8 +20,8 @@ import {
   getStorefrontLanguage,
 } from '../utils/storefront';
 import { buildStoreSeo, toAbsoluteUrl } from '../utils/seo';
-import slideFourImage from '../assets/slide-4.webp';
-import slideThreeImage from '../assets/slide-3.webp';
+import slideFourImage from '../assets/slide-4.jpg';
+import slideThreeImage from '../assets/slide-3.jpg';
 
 const getProductsPageCopy = (language = 'ar') => (
   language === 'ar'
@@ -387,7 +387,7 @@ const Products = () => {
   );
 
   const seoImage = useMemo(
-    () => toAbsoluteUrl(storefrontProducts.find((product) => product?.image)?.image || ''),
+    () => toAbsoluteUrl(storefrontProducts.find((product) => product?.image)?.image || '/android-chrome-192x192.png?v=ka-card'),
     [storefrontProducts]
   );
 

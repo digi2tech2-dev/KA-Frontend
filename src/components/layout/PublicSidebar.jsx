@@ -86,7 +86,7 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
         className="fixed right-3 top-3 z-[110] block h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-hidden transition-[transform,width] duration-200 ease-out sm:right-4 sm:top-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] motion-reduce:transition-none"
       >
         <div className={cn(
-          'app-shell-sidebar-panel kanz-sidebar-panel relative flex h-full flex-col overflow-hidden rounded-[32px] border backdrop-blur-[24px]'
+          'app-shell-sidebar-panel ka-sidebar-panel relative flex h-full flex-col overflow-hidden rounded-[32px] border backdrop-blur-[24px]'
         )}>
           <div className="relative z-10 px-4 pb-4 pt-5">
             <div className="flex items-center justify-center gap-3">
@@ -105,12 +105,12 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
             </div>
 
             <div className="mt-4">
-              <LanguageSwitcher showIcon variant="sidebar" className="kanz-sidebar-language w-full justify-center" />
+              <LanguageSwitcher showIcon variant="sidebar" className="ka-sidebar-language w-full justify-center" />
             </div>
 
-            <div className="kanz-sidebar-action-card mt-4">
+            <div className="ka-sidebar-action-card mt-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--color-text)]">
-                <span className="kanz-sidebar-icon-bubble is-active">
+                <span className="ka-sidebar-icon-bubble is-active">
                   <Store className="h-5 w-5" strokeWidth={2.15} />
                 </span>
                 <span className="truncate">{isArabic ? 'ابدأ الآن' : 'Start now'}</span>
@@ -120,7 +120,7 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
                 <button
                   type="button"
                   onClick={onLogin}
-                  className="kanz-sidebar-primary-button w-full"
+                  className="ka-sidebar-primary-button w-full"
                 >
                   <LogIn className="h-4 w-4 shrink-0" />
                   {isArabic ? 'تسجيل الدخول' : 'Login'}
@@ -130,7 +130,7 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
                   <button
                   type="button"
                   onClick={onCreateAccount}
-                    className="kanz-sidebar-secondary-button"
+                    className="ka-sidebar-secondary-button"
                   >
                     <UserPlus className="h-4 w-4 shrink-0" />
                     <span className="truncate">{isArabic ? 'حساب جديد' : 'Sign up'}</span>
@@ -140,7 +140,7 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
                   type="button"
                   onClick={onGoogleLogin}
                   disabled={isBusy}
-                    className="kanz-sidebar-secondary-button kanz-sidebar-google-button disabled:cursor-not-allowed disabled:opacity-60"
+                    className="ka-sidebar-secondary-button ka-sidebar-google-button disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <GoogleMark />
                     <span className="truncate">Google</span>
@@ -157,14 +157,14 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
                 type="button"
                 onClick={item.onClick}
                 className={cn(
-                  'kanz-sidebar-nav-item group relative flex w-full items-center gap-2.5 overflow-hidden px-3 py-1.5 transition-all',
+                  'ka-sidebar-nav-item group relative flex w-full items-center gap-2.5 overflow-hidden px-3 py-1.5 transition-all',
                   item.isActive
                     ? 'is-active text-[var(--color-text)]'
                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                 )}
               >
                 <span className={cn(
-                  'kanz-sidebar-icon-bubble',
+                  'ka-sidebar-icon-bubble',
                   item.isActive && 'is-active'
                 )}>
                   <item.icon className="h-5 w-5" strokeWidth={2.15} />

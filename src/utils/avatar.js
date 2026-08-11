@@ -1,12 +1,12 @@
 import { resolveImageUrl } from './imageUrl';
 
 const AVATAR_PALETTES = [
-  ['#7c3aed', '#a855f7', '#c026d3'],
-  ['#7c3aed', '#312e81', '#c026d3'],
-  ['#2563eb', '#2563eb', '#a855f7'],
-  ['#f59e0b', '#ef4444', '#c026d3'],
-  ['#22c55e', '#2563eb', '#7c3aed'],
-  ['#c026d3', '#c026d3', '#a855f7'],
+  ['#087f9b', '#42d7e9', '#b37a18'],
+  ['#087f9b', '#312e81', '#b37a18'],
+  ['#087f9b', '#087f9b', '#42d7e9'],
+  ['#f59e0b', '#ef4444', '#b37a18'],
+  ['#22c55e', '#087f9b', '#087f9b'],
+  ['#b37a18', '#b37a18', '#42d7e9'],
 ];
 
 const AVATAR_CACHE_LIMIT = 180;
@@ -52,7 +52,7 @@ const isGeneratedSvgAvatarUrl = (value) => {
 };
 
 const hashString = (value) => {
-  const text = String(value || 'KANZ COINS');
+  const text = String(value || 'KA-CARD');
   let hash = 0;
 
   for (let index = 0; index < text.length; index += 1) {
@@ -64,7 +64,7 @@ const hashString = (value) => {
 };
 
 const getInitials = (value) => {
-  const parts = String(value || 'Kanz Coins User')
+  const parts = String(value || 'KA-CARD User')
     .replace(/[^\p{L}\p{N}\s._-]/gu, ' ')
     .split(/[\s._-]+/)
     .map((part) => part.trim())
@@ -78,8 +78,8 @@ const getInitials = (value) => {
 
 const getAvatarBackgroundMarkup = (hash, palette, variant = 'anime') => {
   const pattern = hash % 6;
-  const accent = palette[2] || '#c026d3';
-  const soft = palette[0] || '#7c3aed';
+  const accent = palette[2] || '#b37a18';
+  const soft = palette[0] || '#087f9b';
 
   const shared = `
     <rect width="256" height="256" rx="68" fill="url(#bg)"/>
@@ -130,7 +130,7 @@ const getGulfAdminAvatarUrl = (identity = 'Platform Admin') => {
   const palette = AVATAR_PALETTES[hash % AVATAR_PALETTES.length];
   const skinPalette = ['#f3c7a4', '#e8b384', '#d99a66', '#c9875f'];
   const skinColor = skinPalette[(hash >> 3) % skinPalette.length];
-  const eyeColor = ['#312e81', '#7c3aed', '#5b3a1d'][(hash >> 5) % 3];
+  const eyeColor = ['#312e81', '#087f9b', '#5b3a1d'][(hash >> 5) % 3];
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Platform Admin">
@@ -150,7 +150,7 @@ const getGulfAdminAvatarUrl = (identity = 'Platform Admin') => {
         </filter>
         <linearGradient id="gold" x1="78" y1="41" x2="178" y2="198" gradientUnits="userSpaceOnUse">
           <stop offset="0" stop-color="#fff2b8"/>
-          <stop offset="0.48" stop-color="#c026d3"/>
+          <stop offset="0.48" stop-color="#b37a18"/>
           <stop offset="1" stop-color="#8a5b12"/>
         </linearGradient>
       </defs>
@@ -175,8 +175,8 @@ const getGulfAdminAvatarUrl = (identity = 'Platform Admin') => {
       <circle cx="152" cy="109" r="2.7" fill="#ffffff"/>
       <path d="M116 137c8 7 17 7 25 0" fill="none" stroke="#7f3f35" stroke-width="5" stroke-linecap="round"/>
       <path d="M99 132c18 16 40 16 58 0" fill="none" stroke="#5b3328" stroke-width="4" stroke-linecap="round" opacity="0.28"/>
-      <ellipse cx="84" cy="130" rx="12" ry="6" fill="#c026d3" opacity="0.16"/>
-      <ellipse cx="172" cy="130" rx="12" ry="6" fill="#c026d3" opacity="0.16"/>
+      <ellipse cx="84" cy="130" rx="12" ry="6" fill="#b37a18" opacity="0.16"/>
+      <ellipse cx="172" cy="130" rx="12" ry="6" fill="#b37a18" opacity="0.16"/>
       <path d="M190 53l7 14 15 2-11 11 3 15-14-7-14 7 3-15-11-11 15-2 7-14z" fill="#ffffff" opacity="0.36"/>
       <path d="M65 171l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10z" fill="#ffffff" opacity="0.28"/>
     </svg>
@@ -196,12 +196,12 @@ const isAdminIdentity = (source, identity = '') => {
   return text.includes('platform admin') || text.includes('مدير المنصة') || text.includes('مدير المنصه');
 };
 
-export const getDefaultAvatarUrl = (identity = 'Kanz Coins User', options = {}) => {
+export const getDefaultAvatarUrl = (identity = 'KA-CARD User', options = {}) => {
   if (options.variant === 'gulf-admin') {
     return getGulfAdminAvatarUrl(identity);
   }
 
-  const seed = String(identity || 'Kanz Coins User').trim() || 'Kanz Coins User';
+  const seed = String(identity || 'KA-CARD User').trim() || 'KA-CARD User';
   const cacheKey = `anime:${seed}`;
 
   return getCachedAvatar(cacheKey, () => {
@@ -209,7 +209,7 @@ export const getDefaultAvatarUrl = (identity = 'Kanz Coins User', options = {}) 
   const palette = AVATAR_PALETTES[hash % AVATAR_PALETTES.length];
   const initials = getInitials(seed);
   const hairPalette = ['#161827', '#20243a', '#32224a', '#172f3a', '#3a2432', '#44301a'];
-  const eyePalette = ['#7c3aed', '#c026d3', '#8b5cf6', '#22c55e', '#38bdf8', '#f59e0b'];
+  const eyePalette = ['#087f9b', '#b37a18', '#13b8d2', '#22c55e', '#42d7e9', '#f59e0b'];
   const skinPalette = ['#ffe1c7', '#f6c9a7', '#eeb993', '#f3d4bd', '#d8a277', '#c9875f'];
   const hairColor = hairPalette[hash % hairPalette.length];
   const eyeColor = eyePalette[(hash >> 2) % eyePalette.length];
@@ -319,13 +319,13 @@ export const getDefaultAvatarUrl = (identity = 'Kanz Coins User', options = {}) 
   });
 };
 
-export const resolveUserAvatar = (source, fallbackIdentity = 'Kanz Coins User') => {
+export const resolveUserAvatar = (source, fallbackIdentity = 'KA-CARD User') => {
   const isObject = source && typeof source === 'object';
   const rawAvatar = isObject ? source.avatar : source;
   const identity = String(
     fallbackIdentity
     || (isObject ? (source.name || source.username || source.email) : '')
-    || 'Kanz Coins User'
+    || 'KA-CARD User'
   ).trim();
   const resolved = resolveImageUrl(rawAvatar);
 

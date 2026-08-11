@@ -50,7 +50,7 @@ const getStatusMeta = (status) => {
       label: 'جاري التشغيل',
       description: 'Initializing',
       icon: Loader,
-      className: 'border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-300',
+      className: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-300',
     };
   }
 

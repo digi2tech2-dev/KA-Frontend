@@ -22,11 +22,12 @@ const ThemeToggle = ({ className, compact = false, variant = 'default' }) => {
         type="button"
         onClick={toggleTheme}
         className={cn(
-          'inline-flex h-11 w-11 items-center justify-center rounded-full border shadow-[var(--shadow-subtle)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.24)] hover:text-[var(--color-primary)]',
+          'theme-toggle inline-flex h-11 w-11 items-center justify-center rounded-full border shadow-[var(--shadow-subtle)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.52)] hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus)]',
           compactVariantStyles[variant] || compactVariantStyles.default,
           className
         )}
-        aria-label="تبديل المظهر"
+        aria-label={isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الغامق'}
+        title={isDark ? 'الوضع الفاتح' : 'الوضع الغامق'}
       >
         {isDark ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
       </button>
@@ -38,15 +39,16 @@ const ThemeToggle = ({ className, compact = false, variant = 'default' }) => {
       type="button"
       onClick={toggleTheme}
       className={cn(
-        'relative inline-flex h-11 w-[82px] items-center rounded-full border px-1.5 shadow-[var(--shadow-subtle)] transition-all duration-200 hover:border-[color:rgb(var(--color-primary-rgb)/0.24)]',
+        'theme-toggle relative inline-flex h-11 w-[82px] items-center rounded-full border px-1.5 shadow-[var(--shadow-subtle)] transition-all duration-300 hover:border-[color:rgb(var(--color-primary-rgb)/0.52)] focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus)]',
         variantStyles[variant] || variantStyles.default,
         className
       )}
-      aria-label="تبديل المظهر"
+      aria-label={isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الغامق'}
+      title={isDark ? 'الوضع الفاتح' : 'الوضع الغامق'}
     >
       <span
         className={cn(
-          'absolute left-1.5 inset-y-1.5 w-[36px] rounded-full bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-hover))] shadow-[var(--shadow-gold)] transition-transform duration-300 ease-out',
+          'absolute left-1.5 inset-y-1.5 w-[36px] rounded-full bg-[linear-gradient(135deg,#ffe59a,var(--color-primary)_48%,var(--color-secondary))] shadow-[var(--shadow-gold)] transition-transform duration-300 ease-out',
           isDark ? 'translate-x-[38px]' : 'translate-x-0'
         )}
       />

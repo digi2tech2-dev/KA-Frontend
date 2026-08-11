@@ -39,7 +39,7 @@ export const ToastProvider = ({ children }) => {
                 toast.type === 'warning' &&
                   'border-amber-400/35 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-gradient-to-r before:from-amber-400 before:to-orange-400',
                 toast.type === 'info' &&
-                  'border-violet-400/35 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-gradient-to-r before:from-violet-500 before:to-fuchsia-500'
+                  'border-cyan-400/35 before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-gradient-to-r before:from-cyan-500 before:to-amber-500'
               )}
             >
               <span
@@ -48,7 +48,7 @@ export const ToastProvider = ({ children }) => {
                   toast.type === 'success' && 'bg-emerald-500/12 text-emerald-500',
                   toast.type === 'error' && 'rounded-lg border border-rose-400/25 bg-rose-500/12 text-rose-500 shadow-[3px_3px_0_rgb(225_29_72/.12)]',
                   toast.type === 'warning' && 'bg-amber-500/12 text-amber-500',
-                  toast.type === 'info' && 'bg-violet-500/12 text-violet-500'
+                  toast.type === 'info' && 'bg-cyan-500/12 text-cyan-500'
                 )}
               >
                 {toast.type === 'success' && <CheckCircle2 className="h-5 w-5" />}

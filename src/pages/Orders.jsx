@@ -72,7 +72,7 @@ const matchesOrderSearch = (order, searchTerm) => {
 
 const SummaryCard = ({ icon: Icon, label, value, tone = 'sky' }) => {
   const tones = {
-    sky: 'border-sky-400/28 bg-sky-500/8 text-sky-500',
+    sky: 'border-cyan-400/28 bg-cyan-500/8 text-cyan-500',
     amber: 'border-amber-400/30 bg-amber-500/10 text-amber-500',
     emerald: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-500',
     rose: 'border-rose-400/25 bg-rose-500/8 text-rose-500',
@@ -303,7 +303,7 @@ const Orders = () => {
               </p>
 
               <div className="mt-4 flex items-center gap-3">
-                <div className="inline-flex items-center justify-center rounded-full px-3 py-2 bg-[linear-gradient(90deg,var(--color-primary),#c026d3)] text-white font-black text-base shadow-[0_10px_30px_-18px_rgb(var(--color-primary-rgb)/0.9)]">
+                <div className="inline-flex items-center justify-center rounded-full px-3 py-2 bg-[linear-gradient(90deg,var(--color-primary),#b37a18)] text-white font-black text-base shadow-[0_10px_30px_-18px_rgb(var(--color-primary-rgb)/0.9)]">
                   {formatCount(accountOrders.length)}
                 </div>
                 <div className="text-sm font-semibold text-[var(--color-text-secondary)]">

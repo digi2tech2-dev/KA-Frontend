@@ -81,8 +81,11 @@ const HeroSlider = ({ slides }) => {
 
       <div className="px-1 sm:px-1.5">
         <div className="marquee-wrap" dir={isArabic ? 'rtl' : 'ltr'}>
-          <div className="marquee-track-smooth">
+          <div className={`marquee-track-smooth ${isArabic ? 'marquee-track-smooth--rtl' : 'marquee-track-smooth--ltr'}`}>
             <span className="marquee-chunk text-[11px] font-semibold tracking-[0.02em] text-[var(--color-text)] sm:text-[12px]">
+              {verseText}
+            </span>
+            <span aria-hidden="true" className="marquee-chunk text-[11px] font-semibold tracking-[0.02em] text-[var(--color-text)] sm:text-[12px]">
               {verseText}
             </span>
           </div>

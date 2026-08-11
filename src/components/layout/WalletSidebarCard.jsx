@@ -5,6 +5,7 @@ import useAuthStore from '../../store/useAuthStore';
 import { useLanguage } from '../../context/LanguageContext';
 import { formatWalletAmount } from '../../utils/storefront';
 import { cn } from '../ui/Button';
+import { getUserBillingMode, normalizeQuota } from '../../utils/billing';
 
 const WalletSidebarCard = ({ className, isVisible = true, onNavigate }) => {
   const navigate = useNavigate();
@@ -63,6 +64,8 @@ const WalletSidebarCard = ({ className, isVisible = true, onNavigate }) => {
     [walletCurrency, walletValue]
   );
   const isNegativeBalance = walletValue < 0;
+  const isQuantityOnly = getUserBillingMode(user) === 'quantity_only';
+  const quota = normalizeQuota(user);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -84,7 +87,7 @@ const WalletSidebarCard = ({ className, isVisible = true, onNavigate }) => {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-[8px] font-bold tracking-[0.08em] text-[var(--color-primary-soft)]">
-              رصيد المحفظة
+              {isQuantityOnly ? 'الحصة المتبقية' : 'رصيد المحفظة'}
             </p>
             <div className="mt-0.5 min-h-[1.35rem]">
               {(!user && isRefreshing) ? (
@@ -94,27 +97,27 @@ const WalletSidebarCard = ({ className, isVisible = true, onNavigate }) => {
                 </div>
               ) : (
                 <p className={`sidebar-wallet-balance-value truncate text-[0.82rem] font-black tracking-[-0.01em] sm:text-[0.92rem] ${isNegativeBalance ? 'is-negative text-[var(--color-error)]' : 'text-[var(--color-text)]'}`}>
-                  {walletDisplayValue}
+                  {isQuantityOnly ? `${quota.remaining} / ${quota.limit}` : walletDisplayValue}
                 </p>
               )}
             </div>
           </div>
 
-          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.34)] bg-[linear-gradient(145deg,rgba(37,99,235,0.86),rgba(49,46,129,0.88))] text-[#f472d0] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_0_24px_-10px_rgba(124,58,237,0.84),0_0_28px_-14px_rgba(192,38,211,0.84)]">
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.34)] bg-[linear-gradient(145deg,rgba(37,99,235,0.86),rgba(49,46,129,0.88))] text-[#f0cf7a] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_0_24px_-10px_rgba(124,58,237,0.84),0_0_28px_-14px_rgba(192,38,211,0.84)]">
             <Wallet className="h-3.5 w-3.5" />
           </span>
         </div>
 
-        <div>
+        {!isQuantityOnly && <div>
           <button
             type="button"
             onClick={() => handleNavigate('/wallet/add-balance')}
-            className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-[10px] border border-[color:rgb(var(--color-primary-rgb)/0.34)] bg-[linear-gradient(135deg,#2563eb_0%,#312e81_52%,#c026d3_100%)] px-1.5 text-[9px] font-bold text-white shadow-[0_0_26px_-16px_rgba(124,58,237,0.8),0_0_28px_-18px_rgba(192,38,211,0.82)] transition-colors hover:brightness-[1.05]"
+            className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-[10px] border border-[color:rgb(var(--color-primary-rgb)/0.34)] bg-[linear-gradient(135deg,#087f9b_0%,#312e81_52%,#b37a18_100%)] px-1.5 text-[9px] font-bold text-white shadow-[0_0_26px_-16px_rgba(124,58,237,0.8),0_0_28px_-18px_rgba(192,38,211,0.82)] transition-colors hover:brightness-[1.05]"
           >
             <ArrowUpLeft className="h-3 w-3" />
             <span>اشحن الآن</span>
           </button>
-        </div>
+        </div>}
       </div>
     </section>
   );
