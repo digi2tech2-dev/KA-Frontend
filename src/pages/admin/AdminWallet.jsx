@@ -8,8 +8,10 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import DashboardDateRangeFilter from '../../components/admin-dashboard/DashboardDateRangeFilter';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -353,11 +355,24 @@ const OperationRow = ({ operation, formatMoney, formatWhen, isArabic }) => (
 );
 
 const AdminWallet = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedUserId = String(searchParams.get('userId') || '').trim();
   const { i18n } = useTranslation();
   const actor = useAuthStore((state) => state.user);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
   const { addToast } = useToast();
-  const { users, wallets, loadUsers, loadWallets, updateUserCoins, updateUserCurrency, updateUserGroup } = useAdminStore();
+  const {
+    users,
+    wallets,
+    userWalletTransactions,
+    loadUsers,
+    loadWallets,
+    getUserWallet,
+    getUserWalletTransactions,
+    updateUserCoins,
+    updateUserCurrency,
+    updateUserGroup,
+  } = useAdminStore();
   const { groups, loadGroups } = useGroupStore();
   const { orders, loadOrders } = useOrderStore();
   const { topups, loadTopups } = useTopupStore();
@@ -373,7 +388,7 @@ const AdminWallet = () => {
   );
 
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState(defaultRangeStart);
+  const [startDate, setStartDate] = useState(selectedUserId ? '' : defaultRangeStart);
   const [endDate, setEndDate] = useState(todayInputValue);
   const [selfTopupAmount, setSelfTopupAmount] = useState('');
   const [isSelfTopupUpdating, setIsSelfTopupUpdating] = useState(false);
@@ -402,6 +417,14 @@ const AdminWallet = () => {
       active = false;
     };
   }, [loadCurrencies, loadGroups, loadOrders, loadTopups, loadUsers, loadWallets]);
+
+  useEffect(() => {
+    if (!selectedUserId) return;
+    Promise.allSettled([
+      Promise.resolve(getUserWallet(selectedUserId, { force: true })),
+      Promise.resolve(getUserWalletTransactions(selectedUserId, { force: true })),
+    ]);
+  }, [getUserWallet, getUserWalletTransactions, selectedUserId]);
 
   const formatRangeDate = useCallback(
     (value) => formatDateTime(value, locale, { day: 'numeric', month: 'long', year: 'numeric' }),
@@ -474,6 +497,7 @@ const AdminWallet = () => {
   }, [actor, usersById]);
 
   const adminCurrencyCode = String(adminProfile?.currency || actor?.currency || 'USD').toUpperCase();
+  const selectedUser = selectedUserId ? usersById.get(selectedUserId) || null : null;
 
   useEffect(() => {
     setSettingsCurrency(String(adminProfile?.currency || actor?.currency || currencies?.[0]?.code || 'USD').toUpperCase());
@@ -623,22 +647,32 @@ const AdminWallet = () => {
 
   const walletFeedOperations = useMemo(
     () => customerWallets
-      .flatMap((wallet) => (Array.isArray(wallet?.recentTransactions) ? wallet.recentTransactions.map((entry) => buildWalletOperation(entry, wallet, isArabic)) : []))
+      .filter((wallet) => !selectedUserId || String(wallet?.userId || wallet?.id || '').trim() === selectedUserId)
+      .flatMap((wallet) => {
+        const walletUserId = String(wallet?.userId || wallet?.id || '').trim();
+        const fullHistory = selectedUserId && walletUserId === selectedUserId
+          ? userWalletTransactions?.[selectedUserId]
+          : null;
+        const transactions = Array.isArray(fullHistory) ? fullHistory : wallet?.recentTransactions;
+        return Array.isArray(transactions) ? transactions.map((entry) => buildWalletOperation(entry, wallet, isArabic)) : [];
+      })
       .sort(sortByNewestDate),
-    [customerWallets, isArabic]
+    [customerWallets, isArabic, selectedUserId, userWalletTransactions]
   );
 
   const fallbackOperations = useMemo(() => {
     const topupOps = (topups || [])
       .filter((topup) => isCompletedStatus(topup?.status))
+      .filter((topup) => !selectedUserId || String(topup?.userId || '').trim() === selectedUserId)
       .map((topup) => buildTopupOperation(topup, usersById, isArabic));
 
     const orderOps = (orders || [])
       .filter((order) => !isRejectedStatus(order?.status))
+      .filter((order) => !selectedUserId || String(order?.userId || '').trim() === selectedUserId)
       .map((order) => buildOrderOperation(order, usersById, isArabic));
 
     return [...topupOps, ...orderOps].sort(sortByNewestDate);
-  }, [isArabic, orders, topups, usersById]);
+  }, [isArabic, orders, selectedUserId, topups, usersById]);
 
   const mergedOperations = useMemo(
     () => mergeOperations(walletFeedOperations, fallbackOperations),
@@ -699,8 +733,30 @@ const AdminWallet = () => {
               {isArabic ? 'المحفظة' : 'Wallet'}
             </span>
             <h1 className="page-heading mt-3">
-              {isArabic ? 'محفظة الأدمن' : 'Admin Wallet'}
+              {selectedUserId
+                ? (isArabic ? 'سجل حركة المستخدم' : 'User transaction history')
+                : (isArabic ? 'محفظة الأدمن' : 'Admin Wallet')}
             </h1>
+            {selectedUserId ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="wallet-accent-chip px-2.5 py-1 text-[10px] font-semibold">
+                  {selectedUser?.name || selectedUser?.email || selectedUserId}
+                </span>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-primary)]"
+                  onClick={() => {
+                    const nextParams = new URLSearchParams(searchParams);
+                    nextParams.delete('userId');
+                    setSearchParams(nextParams);
+                    setStartDate(defaultRangeStart);
+                  }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  {isArabic ? 'عرض كل المستخدمين' : 'Show all users'}
+                </button>
+              </div>
+            ) : null}
             <p className="mt-2 text-[11px] leading-5 text-[var(--color-text-secondary)] sm:text-sm">
               {selectedRangeLabel}
             </p>
@@ -884,14 +940,16 @@ const AdminWallet = () => {
               <p className="text-[10px] leading-4.5 text-[var(--color-muted)]">
                 {isLoading
                   ? (isArabic ? 'جارٍ تحديث البيانات...' : 'Refreshing data...')
-                  : (isArabic ? 'عرض مختصر لأحدث العمليات' : 'Compact view of the latest operations')}
+                  : selectedUserId
+                    ? (isArabic ? 'كل معاملات المستخدم المسجلة' : 'All recorded user transactions')
+                    : (isArabic ? 'عرض مختصر لأحدث العمليات' : 'Compact view of the latest operations')}
               </p>
             </div>
           </div>
 
           {filteredOperations.length ? (
             <div className="grid grid-cols-1 gap-2.5 xl:grid-cols-2">
-              {filteredOperations.slice(0, 8).map((operation) => (
+              {(selectedUserId ? filteredOperations : filteredOperations.slice(0, 8)).map((operation) => (
                 <OperationRow
                   key={operation.id}
                   operation={operation}

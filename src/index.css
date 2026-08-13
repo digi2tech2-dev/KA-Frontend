@@ -3897,3 +3897,40 @@ body {
   border-color: rgb(232 189 91 / 0.35) !important;
   background: linear-gradient(135deg, rgb(25 22 15 / 0.98), rgb(8 7 5 / 0.98)) !important;
 }
+
+/* Mobile sidebar performance: keep compositing cheap on lower-power devices. */
+@media (max-width: 1023px) {
+  .ka-sidebar-mobile {
+    contain: layout paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .ka-sidebar-mobile-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .ka-sidebar-mobile .ka-sidebar-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background:
+      radial-gradient(circle at 82% 0%, rgb(var(--color-primary-rgb) / 0.1), transparent 32%),
+      linear-gradient(180deg, var(--color-card), var(--color-bg)) !important;
+    box-shadow: 0 18px 46px -28px rgb(0 0 0 / 0.72) !important;
+  }
+
+  .ka-sidebar-mobile .ka-sidebar-panel::before,
+  .ka-sidebar-mobile .ka-sidebar-panel::after {
+    display: none !important;
+  }
+
+  .ka-sidebar-mobile .ka-sidebar-nav-item,
+  .ka-sidebar-mobile .ka-sidebar-icon-bubble,
+  .ka-sidebar-mobile .ka-sidebar-user-card,
+  .ka-sidebar-mobile .ka-sidebar-language,
+  .ka-sidebar-mobile .ka-sidebar-logout-pill {
+    filter: none !important;
+    transition-duration: 120ms !important;
+  }
+}

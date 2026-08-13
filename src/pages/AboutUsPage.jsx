@@ -225,7 +225,10 @@ const AboutUsPage = () => {
                         className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full border border-emerald-300/45 bg-[linear-gradient(135deg,#20c66b,#128c7e)] px-3 text-xs font-extrabold text-white shadow-[0_18px_34px_-24px_rgba(34,197,94,0.95)] transition-all hover:-translate-y-0.5"
                       >
                         <MessageCircle className="h-4 w-4" />
-                        {isArabic ? contact.nameAr : contact.nameEn}
+                        <span>
+                          <span className="block">{isArabic ? contact.nameAr : contact.nameEn}</span>
+                          <span dir="ltr" className="block text-[10px] font-bold opacity-85">{contact.number}</span>
+                        </span>
                       </a>
                     ))}
                   </div>

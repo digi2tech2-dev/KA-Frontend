@@ -199,7 +199,14 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     },
     { icon: Target, label: 'طلبات التارجت', path: '/admin/target-requests', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_TARGET_REQUESTS, section: 'admin' },
     { icon: Truck, label: t('sidebar.suppliersManager'), path: '/admin/suppliers', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_SUPPLIERS, section: 'admin' },
-    { icon: Banknote, label: t('sidebar.paymentsManager'), path: '/admin/payments', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_PAYMENTS, section: 'admin' },
+    {
+      icon: Banknote,
+      label: dir === 'rtl' ? 'طلبات الشحن اليدوي' : 'Manual top-up requests',
+      path: '/admin/topups',
+      roles: ADMIN_NAV_ROLES,
+      permission: PERMISSIONS.ADMIN_PAYMENTS,
+      section: 'admin',
+    },
     { icon: CreditCard, label: t('sidebar.paymentMethods'), path: '/admin/payment-methods', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_PAYMENT_METHODS, section: 'admin' },
     { icon: MessageCircle, label: 'تكامل الواتساب', path: '/admin/whatsapp', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_WHATSAPP, section: 'admin' },
     { icon: Coins, label: t('sidebar.currencies'), path: '/admin/currencies', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_CURRENCIES, section: 'admin' },
@@ -287,7 +294,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     <>
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-black/72 backdrop-blur-sm"
+          className="ka-sidebar-mobile-backdrop fixed inset-0 z-[60] bg-black/72"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -298,7 +305,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
           width: isMobile ? 274 : isExpanded ? 264 : 84,
           x: isMobile && !isOpen ? (dir === 'rtl' ? 320 : -320) : 0
         }}
-        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+        transition={isMobile
+          ? { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }
+          : { type: 'spring', stiffness: 260, damping: 30 }}
         onMouseEnter={() => {
           if (!isMobile && !isOpen) {
             setIsPreviewExpanded(true);
@@ -310,13 +319,15 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
           }
         }}
         className={cn(
-          'fixed top-4 z-[70] h-[calc(100vh-4rem)] overflow-hidden',
+          'fixed top-4 z-[70] h-[calc(100vh-4rem)] overflow-hidden will-change-transform',
           dir === 'rtl' ? 'right-4' : 'left-4',
-          isMobile && !isOpen && 'hidden'
+          isMobile && 'ka-sidebar-mobile',
+          isMobile && !isOpen && 'pointer-events-none'
         )}
       >
         <div className={cn(
-          'app-shell-sidebar-panel ka-sidebar-panel relative flex h-full flex-col rounded-[32px] border backdrop-blur-[24px]',
+          'app-shell-sidebar-panel ka-sidebar-panel relative flex h-full flex-col rounded-[32px] border',
+          !isMobile && 'backdrop-blur-[24px]',
           isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
         )}>
           <div className="relative z-10 px-4 pb-4 pt-5">
@@ -405,14 +416,6 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                       <div className="mt-0.5 truncate text-[0.62rem] font-bold text-[var(--color-primary-hover)]">{userRoleLabel}</div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleLogoutClick}
-                      className="ka-sidebar-user-action h-8 w-8"
-                      aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
               </>

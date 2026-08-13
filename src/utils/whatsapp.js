@@ -1,6 +1,6 @@
 const SUPPORT_CONTACTS = Object.freeze([
-  { nameAr: 'أحمد الفهد', nameEn: 'Ahmed Al Fahd', number: '01012286661' },
-  { nameAr: 'جاسر براند', nameEn: 'Jaser Brand', number: '01503222311' },
+  { nameAr: 'جاسر كارد', nameEn: 'Jaser Card', number: '01503222311' },
+  { nameAr: 'أحمد كارد', nameEn: 'Ahmed Card', number: '01012286661' },
 ]);
 const FALLBACK_WHATSAPP_NUMBER = SUPPORT_CONTACTS[0].number;
 const ENV_ADMIN_WHATSAPP_NUMBER =

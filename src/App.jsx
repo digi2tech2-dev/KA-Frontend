@@ -381,7 +381,7 @@ const AnimatedAppRoutes = ({ location }) => {
           path="/admin/topups"
           element={(
             <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_PAYMENTS}>
-              <Navigate to="/admin/payments" replace />
+              {renderSuspended(<AdminPayments />)}
             </ProtectedRoute>
           )}
         />

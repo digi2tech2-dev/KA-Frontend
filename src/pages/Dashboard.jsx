@@ -13,6 +13,7 @@ import slideOneHeroImage from '../assets/slide-1.jpg';
 import slideTwoHeroImage from '../assets/slide-2.jpg';
 import slideThreeHeroImage from '../assets/slide-3.jpg';
 import slideFourHeroImage from '../assets/slide-4.jpg';
+import slideFiveHeroImage from '../assets/slide-5.jpg';
 import targetBannerImage from '../assets/تارجت.jpg';
 import coinsImage from '../assets/logo.svg';
 import { resolveImageUrl } from '../utils/imageUrl';
@@ -63,6 +64,7 @@ const Dashboard = () => {
     { id: 'landing-slide-2', image: slideTwoHeroImage, title: '', href: slideTwoUrl },
     { id: 'landing-slide-3', image: slideThreeHeroImage, title: '', href: '/referral' },
     { id: 'landing-slide-4', image: slideFourHeroImage, title: '' },
+    { id: 'landing-slide-5', image: slideFiveHeroImage, title: '' },
   ]), []);
 
   const storefrontProducts = useMemo(

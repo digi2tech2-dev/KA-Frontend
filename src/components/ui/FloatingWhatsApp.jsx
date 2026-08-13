@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/useAuthStore';
 import { isAdminRole } from '../../utils/authRoles';
-import { buildWhatsAppLink, getAdminWhatsAppNumber } from '../../utils/whatsapp';
+import WhatsAppContactChooser from './WhatsAppContactChooser';
 import floatingPromoTwo from '../../assets/floating-promo.png';
 
 const FloatingWhatsApp = () => {
+  const [showContactChooser, setShowContactChooser] = useState(false);
   const { i18n } = useTranslation();
   const location = useLocation();
   const { user } = useAuthStore();
@@ -24,10 +25,6 @@ const FloatingWhatsApp = () => {
   const message = isArabic
     ? 'مرحباً، أحتاج مساعدة من فريق KA-CARD'
     : 'Hello, I need help from the KA-CARD team';
-  const href = buildWhatsAppLink({
-    number: getAdminWhatsAppNumber(),
-    message,
-  });
   const tooltipText = isArabic ? 'تواصل معنا' : 'Chat with us';
 
   return (
@@ -41,11 +38,9 @@ const FloatingWhatsApp = () => {
           <img src={floatingPromoTwo} alt="" className="floating-whatsapp-promo-image" />
         </Link>
       </span>
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        referrerPolicy="no-referrer"
+      <button
+        type="button"
+        onClick={() => setShowContactChooser(true)}
         aria-label={isArabic ? 'واتساب الدعم' : 'WhatsApp Support'}
         className="floating-whatsapp-action"
       >
@@ -59,7 +54,13 @@ const FloatingWhatsApp = () => {
             />
           </svg>
         </span>
-      </a>
+      </button>
+      <WhatsAppContactChooser
+        isOpen={showContactChooser}
+        onClose={() => setShowContactChooser(false)}
+        message={message}
+        isArabic={isArabic}
+      />
     </div>
   );
 };

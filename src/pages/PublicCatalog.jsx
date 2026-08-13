@@ -44,6 +44,7 @@ import slideOneImage from '../assets/slide-1.jpg';
 import slideTwoImage from '../assets/slide-2.jpg';
 import slideThreeImage from '../assets/slide-3.jpg';
 import slideFourImage from '../assets/slide-4.jpg';
+import slideFiveImage from '../assets/slide-5.jpg';
 import targetSalesImage from '../assets/تارجت.jpg';
 import coinsImage from '../assets/logo.svg';
 
@@ -304,6 +305,7 @@ const PublicCatalog = () => {
       { id: 'landing-slide-2', image: slideTwoImage, title: '', href: SLIDE_TWO_URL },
       { id: 'landing-slide-3', image: slideThreeImage, title: '', href: '/referral' },
       { id: 'landing-slide-4', image: slideFourImage, title: '' },
+      { id: 'landing-slide-5', image: slideFiveImage, title: '' },
     ]),
     []
   );

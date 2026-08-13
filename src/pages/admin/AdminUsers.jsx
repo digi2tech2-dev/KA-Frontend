@@ -182,6 +182,7 @@ const AdminUsers = () => {
   const canConfirmAccounts = hasPermission(actor, PERMISSIONS.CONFIRM_ACCOUNTS);
   const canManageUsers = hasPermission(actor, PERMISSIONS.MANAGE_USERS);
   const canManageWallet = hasPermission(actor, PERMISSIONS.MANAGE_WALLET);
+  const canViewWallet = hasPermission(actor, PERMISSIONS.ADMIN_WALLET);
 
   useEffect(() => {
     loadUsers({ force: true });
@@ -1101,6 +1102,17 @@ const AdminUsers = () => {
             ) : null}
 
             <div className="mt-3 flex flex-wrap justify-end gap-1.5">
+              {canViewWallet && filter !== 'deleted' && selectedUser?.id ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`${compactButtonClassName} border-[color:rgb(var(--color-primary-rgb)/0.28)] text-[var(--color-primary)]`}
+                  onClick={() => navigate(`/admin/wallet?userId=${encodeURIComponent(selectedUser.id)}`)}
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  المحفظة والسجل
+                </Button>
+              ) : null}
               {canResendVerification ? (
                 <Button variant="ghost" className={compactButtonClassName} onClick={handleResendVerification} disabled={isSubmitting}>
                   <MailCheck className="h-3.5 w-3.5" />

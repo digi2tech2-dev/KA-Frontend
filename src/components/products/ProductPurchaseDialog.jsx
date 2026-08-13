@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Copy, FileText, LockKeyhole, Package, UserRound, WalletCards, X, Zap } from 'lucide-react';
+import { Check, Copy, FileText, LockKeyhole, Package, ShoppingCart, UserRound, WalletCards, X, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
@@ -11,6 +11,8 @@ import apiClient from '../../services/client';
 import { useToast } from '../ui/Toast';
 import { useLanguage } from '../../context/LanguageContext';
 import { resolveImageUrl } from '../../utils/imageUrl';
+import brandLogoDark from '../../assets/logo.svg';
+import brandLogoLight from '../../assets/logo-light.svg';
 import {
   calculateProductPrice,
   formatCurrencyAmount,
@@ -39,6 +41,9 @@ const getCopy = (language = 'ar') => (
         agentProductId: 'Agent ID',
         accountNumber: 'Receiver Account ID',
         total: 'Total',
+        purchaseSummary: 'Purchase summary',
+        usdEquivalent: 'USD equivalent',
+        usdSettlementNote: 'Base platform price in USD',
         quantity: 'Quantity',
         quantityPlaceholder: 'Enter quantity',
         minQuantity: 'Min',
@@ -78,6 +83,9 @@ const getCopy = (language = 'ar') => (
         agentProductId: 'رقم آيدي الوكيل',
         accountNumber: 'آيدي الحساب المستلم',
         total: 'الإجمالي',
+        purchaseSummary: 'ملخص الشراء',
+        usdEquivalent: 'المعادل بالدولار',
+        usdSettlementNote: 'السعر الأساسي للمنصة بالدولار',
         quantity: 'الكمية',
         quantityPlaceholder: 'أدخل الكمية',
         minQuantity: 'أقل كمية',
@@ -125,8 +133,14 @@ const parseQuantityInput = (value) => Number.parseInt(normalizeQuantityDigits(va
 const isUploadFieldType = (type) => ['image', 'file'].includes(String(type || '').trim().toLowerCase());
 
 const ProductImage = ({ product }) => {
-  if (product?.image) {
-    return <img src={resolveImageUrl(product.image)} alt={product?.name || ''} />;
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [product?.id, product?.image]);
+
+  if (product?.image && !imageFailed) {
+    return <img src={resolveImageUrl(product.image)} alt={product?.name || ''} onError={() => setImageFailed(true)} />;
   }
 
   return <Package className="h-12 w-12" strokeWidth={1.8} />;
@@ -292,12 +306,15 @@ const ProductPurchaseDialog = ({
   const quantity = parseQuantityInput(quantityInput);
   const safeQuantity = Number.isFinite(quantity) ? quantity : 0;
   const totalPrice = normalizeMoneyAmount(Number(unitPrice) * safeQuantity);
+  const totalPriceUsd = normalizeMoneyAmount(Number(unitPriceBase) * safeQuantity);
   const walletSummary = getWalletBalanceSummary(pricingUser);
   const walletBalance = walletSummary.walletBalance;
   const availableBalance = walletSummary.availableBalance;
   const locale = language === 'en' ? 'en-US' : 'ar-EG';
   const formattedUnitPrice = formatCurrencyAmount(unitPrice, userCurrencyCode, currencies, locale);
   const formattedTotalPrice = formatCurrencyAmount(totalPrice, userCurrencyCode, currencies, locale);
+  const formattedTotalPriceUsd = formatCurrencyAmount(totalPriceUsd, 'USD', currencies, locale);
+  const shouldShowUsdEquivalent = userCurrencyCode !== 'USD';
   const balanceShortfall = normalizeMoneyAmount(Math.max(0, totalPrice - availableBalance));
   const formattedAvailableBalance = formatCurrencyAmount(availableBalance, userCurrencyCode, currencies, locale);
   const formattedBalanceShortfall = formatCurrencyAmount(balanceShortfall, userCurrencyCode, currencies, locale);
@@ -927,6 +944,10 @@ const ProductPurchaseDialog = ({
         ) : (
           <>
             <div className="purchase-dialog-product">
+              <div className="purchase-dialog-platform-logo" title="KA-CARD">
+                <img className="purchase-dialog-logo-dark" src={brandLogoDark} alt="KA-CARD" />
+                <img className="purchase-dialog-logo-light" src={brandLogoLight} alt="KA-CARD" />
+              </div>
               <div className="purchase-dialog-product-visual">
                 <div className={`purchase-dialog-image ${isPurchasable ? '' : 'is-unavailable'}`}>
                   <ProductImage product={product} />
@@ -952,20 +973,23 @@ const ProductPurchaseDialog = ({
               </div>
             ) : null}
 
-            <label className="purchase-dialog-field">
-              <span>{copy.quantity}</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9,]*"
-                dir="ltr"
-                value={quantityInput}
-                placeholder={copy.quantityPlaceholder}
-                onChange={(event) => {
-                  setQuantityInput(formatQuantityInput(event.target.value));
-                  setFormError('');
-                }}
-              />
+            <label className="purchase-dialog-field purchase-dialog-quantity-field">
+              <span className="purchase-dialog-field-label"><Package className="h-4 w-4" />{copy.quantity}</span>
+              <div className="purchase-dialog-input-shell">
+                <Package className="purchase-dialog-input-icon h-4 w-4" />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9,]*"
+                  dir="ltr"
+                  value={quantityInput}
+                  placeholder={copy.quantityPlaceholder}
+                  onChange={(event) => {
+                    setQuantityInput(formatQuantityInput(event.target.value));
+                    setFormError('');
+                  }}
+                />
+              </div>
               <small className="purchase-dialog-quantity-limits">
                 <span>
                   {copy.minQuantity}
@@ -979,24 +1003,50 @@ const ProductPurchaseDialog = ({
             </label>
 
             <div className="purchase-dialog-total">
-              <span>{copy.total}</span>
-              <strong dir="ltr">{formattedTotalPrice}</strong>
+              <div className="purchase-dialog-summary-title">
+                <span>{copy.purchaseSummary}</span>
+                <ShoppingCart className="h-4 w-4" />
+              </div>
+              <div className="purchase-dialog-summary-line">
+                <span>{copy.quantity}</span>
+                <strong dir="ltr">{formatCount(safeQuantity)}</strong>
+              </div>
+              <div className="purchase-dialog-summary-line">
+                <span>{copy.unitPrice}</span>
+                <strong dir="ltr">{formattedUnitPrice}</strong>
+              </div>
+              <div className="purchase-dialog-total-primary">
+                <span>{copy.total}</span>
+                <strong dir="ltr">{formattedTotalPrice}</strong>
+              </div>
+              {shouldShowUsdEquivalent ? (
+                <div className="purchase-dialog-usd-equivalent">
+                  <div>
+                    <span>{copy.usdEquivalent}</span>
+                    <small>{copy.usdSettlementNote}</small>
+                  </div>
+                  <strong dir="ltr">{formattedTotalPriceUsd}</strong>
+                </div>
+              ) : null}
             </div>
 
             {hasPrimaryOrderField ? (
               <div className="purchase-dialog-field">
-                <span>{primaryOrderFieldLabel}</span>
+                <span className="purchase-dialog-field-label"><UserRound className="h-4 w-4" />{primaryOrderFieldLabel}</span>
                 <div className={primaryOrderField?.isVerifiable === true ? 'grid grid-cols-[minmax(0,1fr)_auto] gap-2' : ''}>
-                  <input
-                    type="text"
-                    value={userId}
-                    onChange={(event) => {
-                      setUserId(event.target.value);
-                      clearVerificationForField(primaryOrderFieldKey);
-                      setFormError('');
-                    }}
-                    placeholder={primaryOrderFieldPlaceholder || copy.userIdPlaceholder}
-                  />
+                  <div className="purchase-dialog-input-shell">
+                    <UserRound className="purchase-dialog-input-icon h-4 w-4" />
+                    <input
+                      type="text"
+                      value={userId}
+                      onChange={(event) => {
+                        setUserId(event.target.value);
+                        clearVerificationForField(primaryOrderFieldKey);
+                        setFormError('');
+                      }}
+                      placeholder={primaryOrderFieldPlaceholder || copy.userIdPlaceholder}
+                    />
+                  </div>
                   {renderVerifyButton(primaryOrderField, userId)}
                 </div>
                 {renderVerificationResult(primaryOrderField)}

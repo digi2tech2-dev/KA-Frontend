@@ -17,6 +17,11 @@ import { resolveImageUrl } from '../utils/imageUrl';
 
 const normalizeMethodType = (type) => String(type || '').trim().toLowerCase();
 
+const isVodafoneCashMethod = (method) => {
+  const token = `${method?.id || ''} ${method?.name || ''}`.trim().toLowerCase();
+  return token.includes('vodafone') || token.includes('فودافون');
+};
+
 const getReceiverDestination = (method) => {
   const accountNumber = String(method?.accountNumber || '').trim();
   const accountName = String(method?.accountName || '').trim();
@@ -180,6 +185,7 @@ const PaymentDetails = ({
 
   const group = selectedMethodEntry?.group || null;
   const method = selectedMethodEntry?.method || null;
+  const isVodafoneCash = isVodafoneCashMethod(method);
   const receiverDestination = useMemo(
     () => getReceiverDestination(method),
     [method]
@@ -314,7 +320,7 @@ const PaymentDetails = ({
     if (senderDetailRequirement && !String(formData[senderDetailRequirement.field] || '').trim()) {
       return senderDetailRequirement.validationMessage;
     }
-    if (!String(formData.transactionId || '').trim()) {
+    if (!isVodafoneCash && !String(formData.transactionId || '').trim()) {
       return 'يرجى إدخال رقم العملية';
     }
     if (requiresReceipt && !uploadedFile) return t('payments.validationReceipt');
@@ -358,13 +364,14 @@ const PaymentDetails = ({
         ? String(formData[freshSenderRequirement.field] || '').trim()
         : '';
       const transactionId = String(formData.transactionId || '').trim();
+      const freshIsVodafoneCash = isVodafoneCashMethod(freshMethod);
 
       if (freshSenderRequirement && !senderValue) {
         addToast(freshSenderRequirement.validationMessage, 'error');
         setFormError(freshSenderRequirement.validationMessage);
         return;
       }
-      if (!transactionId) {
+      if (!freshIsVodafoneCash && !transactionId) {
         addToast('يرجى إدخال رقم العملية', 'error');
         setFormError('يرجى إدخال رقم العملية');
         return;
@@ -375,7 +382,7 @@ const PaymentDetails = ({
         field: freshSenderRequirement.field,
         label: freshSenderRequirement.label,
         value: senderValue,
-        transactionNumber: transactionId,
+        transactionNumber: freshIsVodafoneCash ? '' : transactionId,
       } : null;
       const { requestTopup } = useTopupStore.getState();
 
@@ -390,9 +397,9 @@ const PaymentDetails = ({
         senderWalletNumber: freshSenderRequirement?.field === 'senderWalletNumber' ? senderValue : '',
         senderWalletAddress: freshSenderRequirement?.field === 'senderWalletAddress' ? senderValue : '',
         transferredFromNumber: senderValue,
-        transactionId,
-        transactionNumber: transactionId,
-        paymentReference: transactionId,
+        transactionId: freshIsVodafoneCash ? '' : transactionId,
+        transactionNumber: freshIsVodafoneCash ? '' : transactionId,
+        paymentReference: freshIsVodafoneCash ? '' : transactionId,
         proofImage: uploadedFile || null,
         paymentChannel: freshMethod?.name || methodId || '',
         paymentMethodType: normalizeMethodType(freshMethod?.type),
@@ -651,6 +658,7 @@ const PaymentDetails = ({
             </div>
           )}
 
+          {!isVodafoneCash && (
           <div className="mb-3">
             <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
               <span>رقم العملية</span>
@@ -666,6 +674,7 @@ const PaymentDetails = ({
               required
             />
           </div>
+          )}
 
           {requiresReceipt && (
             <div className="mb-4">
@@ -679,7 +688,7 @@ const PaymentDetails = ({
               <UploadReceiptBox
                 onFileUpload={handleReceiptUpload}
                 paymentAmount={formData.amount}
-                transactionId={formData.transactionId}
+                transactionId={isVodafoneCash ? '' : formData.transactionId}
                 {...receiverDestination}
               />
             </div>
