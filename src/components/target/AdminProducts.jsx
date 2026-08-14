@@ -85,7 +85,7 @@ const ProductModal = ({ isOpen, onClose, product, paymentMethods, onSave }) => {
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="اسم التطبيق" value={name} onChange={(event) => setName(event.target.value)} placeholder="مثال: PUBG Mobile" />
           <Input label="آيدي الحساب المستلم" value={targetAccountId} onChange={(event) => setTargetAccountId(event.target.value)} placeholder="ادخل آيدي الحساب" />
-          <Input label="سعر الوحدة" type="number" min="0" step="0.01" value={unitPrice} onChange={(event) => setUnitPrice(event.target.value)} placeholder="1.35" />
+          <Input label="سعر الدولار" type="number" min="0" step="0.01" value={unitPrice} onChange={(event) => setUnitPrice(event.target.value)} placeholder="مثال: 48" suffix="EGP" />
         </div>
 
         <UploadProof label="صورة التطبيق" value={image} onChange={setImage} />

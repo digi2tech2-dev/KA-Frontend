@@ -194,13 +194,14 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit }) => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="عدد الكوينز"
+                label="كم دولار؟"
                 type="number"
                 min="1"
                 step="1"
                 value={coinAmount}
                 onChange={(event) => setCoinAmount(event.target.value)}
-                placeholder="1000"
+                placeholder="مثال: 10، 20، 30"
+                suffix="$"
               />
               <Input
                 label="معرّف الحساب"
