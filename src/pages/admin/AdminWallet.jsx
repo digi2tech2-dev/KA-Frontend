@@ -3,8 +3,11 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Coins,
+  Eye,
   History,
+  MinusCircle,
   PlusCircle,
+  ShoppingCart,
   TrendingUp,
   Users,
   Wallet,
@@ -319,7 +322,7 @@ const OperationSnapshotCard = ({
   </Card>
 );
 
-const OperationRow = ({ operation, formatMoney, formatWhen, isArabic }) => (
+const OperationRow = ({ operation, formatMoney, formatWhen, isArabic, expanded, onToggle }) => (
   <div className="rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.82)] bg-[color:rgb(var(--color-card-rgb)/0.72)] px-3 py-3">
     <div className="flex items-start gap-2.5">
       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.85rem] border ${operation.amount >= 0 ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600' : 'border-rose-500/20 bg-rose-500/10 text-rose-600'}`}>
@@ -351,6 +354,21 @@ const OperationRow = ({ operation, formatMoney, formatWhen, isArabic }) => (
         {operation.title}
       </p>
     </div>
+    <button
+      type="button"
+      onClick={onToggle}
+      className="mt-2.5 flex h-9 w-full items-center justify-center gap-1.5 rounded-[0.8rem] border border-[color:rgb(var(--color-primary-rgb)/0.24)] text-[11px] font-semibold text-[var(--color-text)] transition hover:bg-[color:rgb(var(--color-primary-rgb)/0.08)]"
+    >
+      <Eye className="h-3.5 w-3.5" />
+      {expanded ? (isArabic ? 'إخفاء التفاصيل' : 'Hide details') : (isArabic ? 'عرض التفاصيل' : 'View details')}
+    </button>
+    {expanded ? (
+      <div className="mt-2 grid gap-1 rounded-[0.8rem] bg-[color:rgb(var(--color-surface-rgb)/0.72)] p-2.5 text-[10px] text-[var(--color-text-secondary)]">
+        <p>{isArabic ? 'نوع الحركة' : 'Type'}: {operation.sourceType || operation.source || '-'}</p>
+        <p className="break-all">{isArabic ? 'المرجع' : 'Reference'}: {operation.sourceId || '-'}</p>
+        <p>{isArabic ? 'التاريخ' : 'Date'}: {formatWhen(operation.date)}</p>
+      </div>
+    ) : null}
   </div>
 );
 
@@ -370,6 +388,7 @@ const AdminWallet = () => {
     getUserWallet,
     getUserWalletTransactions,
     updateUserCoins,
+    setUserBalance,
     updateUserCurrency,
     updateUserGroup,
   } = useAdminStore();
@@ -395,6 +414,10 @@ const AdminWallet = () => {
   const [settingsCurrency, setSettingsCurrency] = useState('');
   const [settingsGroup, setSettingsGroup] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [userAdjustmentAmount, setUserAdjustmentAmount] = useState('');
+  const [userFixedBalance, setUserFixedBalance] = useState('');
+  const [isUserBalanceUpdating, setIsUserBalanceUpdating] = useState(false);
+  const [expandedOperationId, setExpandedOperationId] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -498,6 +521,59 @@ const AdminWallet = () => {
 
   const adminCurrencyCode = String(adminProfile?.currency || actor?.currency || 'USD').toUpperCase();
   const selectedUser = selectedUserId ? usersById.get(selectedUserId) || null : null;
+  const selectedWallet = useMemo(
+    () => (wallets || []).find((entry) => String(entry?.userId || entry?.id || '').trim() === selectedUserId) || null,
+    [selectedUserId, wallets]
+  );
+  const selectedCurrencyCode = String(selectedWallet?.currency || selectedUser?.currency || 'USD').toUpperCase();
+  const selectedBalance = asNumber(selectedWallet?.walletBalance ?? selectedWallet?.balance ?? selectedUser?.coins ?? 0);
+
+  const refreshSelectedWallet = useCallback(async () => {
+    if (!selectedUserId) return;
+    await Promise.allSettled([
+      Promise.resolve(getUserWallet(selectedUserId, { force: true })),
+      Promise.resolve(getUserWalletTransactions(selectedUserId, { force: true })),
+      Promise.resolve(loadUsers({ force: true })),
+    ]);
+  }, [getUserWallet, getUserWalletTransactions, loadUsers, selectedUserId]);
+
+  const handleUserAdjustment = useCallback(async (direction) => {
+    const amount = Math.abs(asNumber(userAdjustmentAmount));
+    if (!selectedUserId || amount <= 0) {
+      addToast(isArabic ? 'أدخل مبلغًا صحيحًا أولًا.' : 'Enter a valid amount first.', 'error');
+      return;
+    }
+    setIsUserBalanceUpdating(true);
+    try {
+      await updateUserCoins(selectedUserId, direction === 'debit' ? -amount : amount, actor);
+      await refreshSelectedWallet();
+      setUserAdjustmentAmount('');
+      addToast(isArabic ? 'تم تحديث رصيد المستخدم وتسجيل الحركة.' : 'User balance updated and movement recorded.', 'success');
+    } catch (error) {
+      addToast(error?.message || (isArabic ? 'تعذر تحديث الرصيد.' : 'Unable to update balance.'), 'error');
+    } finally {
+      setIsUserBalanceUpdating(false);
+    }
+  }, [actor, addToast, isArabic, refreshSelectedWallet, selectedUserId, updateUserCoins, userAdjustmentAmount]);
+
+  const handleSetUserBalance = useCallback(async () => {
+    const balance = Number(userFixedBalance);
+    if (!selectedUserId || !Number.isFinite(balance)) {
+      addToast(isArabic ? 'أدخل رصيدًا صحيحًا.' : 'Enter a valid balance.', 'error');
+      return;
+    }
+    setIsUserBalanceUpdating(true);
+    try {
+      await setUserBalance(selectedUserId, balance, actor);
+      await refreshSelectedWallet();
+      setUserFixedBalance('');
+      addToast(isArabic ? 'تم تعيين رصيد المستخدم وتسجيل الحركة.' : 'User balance set and movement recorded.', 'success');
+    } catch (error) {
+      addToast(error?.message || (isArabic ? 'تعذر تعيين الرصيد.' : 'Unable to set balance.'), 'error');
+    } finally {
+      setIsUserBalanceUpdating(false);
+    }
+  }, [actor, addToast, isArabic, refreshSelectedWallet, selectedUserId, setUserBalance, userFixedBalance]);
 
   useEffect(() => {
     setSettingsCurrency(String(adminProfile?.currency || actor?.currency || currencies?.[0]?.code || 'USD').toUpperCase());
@@ -695,7 +771,32 @@ const AdminWallet = () => {
   );
 
   const summaryCards = useMemo(
-    () => [
+    () => selectedUserId ? [
+      {
+        icon: Wallet,
+        label: isArabic ? 'الرصيد الحالي' : 'Current balance',
+        value: formatMoney(selectedBalance, selectedCurrencyCode),
+        note: selectedCurrencyCode,
+      },
+      {
+        icon: History,
+        label: isArabic ? 'حركات المحفظة' : 'Wallet movements',
+        value: formatCount(filteredOperations.length),
+        note: isArabic ? 'السجل المباشر من مسار المحفظة' : 'Live wallet transaction history',
+      },
+      {
+        icon: PlusCircle,
+        label: isArabic ? 'إجمالي الإضافات' : 'Total credits',
+        value: formatMoney(filteredOperations.filter((entry) => entry.amount > 0).reduce((sum, entry) => sum + entry.amount, 0), selectedCurrencyCode),
+        note: isArabic ? 'رصيد دخل المحفظة' : 'Balance credited to wallet',
+      },
+      {
+        icon: ShoppingCart,
+        label: isArabic ? 'إجمالي الخصومات' : 'Total debits',
+        value: formatMoney(Math.abs(filteredOperations.filter((entry) => entry.amount < 0).reduce((sum, entry) => sum + entry.amount, 0)), selectedCurrencyCode),
+        note: isArabic ? 'رصيد خرج من المحفظة' : 'Balance debited from wallet',
+      },
+    ] : [
       {
         icon: Wallet,
         label: isArabic ? 'رصيد الأدمن' : 'Admin balance',
@@ -717,7 +818,7 @@ const AdminWallet = () => {
         note: isArabic ? 'من الطلبات المكتملة داخل المدة' : 'From completed orders in range',
       },
     ],
-    [adminProfile?.coins, adminProfile?.currency, adminProfile?.name, customerWallets.length, formatCount, formatMoney, isArabic, totalCustomerBalanceUsd, totalProfitUsd]
+    [adminProfile?.coins, adminProfile?.currency, adminProfile?.name, customerWallets.length, filteredOperations, formatCount, formatMoney, isArabic, selectedBalance, selectedCurrencyCode, selectedUserId, totalCustomerBalanceUsd, totalProfitUsd]
   );
 
   return (
@@ -791,7 +892,56 @@ const AdminWallet = () => {
           ))}
         </div>
 
-        <Card className="admin-premium-stat relative mt-3.5 p-3 sm:p-4">
+        {selectedUserId ? (
+          <Card className="admin-premium-stat relative mt-3.5 p-3 sm:p-4">
+            <div className="mb-3 border-b border-[color:rgb(var(--color-border-rgb)/0.6)] pb-3">
+              <p className="text-sm font-semibold text-[var(--color-text)]">{selectedUser?.name || (isArabic ? 'مستخدم' : 'User')}</p>
+              <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">{selectedUser?.email || '-'}</p>
+              <p className="mt-1 break-all font-mono text-[10px] text-[var(--color-muted)]">ID: {selectedUserId}</p>
+            </div>
+
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">{isArabic ? 'تعديل الرصيد' : 'Adjust balance'}</h2>
+            <div className="mt-3 rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] p-3">
+              <label className="text-[11px] font-medium text-[var(--color-text-secondary)]">{isArabic ? 'زيادة / خصم' : 'Credit / debit'}</label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={userAdjustmentAmount}
+                onChange={(event) => setUserAdjustmentAmount(event.target.value)}
+                placeholder={isArabic ? 'أدخل المبلغ' : 'Enter amount'}
+                suffix={<span className="text-[10px] font-semibold text-[var(--color-muted)]">{selectedCurrencyCode}</span>}
+                className="mt-2 h-11"
+              />
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Button type="button" onClick={() => handleUserAdjustment('credit')} disabled={isUserBalanceUpdating} className="h-11 rounded-[0.95rem]">
+                  <PlusCircle className="h-4 w-4" />{isArabic ? 'زيادة' : 'Credit'}
+                </Button>
+                <Button type="button" variant="danger" onClick={() => handleUserAdjustment('debit')} disabled={isUserBalanceUpdating} className="h-11 rounded-[0.95rem]">
+                  <MinusCircle className="h-4 w-4" />{isArabic ? 'خصم' : 'Debit'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] p-3">
+              <label className="text-[11px] font-medium text-[var(--color-text-secondary)]">{isArabic ? 'تعيين رصيد محدد' : 'Set exact balance'}</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={userFixedBalance}
+                onChange={(event) => setUserFixedBalance(event.target.value)}
+                placeholder={isArabic ? 'مثال: 500' : 'Example: 500'}
+                suffix={<span className="text-[10px] font-semibold text-[var(--color-muted)]">{selectedCurrencyCode}</span>}
+                className="mt-2 h-11"
+              />
+              <Button type="button" variant="secondary" onClick={handleSetUserBalance} disabled={isUserBalanceUpdating} className="mt-2 h-11 w-full rounded-[0.95rem]">
+                {isArabic ? 'تعيين الرصيد' : 'Set balance'}
+              </Button>
+            </div>
+          </Card>
+        ) : null}
+
+        <Card className={`admin-premium-stat relative mt-3.5 p-3 sm:p-4 ${selectedUserId ? 'hidden' : ''}`}>
           <div className="flex flex-col gap-3.5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[var(--color-text)]">
@@ -828,7 +978,7 @@ const AdminWallet = () => {
           </div>
         </Card>
 
-        <Card className="admin-premium-stat relative mt-3.5 p-3 sm:p-4">
+        <Card className={`admin-premium-stat relative mt-3.5 p-3 sm:p-4 ${selectedUserId ? 'hidden' : ''}`}>
           <div className="flex flex-col gap-3.5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[var(--color-text)]">
@@ -956,6 +1106,8 @@ const AdminWallet = () => {
                   formatMoney={formatSignedMoney}
                   formatWhen={formatWhen}
                   isArabic={isArabic}
+                  expanded={expandedOperationId === operation.id}
+                  onToggle={() => setExpandedOperationId((current) => current === operation.id ? '' : operation.id)}
                 />
               ))}
             </div>
