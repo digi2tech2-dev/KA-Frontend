@@ -311,9 +311,9 @@ const ProductPurchaseDialog = ({
   const walletBalance = walletSummary.walletBalance;
   const availableBalance = walletSummary.availableBalance;
   const locale = language === 'en' ? 'en-US' : 'ar-EG';
-  const formattedUnitPrice = formatCurrencyAmount(unitPrice, userCurrencyCode, currencies, locale);
-  const formattedTotalPrice = formatCurrencyAmount(totalPrice, userCurrencyCode, currencies, locale);
-  const formattedTotalPriceUsd = formatCurrencyAmount(totalPriceUsd, 'USD', currencies, locale);
+  const purchaseDisplayFormat = { minimumFractionDigits: 0, maximumFractionDigits: 5 };
+  const formattedTotalPrice = formatCurrencyAmount(totalPrice, userCurrencyCode, currencies, locale, purchaseDisplayFormat);
+  const formattedTotalPriceUsd = formatCurrencyAmount(totalPriceUsd, 'USD', currencies, locale, purchaseDisplayFormat);
   const shouldShowUsdEquivalent = userCurrencyCode !== 'USD';
   const balanceShortfall = normalizeMoneyAmount(Math.max(0, totalPrice - availableBalance));
   const formattedAvailableBalance = formatCurrencyAmount(availableBalance, userCurrencyCode, currencies, locale);
@@ -957,11 +957,18 @@ const ProductPurchaseDialog = ({
                 <h2>{displayNameAr}</h2>
                 {displayNameEn && displayNameEn !== displayNameAr ? <p dir="ltr">{displayNameEn}</p> : null}
                 <span className={isPurchasable ? 'is-available' : 'is-unavailable'}>{statusLabel}</span>
-                {productDescription ? (
-                  <p className="purchase-dialog-description">{productDescription}</p>
-                ) : null}
               </div>
             </div>
+
+            {productDescription ? (
+              <section
+                className="purchase-dialog-description"
+                aria-label={language === 'en' ? 'Product description' : 'وصف المنتج'}
+              >
+                <FileText className="purchase-dialog-description-icon h-4 w-4" aria-hidden="true" />
+                <p>{productDescription}</p>
+              </section>
+            ) : null}
 
             {displayedAccountNumber ? (
               <div className="purchase-dialog-price-card">
@@ -990,7 +997,7 @@ const ProductPurchaseDialog = ({
                   }}
                 />
               </div>
-              <small className="purchase-dialog-quantity-limits">
+              <small className="purchase-dialog-quantity-limits is-muted">
                 <span>
                   {copy.minQuantity}
                   <strong dir="ltr">{formatCount(quantityMeta.minQty)}</strong>
@@ -1002,18 +1009,10 @@ const ProductPurchaseDialog = ({
               </small>
             </label>
 
-            <div className="purchase-dialog-total">
+            <div className="purchase-dialog-total is-muted">
               <div className="purchase-dialog-summary-title">
                 <span>{copy.purchaseSummary}</span>
-                <ShoppingCart className="h-4 w-4" />
-              </div>
-              <div className="purchase-dialog-summary-line">
-                <span>{copy.quantity}</span>
-                <strong dir="ltr">{formatCount(safeQuantity)}</strong>
-              </div>
-              <div className="purchase-dialog-summary-line">
-                <span>{copy.unitPrice}</span>
-                <strong dir="ltr">{formattedUnitPrice}</strong>
+                <ShoppingCart className="h-3.5 w-3.5" />
               </div>
               <div className="purchase-dialog-total-primary">
                 <span>{copy.total}</span>

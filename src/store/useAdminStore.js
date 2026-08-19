@@ -926,10 +926,13 @@ const useAdminStore = create((set, get) => ({
       },
 
       updateUserAvatar: async (userId, avatar, actor = null, onSelfUpdate = null) => {
-        await apiClient.users.updateAvatar(userId, avatar, actor);
+        const updatedUser = await apiClient.users.updateAvatar(userId, avatar, actor);
+        const nextAvatar = updatedUser && Object.prototype.hasOwnProperty.call(updatedUser, 'avatar')
+          ? updatedUser.avatar
+          : avatar;
         set((state) => ({
           users: state.users.map((entry) => (
-            entry.id === userId ? { ...entry, avatar } : entry
+            entry.id === userId ? { ...entry, avatar: nextAvatar } : entry
           )),
           usersLastLoadedAt: Date.now(),
         }));
@@ -946,6 +949,7 @@ const useAdminStore = create((set, get) => ({
         });
 
         if (typeof onSelfUpdate === 'function') onSelfUpdate();
+        return updatedUser;
       },
 
       updateUserProfile: async (userId, profileUpdates, actor = null, onSelfUpdate = null) => {

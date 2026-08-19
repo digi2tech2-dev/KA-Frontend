@@ -36,6 +36,7 @@ const Account = () => {
   const location = useLocation();
   const fileInputRef = useRef(null);
   const passwordSectionRef = useRef(null);
+  const skipNextUserSyncRef = useRef(false);
 
   const { user, updateUserSession } = useAuthStore();
   const { updateUserProfile, updateUserAvatar } = useAdminStore();
@@ -74,6 +75,9 @@ const Account = () => {
             cleanHint: 'Everything is saved.',
             saveSuccess: 'Account changes saved successfully.',
             saveError: 'Could not save account changes.',
+            avatarSaveSuccess: 'Profile image saved successfully.',
+            avatarSaveError: 'Could not save profile image.',
+            avatarSaving: 'Saving image...',
             unsavedAlert: 'You have pending edits. Save or cancel before leaving this page.',
             loading: 'Loading account data...',
             validationRequired: 'This field is required.',
@@ -118,6 +122,9 @@ const Account = () => {
             cleanHint: 'كل التعديلات محفوظة.',
             saveSuccess: 'تم حفظ تعديلات الحساب بنجاح.',
             saveError: 'تعذّر حفظ تعديلات الحساب.',
+            avatarSaveSuccess: 'تم حفظ صورة الملف الشخصي بنجاح.',
+            avatarSaveError: 'تعذّر حفظ صورة الملف الشخصي.',
+            avatarSaving: 'جارٍ حفظ الصورة...',
             unsavedAlert: 'لديك تعديلات معلّقة. احفظها أو ألغها قبل مغادرة الصفحة.',
             loading: 'جاري تحميل بيانات الحساب...',
             validationRequired: 'هذا الحقل مطلوب.',
@@ -140,6 +147,7 @@ const Account = () => {
 
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAvatarSaving, setIsAvatarSaving] = useState(false);
   const [saveState, setSaveState] = useState({ type: 'idle', message: '' });
   const [errors, setErrors] = useState({});
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -157,6 +165,11 @@ const Account = () => {
   useBodyScrollLock(isPasswordModalOpen);
 
   useEffect(() => {
+    if (skipNextUserSyncRef.current) {
+      skipNextUserSyncRef.current = false;
+      return;
+    }
+
     const initialProfile = getProfileFromUser(user);
     setSavedProfile(initialProfile);
     setForm({
@@ -205,9 +218,54 @@ const Account = () => {
     hasAvatarChanges;
   const isDirty = hasProfileChanges;
 
+  const saveAvatarImmediately = async ({ file = null, action, preview = '' }) => {
+    if (!user?.id || isAvatarSaving) return;
+
+    setIsAvatarSaving(true);
+    setSaveState({ type: 'saving', message: text.avatarSaving });
+
+    try {
+      const updatedUser = await updateUserAvatar(user.id, action === 'remove' ? null : file, user);
+      const nextAvatar = action === 'remove'
+        ? ''
+        : String(updatedUser?.avatar || preview);
+
+      // Keep the image current in the header/sidebar without discarding edits in
+      // the other profile fields that the user may still be making.
+      skipNextUserSyncRef.current = true;
+      updateUserSession({ avatar: nextAvatar });
+      setSavedProfile((prev) => ({ ...prev, avatar: nextAvatar }));
+      setForm((prev) => ({
+        ...prev,
+        avatarPreview: nextAvatar,
+        avatarFile: null,
+        avatarAction: 'keep'
+      }));
+      setErrors((prev) => ({ ...prev, avatar: '' }));
+      setSaveState({ type: 'success', message: text.avatarSaveSuccess });
+      addToast(text.avatarSaveSuccess, 'success');
+    } catch (error) {
+      if (preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+      setForm((prev) => ({
+        ...prev,
+        avatarPreview: savedProfile.avatar,
+        avatarFile: null,
+        avatarAction: 'keep'
+      }));
+      const message = getReadableErrorMessage(error, text.avatarSaveError, { language });
+      setSaveState({ type: 'error', message });
+      addToast(message, 'error');
+    } finally {
+      setIsAvatarSaving(false);
+    }
+  };
+
   const handleAvatarChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Allow picking the same file again after a failed upload.
+    event.target.value = '';
 
     if (!ALLOWED_AVATAR_TYPES.includes(file.type.toLowerCase())) {
       setErrors((prev) => ({ ...prev, avatar: text.invalidImageType }));
@@ -222,11 +280,14 @@ const Account = () => {
     const nextPreview = URL.createObjectURL(file);
     setForm((prev) => ({ ...prev, avatarPreview: nextPreview, avatarFile: file, avatarAction: 'update' }));
     setErrors((prev) => ({ ...prev, avatar: '' }));
+    void saveAvatarImmediately({ file, action: 'update', preview: nextPreview });
   };
 
   const handleRemoveAvatar = () => {
+    if (isAvatarSaving) return;
     setForm((prev) => ({ ...prev, avatarPreview: '', avatarFile: null, avatarAction: 'remove' }));
     setErrors((prev) => ({ ...prev, avatar: '' }));
+    void saveAvatarImmediately({ action: 'remove' });
   };
 
   const handleCancel = () => {
@@ -582,6 +643,7 @@ const Account = () => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isAvatarSaving}
                 className="absolute -bottom-2 -left-2 inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/80 bg-[var(--color-primary)] text-[var(--color-button-text)] shadow-lg transition hover:brightness-105 dark:border-white/10"
                 aria-label={text.changePhoto}
               >
@@ -610,6 +672,7 @@ const Account = () => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isAvatarSaving}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.26)] bg-[color:rgb(var(--color-primary-rgb)/0.1)] px-4 text-xs font-black text-[var(--color-primary)] transition hover:bg-[color:rgb(var(--color-primary-rgb)/0.16)]"
               >
                 <Camera className="h-4 w-4" />
@@ -619,6 +682,7 @@ const Account = () => {
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}
+                  disabled={isAvatarSaving}
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-500/8 px-4 text-xs font-black text-rose-600 transition hover:bg-rose-500/12 dark:text-rose-300"
                 >
                   <X className="h-4 w-4" />

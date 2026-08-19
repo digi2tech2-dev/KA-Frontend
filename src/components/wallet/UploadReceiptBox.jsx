@@ -82,10 +82,10 @@ const UploadReceiptBox = ({ onFileUpload }) => {
               setIsDragOver(false);
             }}
             onClick={() => fileInputRef.current?.click()}
-            className={`relative cursor-pointer overflow-hidden rounded-xl border border-dashed p-3 text-center transition sm:p-3.5 ${
+            className={`relative cursor-pointer border-y border-dashed px-1 py-3 text-center transition sm:py-3.5 ${
               isDragOver
-                ? 'border-emerald-400 bg-emerald-50/80 shadow-[0_18px_34px_-28px_rgba(16,185,129,0.55)] dark:border-emerald-500/60 dark:bg-emerald-950/24'
-                : 'border-[color:rgb(var(--color-primary-rgb)/0.3)] bg-[color:rgb(var(--color-primary-rgb)/0.05)] hover:border-[color:rgb(var(--color-primary-rgb)/0.55)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.09)]'
+                ? 'border-emerald-400 bg-emerald-50/50 dark:border-emerald-500/60 dark:bg-emerald-950/15'
+                : 'border-[color:rgb(var(--color-primary-rgb)/0.3)] hover:border-[color:rgb(var(--color-primary-rgb)/0.55)]'
             }`}
           >
             <input
@@ -97,8 +97,8 @@ const UploadReceiptBox = ({ onFileUpload }) => {
             />
 
             <div className="flex items-center gap-3 text-start">
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#087f9b,#b37a18)] transition-transform ${isDragOver ? 'scale-110' : ''}`}>
-                <Upload className="h-4 w-4 text-white" />
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center text-indigo-500 transition-transform ${isDragOver ? 'scale-110' : ''}`}>
+                <Upload className="h-5 w-5" />
               </div>
 
               <div className="min-w-0">
@@ -122,10 +122,10 @@ const UploadReceiptBox = ({ onFileUpload }) => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.24, ease: 'easeOut' }}
-          className="rounded-[1.1rem] border border-emerald-200 bg-emerald-50/70 p-4 shadow-[0_14px_30px_-26px_rgba(16,185,129,0.5)] backdrop-blur-xl dark:border-emerald-900/70 dark:bg-emerald-950/20"
+          className="border-y border-emerald-200 py-3 dark:border-emerald-900/70"
         >
           <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[0.9rem] border border-emerald-200 bg-white text-emerald-700 shadow-[0_10px_22px_-18px_rgba(15,23,42,0.45)] dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-emerald-600 dark:text-emerald-300">
               <FileImage className="h-6 w-6" />
             </div>
 

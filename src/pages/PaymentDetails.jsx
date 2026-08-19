@@ -485,9 +485,16 @@ const PaymentDetails = ({
     );
   }
 
+  const flowSteps = [
+    ...(method.accountNumber ? [{ label: dir === 'rtl' ? 'التحويل' : 'Transfer' }] : []),
+    { label: dir === 'rtl' ? 'البيانات' : 'Details' },
+    ...(requiresReceipt ? [{ label: dir === 'rtl' ? 'الإيصال' : 'Receipt' }] : []),
+  ];
+  const paymentInputClassName = `${inputBaseClassName} h-12 rounded-xl border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-surface-rgb)/0.72)] px-4 text-sm font-bold shadow-none hover:border-cyan-500/35 focus:border-cyan-500/65 focus:bg-[var(--color-card)] focus:ring-cyan-500/10`;
+
   return (
     <div className={embedded ? 'w-full min-w-0 overflow-x-hidden pb-2' : 'pb-6'} dir={dir}>
-      <div className="mx-auto w-full min-w-0 max-w-4xl space-y-3 sm:space-y-4">
+      <div className="mx-auto w-full min-w-0 max-w-3xl space-y-3 sm:space-y-4">
         {embedded && onBack ? (
           <button
             type="button"
@@ -501,88 +508,109 @@ const PaymentDetails = ({
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="relative overflow-hidden rounded-[1.35rem] border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[linear-gradient(135deg,rgb(var(--color-card-rgb)/0.96),rgb(var(--color-primary-rgb)/0.08),rgb(192_38_211/0.06))] p-3.5 shadow-[0_22px_55px_-44px_rgb(var(--color-primary-rgb)/0.72)] sm:p-4"
+          className="flex items-center gap-3 border-b border-[color:rgb(var(--color-border-rgb)/0.68)] px-1 pb-4"
         >
-          <div className="flex items-center gap-3">
-            {method.image ? (
-              <img
-                src={resolveImageUrl(method.image)}
-                alt={method.name}
-                loading="lazy"
-                decoding="async"
-                referrerPolicy="no-referrer"
-                className="h-12 w-12 shrink-0 rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.22)] bg-white object-cover sm:h-14 sm:w-14"
-              />
-            ) : (
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${methodPresentation.color} sm:h-14 sm:w-14`}>
-                <span className="text-xs font-bold text-white">{methodPresentation.icon}</span>
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-300">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  {dir === 'rtl' ? 'دفع آمن' : 'Secure payment'}
-                </span>
-                {group?.currency && (
-                  <span className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-2 py-0.5 text-[9px] font-black text-cyan-600 dark:text-cyan-300">
-                    {String(group.currency).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <h1 className="truncate text-base font-black tracking-tight text-[var(--color-text)] sm:text-xl">{method.name}</h1>
-              <p className="mt-0.5 truncate text-[10px] font-bold text-[var(--color-text-secondary)] sm:text-xs">
-                {group?.name || (dir === 'rtl' ? 'إضافة رصيد' : 'Add balance')}
-              </p>
+          {method.image ? (
+            <img
+              src={resolveImageUrl(method.image)}
+              alt={method.name}
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+              className="h-11 w-11 shrink-0 rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.68)] bg-white object-contain p-1"
+            />
+          ) : (
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${methodPresentation.color}`}>
+              <span className="text-[10px] font-bold text-white">{methodPresentation.icon}</span>
             </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-base font-black tracking-tight text-[var(--color-text)] sm:text-lg">{method.name}</h1>
+            <p className="mt-0.5 truncate text-[10px] font-bold text-[var(--color-text-secondary)] sm:text-xs">
+              {group?.name || (dir === 'rtl' ? 'إضافة رصيد' : 'Add balance')}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-500">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              {dir === 'rtl' ? 'دفع آمن' : 'Secure'}
+            </span>
+            {group?.currency ? (
+              <span className="rounded-md bg-indigo-500/[0.08] px-1.5 py-1 font-['Poppins'] text-[9px] font-black text-indigo-500">
+                {String(group.currency).toUpperCase()}
+              </span>
+            ) : null}
           </div>
         </motion.div>
 
-        <div className="grid min-w-0 gap-3 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+        <div className="flex items-start px-2 py-2 sm:px-10">
+          {flowSteps.map((step, index) => (
+            <React.Fragment key={step.label}>
+              <div className="flex w-16 shrink-0 flex-col items-center text-center sm:w-20">
+                <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-cyan-500 bg-[var(--color-card)] font-['Poppins'] text-[10px] font-black text-cyan-600 dark:text-cyan-300">
+                  {index + 1}
+                </span>
+                <span className="mt-1.5 text-[9px] font-black text-[var(--color-text-secondary)]">{step.label}</span>
+              </div>
+              {index < flowSteps.length - 1 ? (
+                <span className="mt-3.5 h-px min-w-4 flex-1 bg-gradient-to-l from-cyan-500/60 to-indigo-500/20" />
+              ) : null}
+            </React.Fragment>
+          ))}
+        </div>
+
+        <div className="min-w-0">
         {method.accountNumber && (
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.25, delay: 0.05, ease: 'easeOut' }}
-            className="min-w-0 overflow-hidden rounded-[1.3rem] border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-card-rgb)/0.9)] p-3.5 shadow-[0_20px_48px_-42px_rgb(var(--color-primary-rgb)/0.6)] sm:p-4 lg:sticky lg:top-5"
+            className="min-w-0 border-y border-[color:rgb(var(--color-border-rgb)/0.62)] py-5"
           >
-            <div className="mb-3 flex items-center gap-2.5">
-              <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#087f9b,#b37a18)] text-white shadow-[0_14px_28px_-18px_rgb(124_58_237/0.9)]">
+            <div className="mb-4 flex items-center gap-2.5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">
                 <Landmark className="h-4 w-4" />
-                <span className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border-2 border-[var(--color-card)] bg-white font-['Poppins'] text-[9px] font-extrabold text-cyan-700">1</span>
               </span>
               <div>
                 <h3 className="text-sm font-black text-[var(--color-text)]">{t('payments.accountDetails')}</h3>
-                <p className="mt-0.5 text-[10px] text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'الخطوة الأولى: حوّل المبلغ إلى الرقم التالي' : 'Step 1: Transfer to this account'}</p>
+                <p className="mt-0.5 text-[10px] text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'حوّل المبلغ إلى الرقم التالي' : 'Transfer the amount to this number'}</p>
               </div>
             </div>
-            <div className="rounded-2xl border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-surface-rgb)/0.55)] p-2.5 sm:p-3">
-              <button
-                type="button"
-                onClick={handleCopyAccount}
-                className="group flex w-full items-center justify-between gap-3 rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-card-rgb)/0.9)] px-3 py-3 text-[var(--color-text)] transition hover:border-[color:rgb(var(--color-primary-rgb)/0.46)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.06)]"
-              >
-                <span className="min-w-0 break-all font-mono text-base font-black [direction:ltr]">{method.accountNumber}</span>
-                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:rgb(var(--color-primary-rgb)/0.12)] text-[var(--color-primary)]">
-                  <Copy className="h-4 w-4" />
-                </span>
-              </button>
+            <button
+              type="button"
+              onClick={handleCopyAccount}
+              className="group relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#082f49_0%,#0e7490_48%,#2563eb_100%)] px-4 py-4 text-white shadow-[0_20px_45px_-28px_rgba(8,145,178,0.9)] transition hover:-translate-y-0.5 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-[var(--color-bg)] sm:px-5"
+              title={dir === 'rtl' ? 'اضغط للنسخ' : 'Tap to copy'}
+            >
+              <span className="pointer-events-none absolute -top-10 end-5 h-24 w-24 rounded-full bg-cyan-300/20 blur-2xl" />
+              <span className="relative min-w-0 text-start">
+                <span className="block text-[9px] font-bold text-cyan-100/75">{dir === 'rtl' ? 'رقم التحويل' : 'Transfer number'}</span>
+                <span className="mt-1 block break-all font-['Poppins'] text-xl font-black tracking-[0.08em] [direction:ltr] sm:text-2xl">{method.accountNumber}</span>
+              </span>
+              <span className="relative inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-2.5 py-2 text-[10px] font-black text-white backdrop-blur-sm transition group-hover:bg-white/20">
+                <Copy className="h-3.5 w-3.5" />
+                {dir === 'rtl' ? 'نسخ' : 'Copy'}
+              </span>
+            </button>
+            <p className="mt-2 text-center text-[9px] font-bold text-cyan-600 dark:text-cyan-300">{dir === 'rtl' ? 'اضغط على الرقم لنسخه فورًا' : 'Tap the number to copy it instantly'}</p>
+            <div className="relative mt-4 grid grid-cols-2 border-b border-[color:rgb(var(--color-border-rgb)/0.5)] pb-3 text-start after:absolute after:inset-y-2 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-gradient-to-b after:from-transparent after:via-cyan-500/35 after:to-transparent">
               {method.accountName && (
-                <div className="mt-2 flex items-center justify-between gap-3 rounded-xl px-2 py-2">
-                  <p className="text-[10px] font-bold text-[var(--color-text-secondary)]">
+                <div className="min-w-0 px-3 py-2 sm:px-5">
+                  <p className="text-[9px] font-bold text-[var(--color-text-secondary)]">
                     {t('payments.accountHolder', { defaultValue: dir === 'rtl' ? 'اسم صاحب الحساب' : 'Account holder' })}
                   </p>
-                  <p className="text-xs font-black text-[var(--color-text)]">{method.accountName}</p>
+                  <p className="mt-1 break-words text-xs font-black text-[var(--color-text)]">{method.accountName}</p>
                 </div>
               )}
               {method.bankName && (
-                <div className="mt-1 border-t border-[color:rgb(var(--color-border-rgb)/0.58)] pt-2 text-center text-[10px] font-bold text-[var(--color-text-secondary)]">
-                  {method.bankName}
+                <div className="min-w-0 px-3 py-2 sm:px-5">
+                  <p className="text-[9px] font-bold text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'جهة التحويل' : 'Transfer provider'}</p>
+                  <p className="mt-1 break-words text-xs font-black text-[var(--color-text)]">{method.bankName}</p>
                 </div>
               )}
             </div>
             {methodInstructions && (
-              <p className="mt-2.5 rounded-xl bg-[color:rgb(var(--color-primary-rgb)/0.07)] px-3 py-2 text-[10px] font-semibold leading-5 text-[var(--color-text-secondary)]">
+              <p className="mt-3 border-s-2 border-cyan-500 ps-3 text-[10px] font-semibold leading-5 text-[var(--color-text-secondary)]">
                 {methodInstructions}
               </p>
             )}
@@ -594,16 +622,15 @@ const PaymentDetails = ({
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.25, delay: 0.08, ease: 'easeOut' }}
           onSubmit={handleSubmit}
-          className="min-w-0 overflow-hidden rounded-[1.3rem] border border-[color:rgb(var(--color-border-rgb)/0.76)] bg-[color:rgb(var(--color-card-rgb)/0.92)] p-3.5 shadow-[0_20px_48px_-42px_rgb(var(--color-primary-rgb)/0.55)] sm:p-4"
+          className="mx-auto min-w-0 max-w-2xl py-5"
         >
-          <div className="mb-4 flex items-center gap-2.5">
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#b37a18,#ec4899)] text-white shadow-[0_14px_28px_-18px_rgb(192_38_211/0.9)]">
+          <div className="mb-5 flex items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-500 dark:text-indigo-300">
               <ReceiptText className="h-4 w-4" />
-              <span className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border-2 border-[var(--color-card)] bg-white font-['Poppins'] text-[9px] font-extrabold text-amber-700">2</span>
             </span>
             <div>
               <h3 className="text-sm font-black text-[var(--color-text)]">{t('payments.paymentDetails')}</h3>
-              <p className="mt-0.5 text-[10px] text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'الخطوة الثانية: أدخل البيانات المطلوبة' : 'Step 2: Enter the required details'}</p>
+              <p className="mt-0.5 text-[10px] text-[var(--color-text-secondary)]">{dir === 'rtl' ? 'أدخل بيانات التحويل كما تظهر في الإيصال' : 'Enter the transfer details shown on your receipt'}</p>
             </div>
           </div>
 
@@ -626,22 +653,21 @@ const PaymentDetails = ({
                   placeholder={config.placeholder}
                   min={config.min}
                   step={config.step}
-                  className={`${inputBaseClassName} ${field === 'amount' ? 'payment-amount-input border-cyan-400/35 bg-cyan-500/[0.035] focus:border-cyan-400' : ''} ${isRTL ? 'text-right' : 'text-left'}`}
+                  className={`${paymentInputClassName} ${field === 'amount' ? 'payment-amount-input border-cyan-500/35 bg-cyan-500/[0.045] text-base' : ''} ${isRTL ? 'text-right' : 'text-left'}`}
                   disabled={isSubmitting}
                 />
                 {field === 'amount' && usdPreviewLabel && (
-                  <div className="mt-1.5 flex min-h-9 w-full items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-500/8 px-3 py-2 text-center text-xs font-black text-emerald-600 dark:text-emerald-300">
-                    <span className="[direction:ltr]">
-                      {usdPreviewLabel}
-                    </span>
-                  </div>
+                  <p className="mt-1.5 px-1 text-[10px] font-black text-emerald-600 dark:text-emerald-300 [direction:ltr]">
+                    {usdPreviewLabel}
+                  </p>
                 )}
               </div>
             );
           })}
 
+          <div className="grid gap-x-4 sm:grid-cols-2">
           {senderDetailRequirement && (
-            <div className="mb-3">
+            <div className="mb-4">
               <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
                 <span>{senderDetailRequirement.label}</span>
                 <FieldCompletionBadge complete={Boolean(String(formData[senderDetailRequirement.field] || '').trim())} />
@@ -651,7 +677,7 @@ const PaymentDetails = ({
                 value={formData[senderDetailRequirement.field] || ''}
                 onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
                 placeholder={senderDetailRequirement.placeholder}
-                className={`${inputBaseClassName} border-cyan-400/35 bg-cyan-500/[0.035] focus:border-cyan-400 ${isRTL ? 'text-right' : 'text-left'}`}
+                className={`${paymentInputClassName} ${isRTL ? 'text-right' : 'text-left'}`}
                 disabled={isSubmitting}
                 required
               />
@@ -659,7 +685,7 @@ const PaymentDetails = ({
           )}
 
           {!isVodafoneCash && (
-          <div className="mb-3">
+          <div className="mb-4">
             <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
               <span>رقم العملية</span>
               <FieldCompletionBadge complete={Boolean(String(formData.transactionId || '').trim())} />
@@ -669,20 +695,18 @@ const PaymentDetails = ({
               value={formData.transactionId || ''}
               onChange={(e) => handleInputChange('transactionId', e.target.value)}
               placeholder="أدخل رقم العملية"
-              className={`${inputBaseClassName} border-cyan-400/35 bg-cyan-500/[0.035] focus:border-cyan-400 ${isRTL ? 'text-right' : 'text-left'}`}
+              className={`${paymentInputClassName} ${isRTL ? 'text-right' : 'text-left'}`}
               disabled={isSubmitting}
               required
             />
           </div>
           )}
+          </div>
 
           {requiresReceipt && (
-            <div className="mb-4">
-              <label className={`mb-2 flex items-center justify-between gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/7 px-3 py-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
-                <span className="flex items-center gap-2">
-                  <span className="grid h-5 w-5 place-items-center rounded-md bg-cyan-500 font-['Poppins'] text-[9px] font-extrabold text-white">3</span>
-                  {t('payments.uploadReceipt')}
-                </span>
+            <div className="mb-5 border-t border-[color:rgb(var(--color-border-rgb)/0.58)] pt-5">
+              <label className={`mb-2.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
+                <span>{t('payments.uploadReceipt')}</span>
                 <FieldCompletionBadge complete={Boolean(uploadedFile)} />
               </label>
               <UploadReceiptBox
@@ -694,8 +718,8 @@ const PaymentDetails = ({
             </div>
           )}
 
-          <div className="mb-4 overflow-hidden rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[linear-gradient(135deg,rgb(var(--color-primary-rgb)/0.07),rgb(192_38_211/0.05))] p-3">
-            <div className="flex items-center justify-between gap-3 text-xs">
+          <div className="mb-5 rounded-2xl border border-indigo-500/15 bg-[linear-gradient(135deg,rgb(6_182_212/0.07),rgb(79_70_229/0.08))] p-4">
+            <div className="flex items-center justify-between gap-3 px-1 text-xs">
               <span className="font-bold text-[var(--color-text-secondary)]">
                 {t('payments.subtotalLabel', {
                   defaultValue: dir === 'rtl' ? 'المبلغ الأساسي' : 'Base amount',
@@ -705,7 +729,7 @@ const PaymentDetails = ({
             </div>
 
             {feePercent > 0 && (
-              <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+              <div className="mt-2 flex items-center justify-between gap-3 px-1 text-xs">
                 <span className="font-bold text-[var(--color-text-secondary)]">
                   {t('payments.feeAmountLabel', {
                     defaultValue: dir === 'rtl' ? 'رسوم التحويل' : 'Payment fee',
@@ -716,13 +740,13 @@ const PaymentDetails = ({
               </div>
             )}
 
-            <div className="mt-3 flex items-center justify-between gap-3 border-t border-[color:rgb(var(--color-primary-rgb)/0.18)] pt-3 text-xs">
+            <div className="mt-3 flex items-end justify-between gap-3 border-t border-indigo-500/15 px-1 pt-3 text-xs">
               <span className="font-black text-[var(--color-text)]">
                 {t('payments.totalToTransferLabel', {
                   defaultValue: dir === 'rtl' ? 'الإجمالي المطلوب تحويله' : 'Total to transfer',
                 })}
               </span>
-              <span className="rounded-xl bg-[linear-gradient(135deg,#087f9b,#b37a18)] px-3 py-1.5 font-['Poppins'] text-sm font-extrabold tracking-tight text-white shadow-[0_12px_24px_-18px_rgb(124_58_237/0.9)] [direction:ltr] [font-variant-numeric:tabular-nums]">{formatMoney(payableAmount)}</span>
+              <span className="font-['Poppins'] text-lg font-black tracking-tight text-cyan-600 [direction:ltr] [font-variant-numeric:tabular-nums] dark:text-cyan-300">{formatMoney(payableAmount)}</span>
             </div>
           </div>
 
@@ -752,7 +776,7 @@ const PaymentDetails = ({
             aria-busy={isSubmitting}
             whileTap={{ scale: 0.985 }}
             whileHover={!isSubmitting ? { y: -1 } : undefined}
-            className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#087f9b_0%,#b37a18_100%)] px-5 text-sm font-black text-white shadow-[0_18px_34px_-24px_rgb(124_58_237/0.9)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+            className="group flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#0891b2_0%,#2563eb_55%,#4f46e5_100%)] px-5 text-sm font-black text-white shadow-[0_20px_38px_-22px_rgba(37,99,235,0.9)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

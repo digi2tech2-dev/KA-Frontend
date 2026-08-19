@@ -313,13 +313,17 @@ export const getVisualOrderStatus = (status) => {
 };
 
 export const getOrderStatusMeta = (status, language = 'ar') => {
-  const key = getVisualOrderStatus(status);
+  const rawStatus = toLower(status);
+  const key = getVisualOrderStatus(rawStatus);
   const meta = ORDER_STATUS_META[key] || ORDER_STATUS_META.processing;
+  const isRejected = ['rejected', 'denied', 'failed', 'refunded', 'cancelled', 'canceled'].includes(rawStatus);
 
   return {
     key,
     variant: meta.variant,
-    label: language === 'ar' ? meta.labelAr : meta.labelEn,
+    label: isRejected
+      ? (language === 'ar' ? 'مرفوض' : 'Rejected')
+      : (language === 'ar' ? meta.labelAr : meta.labelEn),
     dotClassName: meta.dotClassName,
   };
 };

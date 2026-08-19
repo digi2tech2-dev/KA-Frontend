@@ -143,7 +143,7 @@ const TargetOrders = () => {
 
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-surface-rgb)/0.55)] p-2">
-                    <p className="text-[10px] text-[var(--color-text-secondary)]">الكوينز</p>
+                    <p className="text-[10px] text-[var(--color-text-secondary)]">الدولار</p>
                     <p className="mt-1 text-sm font-black text-[var(--color-text)]">{formatNumber(request.coinAmount || request.quantity, 'en-US')}</p>
                   </div>
                   <div className="rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-surface-rgb)/0.55)] p-2">

@@ -827,7 +827,6 @@ const Referral = () => {
         className="referral-earnings-button referral-earnings-glow group relative isolate flex w-full items-center gap-4 overflow-hidden rounded-[1.5rem] border border-cyan-200/35 bg-[linear-gradient(115deg,#071a33,#0b3b68_38%,#075985_68%,#4338ca)] p-4 text-start text-white shadow-[0_24px_64px_-30px_rgb(8_145_178/0.95)] transition-all hover:-translate-y-0.5 hover:border-cyan-100/60 hover:brightness-110 sm:p-5"
       >
         <span className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_15%,rgb(103_232_249/0.22),transparent_34%),radial-gradient(circle_at_90%_80%,rgb(99_102_241/0.3),transparent_40%)]" />
-        <span className="pointer-events-none absolute left-[-45%] top-[-28%] z-0 h-[160%] w-[32%] rotate-[14deg] bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.12),rgb(165_243_252/0.95),rgb(255_255_255/0.8),transparent)] blur-[1px] mix-blend-screen animate-[neon-shine_3.2s_ease-in-out_infinite]" />
         <span className="pointer-events-none absolute inset-x-[18%] bottom-0 z-0 h-px bg-[linear-gradient(90deg,transparent,#67e8f9,#818cf8,transparent)] shadow-[0_0_16px_3px_rgb(34_211_238/0.78)]" />
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-cyan-100/25 bg-cyan-300/10 text-cyan-200 shadow-[0_0_20px_-7px_rgb(103_232_249/0.9),inset_0_1px_0_rgb(255_255_255/0.22)]">
           <Gift className="h-6 w-6" />

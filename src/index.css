@@ -383,34 +383,6 @@
     }
   }
 
-  @keyframes shimmer {
-    0% {
-      background-position: -1000px 0;
-    }
-    100% {
-      background-position: 1000px 0;
-    }
-  }
-
-  @keyframes neon-shine {
-    0% {
-      transform: translateX(-20%) skewX(-22deg);
-      opacity: 0;
-    }
-    35% {
-      opacity: 0.9;
-    }
-    100% {
-      transform: translateX(420%) skewX(-22deg);
-      opacity: 0;
-    }
-  }
-
-  .animate-shimmer-slow {
-    background-size: 200% 100%;
-    animation: shimmer 100s infinite;
-  }
-
   @keyframes digitech-logo-float {
     0%,
     100% {
@@ -578,7 +550,7 @@
     pointer-events: none;
     transform: skewX(-22deg);
     mix-blend-mode: screen;
-    animation: sidebar-wallet-shimmer 7.2s ease-in-out infinite;
+    animation: none;
   }
 
   .soft-divider {
@@ -672,7 +644,7 @@
     pointer-events: none;
     transform: skewX(-22deg);
     mix-blend-mode: screen;
-    animation: security-card-glow 6.4s ease-in-out infinite;
+    animation: none;
   }
 
   .security-glow-card > * {
@@ -718,9 +690,7 @@
   .ka-brand-title {
     font-family: "Orbitron", "Poppins", "Cairo", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: 0.26em;
-    text-shadow:
-      0 0 18px rgb(8 127 155 / 0.22),
-      0 0 28px rgb(179 122 24 / 0.18);
+    text-shadow: none;
   }
 
   .ka-card-panel {
@@ -757,23 +727,23 @@
   }
 
   .marquee-track-smooth {
-    display: flex;
+    display: inline-flex;
     white-space: nowrap;
-    width: 200%;
+    width: max-content;
     will-change: transform;
   }
 
   .marquee-track-smooth--rtl {
-    animation: marquee-smooth-loop-rtl 17s linear infinite;
+    animation: marquee-smooth-loop-rtl 22s linear infinite;
   }
 
   .marquee-track-smooth--ltr {
-    animation: marquee-smooth-loop-ltr 17s linear infinite;
+    animation: marquee-smooth-loop-ltr 22s linear infinite;
   }
 
   .marquee-chunk {
     display: block;
-    flex: 0 0 50%;
+    flex: none;
     padding-inline: 2rem;
     text-align: center;
   }
@@ -1495,19 +1465,19 @@ html[data-page-transition="running"] {
 
 @keyframes marquee-smooth-loop-rtl {
   from {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
   to {
-    transform: translateX(0);
+    transform: translateX(100vw);
   }
 }
 
 @keyframes marquee-smooth-loop-ltr {
   from {
-    transform: translateX(0);
+    transform: translateX(100vw);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
 
@@ -1633,7 +1603,7 @@ html[data-page-transition="running"] {
   pointer-events: none;
   transform: skewX(-24deg);
   mix-blend-mode: screen;
-  animation: wallet-balance-shimmer 2.85s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes wallet-balance-shimmer {
@@ -1685,8 +1655,6 @@ html[data-page-transition="running"] {
     scroll-behavior: auto !important;
   }
 
-  .animate-shimmer-slow,
-  .animate-\[neon-shine_2\.8s_ease-in-out_infinite\],
   .animate-bounce,
   .animate-pulse,
   .animate-spin {
@@ -2060,7 +2028,7 @@ html[data-page-transition="running"] {
   pointer-events: none;
   transform: skewX(-22deg);
   mix-blend-mode: screen;
-  animation: sidebar-wallet-shimmer 6.2s ease-in-out infinite;
+  animation: none;
 }
 
 .ka-sidebar-action-card > * {
@@ -2748,8 +2716,7 @@ body {
 }
 
 .gold-gradient-text,
-.header-mobile-brand-ms,
-.ka-brand-title {
+.header-mobile-brand-ms {
   background-image: linear-gradient(120deg, #fff4bd 0%, #b37a18 28%, #087f9b 58%, #312e81 100%) !important;
 }
 
@@ -2758,9 +2725,7 @@ body {
 }
 
 .ka-brand-title {
-  text-shadow:
-    0 0 18px rgb(179 122 24 / 0.26),
-    0 0 28px rgb(8 127 155 / 0.2) !important;
+  text-shadow: none !important;
 }
 
 .ka-card-panel,
@@ -3110,19 +3075,11 @@ body {
 }
 
 .referral-earnings-button::after {
-  content: "";
-  position: absolute;
-  inset: -45% auto -45% -30%;
-  width: 20%;
-  z-index: -1;
-  transform: skewX(-22deg);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.3), transparent);
-  filter: blur(2px);
-  animation: referral-earnings-shine 3.8s ease-in-out infinite;
+  display: none;
 }
 
 .referral-earnings-button {
-  animation: referral-earnings-glow 3.2s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes referral-earnings-shine {
@@ -3137,14 +3094,7 @@ body {
 }
 
 .referral-available-earnings::after {
-  content: "";
-  position: absolute;
-  inset: -50% auto -50% -28%;
-  width: 18%;
-  z-index: -1;
-  transform: skewX(-22deg);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent);
-  animation: referral-available-shine 4.4s ease-in-out infinite;
+  display: none;
 }
 
 @keyframes referral-available-shine {
@@ -3634,7 +3584,7 @@ body {
   box-shadow:
     0 18px 48px -38px rgb(8 127 155 / 0.9),
     0 0 34px -25px rgb(227 187 97 / 0.82) !important;
-  animation: neon-edge-orbit 5.5s linear infinite;
+  animation: none;
 }
 
 .home-neon-section--hero {
@@ -3711,7 +3661,7 @@ body {
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: neon-edge-orbit 6s linear infinite;
+  animation: none;
 }
 
 .storefront-category-card--neon .storefront-category-neon-frame::after {
@@ -3767,11 +3717,6 @@ body {
 :root ::selection {
   background: rgb(var(--color-primary-rgb) / 0.3);
   color: var(--color-text);
-}
-
-.ka-brand-title > span:first-child,
-.ka-brand-title {
-  background-image: linear-gradient(115deg, #f8e7a9 0%, var(--color-secondary) 36%, var(--color-primary) 68%, #66e6f2 100%) !important;
 }
 
 .theme-toggle {
@@ -3933,4 +3878,101 @@ body {
     filter: none !important;
     transition-duration: 120ms !important;
   }
+}
+
+/* Automatically enabled on constrained and older Android phones. */
+html.performance-lite {
+  scroll-behavior: auto;
+}
+
+html.performance-lite body {
+  background: var(--color-bg);
+}
+
+html.performance-lite :where(
+  [class*="backdrop-blur"],
+  .ka-card-panel,
+  .premium-card,
+  .premium-card-elevated,
+  .premium-card-premium,
+  .product-led-card,
+  .app-shell-header-panel,
+  .app-shell-sidebar-panel
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.performance-lite :where([class*="shadow-"], [class*="drop-shadow-"]) {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html.performance-lite :where(
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  [class*="animate-["],
+  .marquee-track-smooth,
+  .floating-whatsapp-ring,
+  .wallet-balance-shimmer::after,
+  .wallet-accent-chip::after,
+  .security-glow-card::after,
+  .digitech-logo-float
+) {
+  animation: none !important;
+}
+
+html.performance-lite .page-transition-overlay {
+  display: none !important;
+}
+
+html.performance-lite :where(button, a, [role="button"], .transition, [class*="transition-"]) {
+  transition-duration: 1ms !important;
+}
+
+/* Clean surfaces: neon frames and glows are intentionally removed site-wide. */
+.ka-brand-title,
+.ka-brand-title > span:first-child {
+  background: none !important;
+  text-shadow: none !important;
+}
+
+.home-neon-section,
+:root:not(.dark) .home-neon-section {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+.storefront-category-card--neon .storefront-category-neon-frame::before,
+:root.dark .storefront-category-card--neon .storefront-category-neon-frame::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+:where(
+  .ka-card-panel,
+  .app-shell-header-panel,
+  .app-shell-sidebar-panel,
+  .premium-card,
+  .premium-card-elevated,
+  .premium-card-premium,
+  .product-led-card,
+  .gold-mesh,
+  .admin-premium-hero,
+  .admin-premium-panel,
+  .admin-premium-toolbar,
+  .admin-premium-stat,
+  .top-selling-showcase,
+  .top-selling-card
+) {
+  border-color: rgb(var(--color-border-rgb) / 0.7) !important;
+  background: rgb(var(--color-card-rgb) / 0.94) !important;
+  box-shadow: var(--shadow-subtle) !important;
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import worldCountries from 'world-countries';
 import {
   AlertTriangle,
   CircleDollarSign,
@@ -15,7 +16,7 @@ import useSystemStore from '../../store/useSystemStore';
 import useAuthStore from '../../store/useAuthStore';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import Input, { selectClassName } from '../../components/ui/Input';
+import Input from '../../components/ui/Input';
 import ConfirmDialog from '../../components/account/ConfirmDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import { useToast } from '../../components/ui/Toast';
@@ -200,6 +201,59 @@ const getArabicCountryName = (country = {}) => {
 
 const getCurrencyDisplayName = (item = {}) => getArabicCurrencyName(item.code, item.name);
 
+const buildCurrencyCatalog = () => {
+  const catalogByCode = new Map();
+
+  worldCountries.forEach((country) => {
+    const countryName = getArabicCountryName(country);
+    const countrySearchName = [
+      countryName,
+      country?.name?.common || '',
+      country?.translations?.eng?.common || '',
+      country?.cca2 || '',
+    ].filter(Boolean).join(' ');
+
+    Object.entries(country?.currencies || {}).forEach(([currencyCode, currency]) => {
+      const code = String(currencyCode || '').trim().toUpperCase();
+      if (!code) return;
+
+      const existing = catalogByCode.get(code) || {
+        code,
+        name: getArabicCurrencyName(code, currency?.name),
+        englishName: currency?.name || code,
+        symbol: currency?.symbol || code,
+        countries: [],
+        countrySearchNames: [],
+      };
+
+      existing.countries.push({
+        name: countryName,
+        englishName: country?.name?.common || '',
+        flag: country?.flag || '🌐',
+        code: country?.cca2 || '',
+      });
+      existing.countrySearchNames.push(countrySearchName);
+      catalogByCode.set(code, existing);
+    });
+  });
+
+  return Array.from(catalogByCode.values())
+    .map((item) => {
+      const countries = item.countries.filter((country, index, rows) => (
+        rows.findIndex((row) => row.code === country.code) === index
+      ));
+      return {
+        ...item,
+        countries,
+        countrySearchNames: Array.from(new Set(item.countrySearchNames)),
+        flags: Array.from(new Set(countries.map((country) => country.flag))),
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+};
+
+const CURRENCY_CATALOG = buildCurrencyCatalog();
+
 const AdminCurrencies = () => {
   const { user } = useAuthStore();
   const { addToast } = useToast();
@@ -216,13 +270,14 @@ const AdminCurrencies = () => {
   const [editingCode, setEditingCode] = useState('');
   const [originalRate, setOriginalRate] = useState(null);
   const [applyDebtAdjustment, setApplyDebtAdjustment] = useState(false);
-  const [catalogCurrencies, setCatalogCurrencies] = useState([]);
-  const [catalogLoading, setCatalogLoading] = useState(false);
   const [selectedCatalogCode, setSelectedCatalogCode] = useState('');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState('');
   const [currencySearch, setCurrencySearch] = useState('');
   const [deleteCurrencyCode, setDeleteCurrencyCode] = useState('');
+  const [isSavingCurrency, setIsSavingCurrency] = useState(false);
+  const catalogCurrencies = CURRENCY_CATALOG;
+  const catalogLoading = false;
 
   // Compute rate change percentage dynamically (bidirectional)
   const rateChangePercent = useMemo(() => {
@@ -237,75 +292,14 @@ const AdminCurrencies = () => {
   }, [loadCurrencies]);
 
   useEffect(() => {
-    let isMounted = true;
+    if (!isEditorOpen) return undefined;
 
-    const loadCatalogCurrencies = async () => {
-      setCatalogLoading(true);
-      try {
-        const response = await fetch('https://restcountries.com/v3.1/all?fields=name,currencies,cca2,translations');
-        if (!response.ok) throw new Error('فشل جلب كتالوج العملات');
-        const rows = await response.json();
-        const map = new Map();
-
-        (Array.isArray(rows) ? rows : []).forEach((country) => {
-          const countryName = getArabicCountryName(country);
-          const countrySearchName = [
-            countryName,
-            country?.name?.common || '',
-            country?.translations?.eng?.common || '',
-          ].filter(Boolean).join(' ');
-
-          Object.entries(country?.currencies || {}).forEach(([code, info]) => {
-            const normalizedCode = String(code || '').toUpperCase();
-            if (!normalizedCode) return;
-            const englishName = info?.name || normalizedCode;
-            const arabicName = getArabicCurrencyName(normalizedCode, englishName);
-
-            const existing = map.get(normalizedCode);
-            if (!existing) {
-              map.set(normalizedCode, {
-                code: normalizedCode,
-                name: arabicName,
-                englishName,
-                symbol: info?.symbol || normalizedCode,
-                countries: [countryName],
-                countrySearchNames: [countrySearchName],
-              });
-            } else {
-              existing.countries.push(countryName);
-              existing.countrySearchNames.push(countrySearchName);
-            }
-          });
-        });
-
-        const list = Array.from(map.values())
-          .map((item) => ({
-            ...item,
-            countries: Array.from(new Set(item.countries)),
-            countrySearchNames: Array.from(new Set(item.countrySearchNames)),
-          }))
-          .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-
-        if (isMounted) {
-          setCatalogCurrencies(list);
-        }
-      } catch (_error) {
-        if (isMounted) {
-          setCatalogCurrencies([]);
-        }
-      } finally {
-        if (isMounted) {
-          setCatalogLoading(false);
-        }
-      }
-    };
-
-    loadCatalogCurrencies();
-
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
-      isMounted = false;
+      document.body.style.overflow = previousOverflow;
     };
-  }, []);
+  }, [isEditorOpen]);
 
   const existingCodes = useMemo(
     () => new Set((currencies || []).map((item) => String(item.code || '').toUpperCase())),
@@ -330,12 +324,14 @@ const AdminCurrencies = () => {
         || item.name.toLocaleLowerCase('ar').includes(query)
         || String(item.englishName || '').toLocaleLowerCase('ar').includes(query)
         || String(item.symbol || '').toLowerCase().includes(query)
-        || item.countries.some((country) => country.toLocaleLowerCase('ar').includes(query))
+        || item.countries.some((country) => (
+          `${country.name} ${country.englishName} ${country.code}`.toLocaleLowerCase('ar').includes(query)
+        ))
         || (item.countrySearchNames || []).some((country) => country.toLocaleLowerCase('ar').includes(query))
       ))
       : selectableCatalogCurrencies;
 
-    return rows.slice(0, 120);
+    return rows;
   }, [catalogSearch, selectableCatalogCurrencies]);
 
   const visibleCurrencies = useMemo(() => {
@@ -420,12 +416,14 @@ const AdminCurrencies = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const payload = {
-      code: form.code.trim().toUpperCase(),
-      name: form.name.trim(),
-      symbol: form.symbol.trim(),
-      rate: Number(form.rate),
-    };
+    const payload = editingCode
+      ? { rate: Number(form.rate) }
+      : {
+        code: form.code.trim().toUpperCase(),
+        name: form.name.trim(),
+        symbol: form.symbol.trim(),
+        rate: Number(form.rate),
+      };
 
     // Include debt adjustment flag when editing and rate changed
     if (editingCode && applyDebtAdjustment && rateChangePercent !== null) {
@@ -433,6 +431,7 @@ const AdminCurrencies = () => {
     }
 
     try {
+      setIsSavingCurrency(true);
       if (editingCode) {
         const result = await updateCurrency(editingCode, payload, user);
         if (result?.debtAdjustment) {
@@ -450,6 +449,8 @@ const AdminCurrencies = () => {
       resetForm();
     } catch (error) {
       addToast(error?.message || 'فشل حفظ العملة', 'error');
+    } finally {
+      setIsSavingCurrency(false);
     }
   };
 
@@ -490,7 +491,7 @@ const AdminCurrencies = () => {
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">
               <Globe2 className="h-3.5 w-3.5" />
-              REST Countries API
+              مكتبة بيانات العملات العالمية
             </p>
             <h1 className="mt-3 text-2xl font-black text-[var(--color-text)] sm:text-3xl">إدارة العملات</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
@@ -525,7 +526,7 @@ const AdminCurrencies = () => {
                   كتالوج العملات العالمي
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">
-                  ابحث بالكود أو الاسم أو الدولة، ثم اختر العملة لتعبئة البيانات تلقائيًا.
+                  كل بطاقة تعرض رمز العملة واسمها والدول التي تستخدمها. اختر بطاقة لفتح إضافة العملة.
                 </p>
               </div>
               {catalogLoading ? <RefreshCw className="h-4 w-4 animate-spin text-[var(--color-primary)]" /> : null}
@@ -547,29 +548,74 @@ const AdminCurrencies = () => {
               </Button>
             </div>
 
-            <div className="mt-3">
-              <select
-                value={selectedCatalogCode}
-                onChange={(e) => handleCatalogPick(e.target.value)}
-                disabled={catalogLoading}
-                className={selectClassName}
-              >
-                <option value="">
-                  {catalogLoading ? 'جاري تحميل العملات العالمية...' : 'اختر عملة من الكتالوج لفتح بطاقة الإضافة'}
-                </option>
-                {visibleCatalogCurrencies.map((item) => (
-                  <option key={item.code} value={item.code}>
-                    {item.name} - {item.code} ({item.symbol})
-                  </option>
-                ))}
-              </select>
+            <div className="mt-4 overflow-hidden rounded-[1.1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-surface-rgb)/0.42)]">
+              <div className="flex items-center justify-between gap-3 border-b border-[color:rgb(var(--color-border-rgb)/0.62)] px-3 py-2.5 text-xs">
+                <span className="font-bold text-[var(--color-text-secondary)]">اختر عملة من الكتالوج لفتح بطاقة الإضافة</span>
+                <span className="rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.1)] px-2.5 py-1 font-black text-[var(--color-primary)]">
+                  {visibleCatalogCurrencies.length} عملة
+                </span>
+              </div>
+
+              <div className="grid max-h-[30rem] grid-cols-1 gap-2 overflow-y-auto p-3 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleCatalogCurrencies.map((item) => {
+                  const isSelected = selectedCatalogCode === item.code;
+                  const primaryCountry = item.countries[0];
+                  return (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => handleCatalogPick(item.code)}
+                      className={`group rounded-[1rem] border p-3 text-right transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
+                        isSelected
+                          ? 'border-[color:rgb(var(--color-primary-rgb)/0.62)] bg-[color:rgb(var(--color-primary-rgb)/0.11)] shadow-[0_12px_28px_-20px_rgb(var(--color-primary-rgb)/0.9)]'
+                          : 'border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-card-rgb)/0.78)] hover:border-[color:rgb(var(--color-primary-rgb)/0.38)]'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-black text-[var(--color-text)]">{item.name}</p>
+                          <p className="mt-0.5 truncate text-xs text-[var(--color-text-secondary)]">{item.englishName}</p>
+                        </div>
+                        <span className="shrink-0 rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-2.5 py-1.5 text-sm font-black text-[var(--color-primary)]">
+                          {item.symbol}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-2 border-t border-[color:rgb(var(--color-border-rgb)/0.58)] pt-2.5">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="text-lg leading-none" aria-hidden="true">{primaryCountry?.flag || '🌐'}</span>
+                          <span className="truncate text-xs font-semibold text-[var(--color-text-secondary)]">
+                            {primaryCountry?.name || 'دولة غير معروفة'}
+                          </span>
+                        </div>
+                        <span className="shrink-0 rounded-md bg-[color:rgb(var(--color-elevated-rgb)/0.86)] px-1.5 py-1 font-mono text-[11px] font-black text-[var(--color-text)]">
+                          {item.code}
+                        </span>
+                      </div>
+
+                      {item.flags.length > 1 ? (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-[var(--color-muted)]">
+                          <span className="tracking-[-0.15em]">{item.flags.slice(1, 4).join('')}</span>
+                          <span>{item.countries.length} دول</span>
+                        </div>
+                      ) : null}
+                    </button>
+                  );
+                })}
+
+                {!catalogLoading && visibleCatalogCurrencies.length === 0 ? (
+                  <div className="col-span-full py-10 text-center text-sm font-semibold text-[var(--color-text-secondary)]">
+                    لا توجد عملة مطابقة للبحث أو أن جميع النتائج مضافة بالفعل.
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
       </Card>
 
       {isEditorOpen && (
-        <div className="fixed inset-0 z-[260] flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-[260] flex items-center justify-center overflow-hidden bg-slate-950/35 p-3 backdrop-blur-sm sm:p-6">
           <button
             type="button"
             aria-label="إغلاق بيانات العملة"
@@ -579,42 +625,54 @@ const AdminCurrencies = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="relative max-h-[calc(100vh-1.5rem)] w-full max-w-4xl overflow-y-auto rounded-[1.35rem] border border-[color:rgb(var(--color-border-rgb)/0.9)] bg-[linear-gradient(180deg,rgb(var(--color-card-rgb)/0.99),rgb(var(--color-elevated-rgb)/0.96))] p-4 shadow-[0_34px_90px_-42px_rgba(0,0,0,0.78)] sm:p-5"
+            className="relative my-auto w-full max-w-2xl overflow-hidden rounded-[1.5rem] border border-[color:rgb(var(--color-primary-rgb)/0.24)] bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/1),rgb(var(--color-elevated-rgb)/0.98))] shadow-[0_34px_100px_-36px_rgba(0,0,0,0.85)]"
           >
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="flex items-center gap-2 text-lg font-black text-[var(--color-text)]">
-                  <CircleDollarSign className="h-5 w-5 text-[var(--color-primary)]" />
-                  {editingCode ? `تحديث ${editingCode}` : 'بيانات العملة'}
-                </h2>
-                <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-                  سعر الصرف محسوب مقابل الدولار الأمريكي، ويفضل ترك USD بقيمة 1.
-                </p>
+            <div className="border-b border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-primary-rgb)/0.06)] px-4 py-4 sm:px-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),rgb(var(--color-primary-rgb)/0.62))] text-white shadow-lg shadow-[color:rgb(var(--color-primary-rgb)/0.2)]">
+                    <CircleDollarSign className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-lg font-black text-[var(--color-text)]">
+                      {editingCode ? `تحديث ${editingCode}` : 'إضافة عملة جديدة'}
+                    </h2>
+                    <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">
+                      {editingCode
+                        ? 'عدّل سعر الصرف فقط؛ كود واسم ورمز العملة ثابتة بعد إضافتها.'
+                        : 'سعر الصرف محسوب مقابل الدولار الأمريكي، ويفضل ترك USD بقيمة 1.'}
+                    </p>
+                  </div>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={resetForm} className="shrink-0">
+                  <X className="h-4 w-4" />
+                  إغلاق
+                </Button>
               </div>
-              <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
-                <X className="h-4 w-4" />
-                إغلاق
-              </Button>
             </div>
 
+            <div className="p-4 sm:p-6">
             {selectedCatalogCurrency && !editingCode ? (
-              <div className="mb-4 rounded-[1rem] border border-[color:rgb(var(--color-primary-rgb)/0.22)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] p-3">
+              <div className="mb-5 rounded-[1.1rem] border border-[color:rgb(var(--color-primary-rgb)/0.25)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xl font-black text-[var(--color-text)]">{selectedCatalogCurrency.code}</p>
-                    <p className="mt-0.5 text-sm font-semibold text-[var(--color-text-secondary)]">{selectedCatalogCurrency.name}</p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="text-3xl leading-none">{selectedCatalogCurrency.countries[0]?.flag || '🌐'}</span>
+                    <div className="min-w-0">
+                      <p className="font-mono text-xl font-black text-[var(--color-text)]">{selectedCatalogCurrency.code}</p>
+                      <p className="mt-0.5 truncate text-sm font-semibold text-[var(--color-text-secondary)]">{selectedCatalogCurrency.name}</p>
+                    </div>
                   </div>
-                  <span className="flex h-11 min-w-11 items-center justify-center rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.28)] bg-[color:rgb(var(--color-card-rgb)/0.8)] px-3 text-lg font-black text-[var(--color-primary)]">
+                  <span className="flex h-12 min-w-12 items-center justify-center rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.28)] bg-[color:rgb(var(--color-card-rgb)/0.8)] px-3 text-lg font-black text-[var(--color-primary)]">
                     {selectedCatalogCurrency.symbol}
                   </span>
                 </div>
                 <p className="mt-3 line-clamp-2 text-xs leading-5 text-[var(--color-muted)]">
-                  الدول: {selectedCatalogCurrency.countries.slice(0, 6).join('، ')}
+                  الدول: {selectedCatalogCurrency.countries.slice(0, 6).map((country) => country.name).join('، ')}
                 </p>
               </div>
             ) : null}
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
                 label="كود العملة"
                 value={form.code}
@@ -627,12 +685,14 @@ const AdminCurrencies = () => {
                 value={form.name}
                 onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                 placeholder="دولار أمريكي"
+                disabled={Boolean(editingCode)}
               />
               <Input
                 label="علامة العملة"
                 value={form.symbol}
                 onChange={(e) => setForm((prev) => ({ ...prev, symbol: e.target.value }))}
                 placeholder="$"
+                disabled={Boolean(editingCode)}
               />
               <Input
                 label="سعر الصرف"
@@ -685,17 +745,18 @@ const AdminCurrencies = () => {
             </div>
           )}
 
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Button type="submit" className="sm:min-w-40">
-              <PlusCircle className="w-4 h-4 mr-1" />
-              {editingCode ? 'تحديث العملة' : 'إضافة عملة'}
-            </Button>
+            <div className="mt-6 flex flex-col-reverse gap-2 border-t border-[color:rgb(var(--color-border-rgb)/0.7)] pt-4 sm:flex-row sm:justify-end">
               {!editingCode && (
                 <Button type="button" variant="secondary" onClick={clearAddEditorForm}>
                   <RefreshCw className="h-4 w-4" />
                   تفريغ الحقول
                 </Button>
               )}
+              <Button type="submit" className="sm:min-w-44" disabled={isSavingCurrency}>
+                <PlusCircle className="h-4 w-4" />
+                {isSavingCurrency ? 'جارٍ الحفظ...' : (editingCode ? 'تحديث العملة' : 'إضافة العملة')}
+              </Button>
+            </div>
             </div>
           </form>
         </div>

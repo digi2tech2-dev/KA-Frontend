@@ -16,7 +16,6 @@ import {
   ACCOUNT_VERIFICATION_ROUTE,
 } from './utils/accountStatus';
 import useAuthStore from './store/useAuthStore';
-import DeveloperApi from './pages/DeveloperApi';
 import { routeLoaders } from './transitions/routeModules';
 
 const Layout = lazy(routeLoaders.Layout);
@@ -57,6 +56,7 @@ const TargetOrders = lazy(routeLoaders.TargetOrders);
 const AddBalance = lazy(routeLoaders.AddBalance);
 const WalletTopupHistory = lazy(routeLoaders.WalletTopupHistory);
 const PaymentDetails = lazy(routeLoaders.PaymentDetails);
+const DeveloperApi = lazy(routeLoaders.DeveloperApi);
 
 const ADMIN_PANEL_ROLES = [...ADMIN_ROLES, ...SUPERVISOR_ROLES];
 
@@ -171,7 +171,7 @@ const AnimatedAppRoutes = ({ location }) => {
           path="/developers/api"
           element={(
             <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
-              <DeveloperApi />
+              {renderSuspended(<DeveloperApi />)}
             </ProtectedRoute>
           )}
         />

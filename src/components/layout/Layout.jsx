@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { MotionConfig } from 'framer-motion';
 import { ArrowLeft, ArrowRight, ClipboardList } from 'lucide-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
@@ -14,17 +15,25 @@ import {
   getDashboardPathForRole,
   registerVisitedPath,
 } from '../../utils/navigation';
+import { isLitePerformanceMode } from '../../utils/performanceMode';
+
+const MOBILE_SIDEBAR_QUERY = '(max-width: 1023px)';
+
+const getInitialMobileState = () => (
+  typeof window !== 'undefined' && window.matchMedia(MOBILE_SIDEBAR_QUERY).matches
+);
 
 const Layout = ({ children = null }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(getInitialMobileState);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => !getInitialMobileState());
   const { dir, language } = useLanguage();
   const { user } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
+  const performanceLite = isLitePerformanceMode();
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    const mediaQuery = window.matchMedia(MOBILE_SIDEBAR_QUERY);
     const handleViewportChange = (event = mediaQuery) => {
       const mobile = event.matches;
       setIsMobile((current) => (current === mobile ? current : mobile));
@@ -89,6 +98,11 @@ const Layout = ({ children = null }) => {
   );
 
   const handleGoBack = () => {
+    if (isBuyTargetPage) {
+      window.dispatchEvent(new Event('ka:buy-target-back'));
+      return;
+    }
+
     if (window.history.length > 1) {
       navigate(-1);
       return;
@@ -98,8 +112,9 @@ const Layout = ({ children = null }) => {
   };
 
   return (
+    <MotionConfig reducedMotion={performanceLite ? 'always' : 'user'}>
     <div className={`relative min-h-screen overflow-x-clip bg-transparent text-[var(--color-text)] ${isAdminPage ? 'layout-admin-light' : ''}`}>
-      <AmbientBackground />
+      {!performanceLite ? <AmbientBackground /> : null}
       {typeof document !== 'undefined' ? createPortal(fixedShell, document.body) : fixedShell}
 
       <div
@@ -153,6 +168,7 @@ const Layout = ({ children = null }) => {
       </div>
       <BackToTopButton />
     </div>
+    </MotionConfig>
   );
 };
 

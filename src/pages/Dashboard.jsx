@@ -7,6 +7,7 @@ import useMediaStore from '../store/useMediaStore';
 import useGroupStore from '../store/useGroupStore';
 import HeroSlider from '../components/home/HeroSlider';
 import CategoryCard from '../components/home/CategoryCard';
+import BestSellingSection from '../components/home/BestSellingSection';
 import ProductSearchBar from '../components/products/ProductSearchBar';
 import ProductPurchaseDialog from '../components/products/ProductPurchaseDialog';
 import slideOneHeroImage from '../assets/slide-1.jpg';
@@ -15,8 +16,6 @@ import slideThreeHeroImage from '../assets/slide-3.jpg';
 import slideFourHeroImage from '../assets/slide-4.jpg';
 import slideFiveHeroImage from '../assets/slide-5.jpg';
 import targetBannerImage from '../assets/تارجت.jpg';
-import coinsImage from '../assets/logo.svg';
-import { resolveImageUrl } from '../utils/imageUrl';
 import {
   createStorefrontCategories,
   createStorefrontProducts,
@@ -239,62 +238,17 @@ const Dashboard = () => {
       ) : null}
 
       {bestSellingProducts.length ? (
-        <section className="mx-auto w-full max-w-5xl overflow-hidden rounded-[1.35rem] border border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(145deg,rgb(var(--color-card-rgb)/0.9),rgb(var(--color-primary-rgb)/0.045))] p-3 shadow-[0_20px_55px_-45px_rgb(var(--color-primary-rgb)/0.65)] sm:p-5" aria-labelledby="best-selling-title">
-          <div className="mb-3.5 flex items-center justify-between gap-3 sm:mb-4">
-            <div className="flex items-center gap-2.5">
-              <span className="h-7 w-1 rounded-full bg-[linear-gradient(180deg,var(--color-primary),rgb(var(--color-primary-rgb)/0.35))]" aria-hidden="true" />
-              <h2 id="best-selling-title" className="text-base font-black text-[var(--color-text)] sm:text-lg">
-                {language === 'ar' ? 'الأكثر مبيعًا' : 'Best sellers'}
-              </h2>
-            </div>
-            <Link to="/products" className="inline-flex min-h-8 items-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] px-3 text-[0.7rem] font-extrabold text-[var(--color-primary)] transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:bg-[color:rgb(var(--color-primary-rgb)/0.13)] sm:text-xs">
-              {language === 'ar' ? 'عرض الكل' : 'View all'}
-            </Link>
-          </div>
-
-          <div
-            className="scrollbar-hide flex snap-x snap-mandatory items-stretch gap-2.5 overflow-x-auto scroll-smooth pb-1 sm:gap-3"
-            dir={language === 'ar' ? 'rtl' : 'ltr'}
-          >
-            {bestSellingProducts.map((product) => {
-              const productName = product.displayName || product.nameAr || product.name || '';
-              const imageSrc = product.image ? resolveImageUrl(product.image) : coinsImage;
-              const isUnavailable = product.storefrontStatus?.isPurchasable === false;
-              const unavailableLabel = product.storefrontStatus?.badgeLabel || (language === 'ar' ? 'غير متاح' : 'Unavailable');
-
-              return (
-                <button
-                  key={product.id}
-                  type="button"
-                  onClick={() => {
-                    if (!isUnavailable) openPurchaseDialog(product);
-                  }}
-                  disabled={isUnavailable}
-                  className={`group relative isolate min-w-[42%] snap-start overflow-hidden rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-card-rgb)/0.82)] p-2 text-start shadow-[0_14px_34px_-30px_rgb(var(--color-primary-rgb)/0.72)] transition-all hover:-translate-y-1 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:shadow-[0_20px_42px_-30px_rgb(var(--color-primary-rgb)/0.82)] min-[430px]:min-w-[32%] sm:min-w-[23%] sm:p-2.5 lg:min-w-[18%] ${isUnavailable ? 'cursor-not-allowed hover:translate-y-0' : ''}`}
-                  aria-label={productName}
-                >
-                  <span className="best-selling-media relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[0.78rem] border border-[color:rgb(var(--color-border-rgb)/0.45)] bg-[radial-gradient(circle_at_50%_36%,rgb(var(--color-primary-rgb)/0.09),rgb(var(--color-surface-rgb)/0.78))]">
-                    <img
-                      src={imageSrc}
-                      alt={productName}
-                      className={`best-selling-image h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.06] ${isUnavailable ? 'opacity-45 grayscale-[0.35]' : ''}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    {isUnavailable ? <span className="absolute inset-0 bg-[color:rgb(var(--color-card-rgb)/0.22)]" aria-hidden="true" /> : null}
-                  </span>
-                  <span className="mt-2.5 line-clamp-2 block min-h-10 text-[0.75rem] font-extrabold leading-5 text-[var(--color-text)] sm:text-[0.82rem]">
-                    {productName}
-                  </span>
-                  <span className={`mt-1.5 inline-flex items-center gap-1.5 text-[0.65rem] font-bold sm:text-[0.7rem] ${isUnavailable ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${isUnavailable ? 'bg-rose-500' : 'bg-emerald-500'}`} aria-hidden="true" />
-                    {isUnavailable ? unavailableLabel : (language === 'ar' ? 'متوفر للطلب' : 'Available now')}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+        <BestSellingSection
+          id="best-selling-title"
+          title={language === 'ar' ? 'الأكثر مبيعًا' : 'Best sellers'}
+          viewAllLabel={language === 'ar' ? 'عرض الكل' : 'View all'}
+          products={bestSellingProducts}
+          categories={storefrontCategories}
+          language={language}
+          onViewAll={() => navigate('/products')}
+          onProductSelect={openPurchaseDialog}
+          disableUnavailable
+        />
       ) : null}
 
       <ProductPurchaseDialog

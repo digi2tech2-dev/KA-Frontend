@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '../ui/Button';
-import lockChainImage from '../../assets/قفل.PNG';
+import lockChainImage from '../../assets/lock-overlay.webp';
 
 const sizeClasses = {
   xs: {
@@ -49,6 +49,8 @@ const UnavailableLockOverlay = ({ label = 'غير متوفر', size = 'md', clas
       <img
         src={lockChainImage}
         alt=""
+        loading="lazy"
+        decoding="async"
         draggable="false"
         className={cn(
           'absolute z-50 max-w-none opacity-[0.92] drop-shadow-[0_16px_20px_rgb(15_23_42/0.26)] dark:opacity-[0.86] dark:drop-shadow-[0_16px_20px_rgb(0_0_0/0.42)]',

@@ -38,6 +38,8 @@ const STATUS_ALIASES = {
   success: 'completed',
   rejected: 'rejected',
   denied: 'rejected',
+  failed: 'rejected',
+  refunded: 'rejected',
   cancelled: 'cancelled',
   canceled: 'cancelled',
 };

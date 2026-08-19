@@ -7,7 +7,10 @@ const ENTER_DURATION = 360;
 
 const prefersReducedMotion = () => (
   typeof window !== 'undefined'
-  && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  && (
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    || document.documentElement.classList.contains('performance-lite')
+  )
 );
 
 const clearTransitionStyles = (element) => {

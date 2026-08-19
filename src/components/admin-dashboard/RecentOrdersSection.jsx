@@ -4,7 +4,7 @@ import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import Button, { cn } from '../ui/Button';
 import EmptyState from './EmptyState';
-import StatusBadge from './StatusBadge';
+import OrderStatusBadge from '../orders/OrderStatusBadge';
 
 const getOrderEmail = (order, isArabic) => (
   order?.userEmail
@@ -29,21 +29,6 @@ const isIncompleteOrder = (status) => {
   const normalizedStatus = String(status || '').trim().toLowerCase();
   return normalizedStatus !== 'completed' && normalizedStatus !== 'success';
 };
-
-const getOrderIndicatorClassName = (status) => {
-  const normalizedStatus = String(status || '').trim().toLowerCase();
-  if (normalizedStatus === 'completed' || normalizedStatus === 'success') {
-    return 'bg-[var(--color-success)]';
-  }
-
-  return 'bg-[var(--color-primary)]';
-};
-
-const getOrderQuantityBadgeClassName = (status) => (
-  isIncompleteOrder(status)
-    ? 'bg-[color:rgb(var(--color-warning-rgb)/0.14)] text-[var(--color-warning)]'
-    : 'bg-[color:rgb(var(--color-success-rgb)/0.14)] text-[var(--color-success)]'
-);
 
 const RecentOrdersSection = ({
   orders,
@@ -75,8 +60,8 @@ const RecentOrdersSection = ({
             isArabic ? 'w-full text-center' : 'text-left'
           )}>
             {isArabic
-              ? 'عرض مختصر للعميل والمنتج والعدد فقط.'
-              : 'A compact view with customer, product, and quantity only.'}
+              ? 'ملخص للعميل والمنتج والبريد والحالة والعدد.'
+              : 'A compact view with customer, product, email, status, and quantity.'}
           </p>
         </div>
         <div className={cn('flex items-center gap-1.5', isArabic ? 'flex-row-reverse' : 'flex-row')}>
@@ -109,8 +94,6 @@ const RecentOrdersSection = ({
                 className="rounded-[var(--radius-lg)] border border-[color:rgb(var(--color-border-rgb)/0.84)] bg-[color:rgb(var(--color-card-rgb)/0.76)] px-2.5 py-2"
               >
                 <div className={cn('flex items-start gap-2', isArabic && 'flex-row-reverse text-right')}>
-                  <span className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', getOrderIndicatorClassName(order.status))} />
-
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[12px] font-semibold text-[var(--color-text)]">
                       {getOrderCustomer(order)}
@@ -122,14 +105,15 @@ const RecentOrdersSection = ({
                       {getOrderEmail(order, isArabic)}
                     </p>
                     <div className={cn('mt-1 flex', isArabic ? 'justify-end' : 'justify-start')}>
-                      <StatusBadge status={order.status} isArabic={isArabic} className="px-2 py-0.5 text-[10px]" />
+                      <OrderStatusBadge
+                        status={order.status}
+                        isArabic={isArabic}
+                        className="px-2 py-0.5 text-[10px]"
+                      />
                     </div>
                   </div>
 
-                  <span className={cn(
-                    'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                    getOrderQuantityBadgeClassName(order.status)
-                  )}>
+                  <span className="shrink-0 rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.12)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-primary)]">
                     {isArabic ? `العدد ${getOrderQuantity(order)}` : `Qty ${getOrderQuantity(order)}`}
                   </span>
                 </div>
@@ -143,7 +127,7 @@ const RecentOrdersSection = ({
                       className="h-7 rounded-lg px-2 text-[10px]"
                       onClick={() => onViewOrder(order)}
                     >
-                      {isArabic ? 'مراجعة الطلب' : 'Review order'}
+                      {isArabic ? 'تفاصيل العملية' : 'Order details'}
                     </Button>
                   </div>
                 ) : null}

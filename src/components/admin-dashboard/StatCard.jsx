@@ -33,7 +33,7 @@ const StatCard = ({ title, value, note, icon: Icon, progress = 40, wide = false 
         </div>
 
         <div className="relative mt-4">
-          <p className="truncate text-[1.65rem] font-black leading-none text-[var(--color-text)] sm:text-[2.15rem]">
+          <p className="whitespace-nowrap text-[clamp(0.95rem,5.2vw,1.35rem)] font-black leading-none tracking-tight text-[var(--color-text)] sm:text-[2.15rem]">
             {value}
           </p>
           {note && (

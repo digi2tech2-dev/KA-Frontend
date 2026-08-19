@@ -1,25 +1,27 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isLitePerformanceMode } from '../../utils/performanceMode';
 
 const HeroSlider = ({ slides }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const dragStartX = useRef(null);
   const { i18n } = useTranslation();
   const hasMultipleSlides = (slides?.length || 0) > 1;
+  const performanceLite = isLitePerformanceMode();
   const isArabic = (i18n.resolvedLanguage || i18n.language || 'ar').toLowerCase().startsWith('ar');
   const verseText = isArabic
     ? 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ ﴿وَأَحَلَّ اللَّهُ الْبَيْعَ وَحَرَّمَ الرِّبَا﴾ صَدَقَ اللَّهُ الْعَظِيمُ'
     : 'In the name of Allah, the Most Gracious, the Most Merciful. Do not consume one another’s wealth unjustly, but only through trade by mutual consent.';
 
   useEffect(() => {
-    if (!hasMultipleSlides) return undefined;
+    if (!hasMultipleSlides || performanceLite) return undefined;
 
     const timer = window.setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5200);
 
     return () => window.clearInterval(timer);
-  }, [hasMultipleSlides, slides]);
+  }, [hasMultipleSlides, performanceLite, slides]);
 
   const changeSlide = useCallback((direction) => {
     if (!slides?.length) return;
@@ -62,7 +64,7 @@ const HeroSlider = ({ slides }) => {
         onPointerCancel={() => { dragStartX.current = null; }}
       >
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.13),transparent_34%)]" />
-        <div key={slide.id || currentSlide} className="absolute inset-0 animate-[fade-in_0.7s_ease-out] motion-reduce:animate-none">
+        <div key={slide.id || currentSlide} className={`absolute inset-0 ${performanceLite ? '' : 'animate-[fade-in_0.7s_ease-out] motion-reduce:animate-none'}`}>
           <SlideFrame {...slideFrameProps} className="block h-full w-full">
             <img
               src={slide.image}
@@ -83,9 +85,6 @@ const HeroSlider = ({ slides }) => {
         <div className="marquee-wrap" dir={isArabic ? 'rtl' : 'ltr'}>
           <div className={`marquee-track-smooth ${isArabic ? 'marquee-track-smooth--rtl' : 'marquee-track-smooth--ltr'}`}>
             <span className="marquee-chunk text-[11px] font-semibold tracking-[0.02em] text-[var(--color-text)] sm:text-[12px]">
-              {verseText}
-            </span>
-            <span aria-hidden="true" className="marquee-chunk text-[11px] font-semibold tracking-[0.02em] text-[var(--color-text)] sm:text-[12px]">
               {verseText}
             </span>
           </div>

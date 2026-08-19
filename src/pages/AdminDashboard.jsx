@@ -38,6 +38,7 @@ import SupplierBalancesSection from '../components/admin-dashboard/SupplierBalan
 import DashboardDateRangeFilter from '../components/admin-dashboard/DashboardDateRangeFilter';
 import OrderDetailsDrawer from '../components/orders/OrderDetailsDrawer';
 import Card from '../components/ui/Card';
+import Modal from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { formatDateTime, formatNumber, getNumericLocale } from '../utils/intl';
 import { enrichOrders } from '../utils/orders';
@@ -212,6 +213,8 @@ const AdminDashboard = () => {
   const [loadingOrderActionId, setLoadingOrderActionId] = useState('');
   const [syncingOrderId, setSyncingOrderId] = useState('');
   const [approvingTopupId, setApprovingTopupId] = useState('');
+  const [rejectingTopup, setRejectingTopup] = useState(null);
+  const [selectedTopupReceipt, setSelectedTopupReceipt] = useState(null);
   const [approvingTargetRequestId, setApprovingTargetRequestId] = useState('');
   const [rejectingTargetRequest, setRejectingTargetRequest] = useState(null);
   const [approvingUserId, setApprovingUserId] = useState('');
@@ -443,11 +446,6 @@ const AdminDashboard = () => {
     [topups]
   );
 
-  const filteredManualTopups = useMemo(
-    () => manualTopups.filter((entry) => isDateWithinRange(getTopupDashboardDate(entry), dateRange)),
-    [dateRange, manualTopups]
-  );
-
   const pendingManualTopups = useMemo(
     () => manualTopups.filter((entry) => isPendingStatus(entry?.status)),
     [manualTopups]
@@ -470,8 +468,8 @@ const AdminDashboard = () => {
   );
 
   const recentManualTopups = useMemo(
-    () => [...filteredManualTopups].sort(byNewestDate).slice(0, 6),
-    [filteredManualTopups]
+    () => [...manualTopups].sort(byNewestDate).slice(0, 6),
+    [manualTopups]
   );
 
   const filteredTargetRequests = useMemo(
@@ -927,6 +925,30 @@ const AdminDashboard = () => {
         currencyCode: topup?.currencyCode || 'USD',
         adminNote: '',
       });
+      addToast(isArabic ? 'تم قبول الإيداع وإضافة الرصيد.' : 'Deposit approved and balance added.', 'success');
+    } catch (error) {
+      addToast(error?.message || (isArabic ? 'تعذر قبول الإيداع.' : 'Unable to approve the deposit.'), 'error');
+    } finally {
+      setApprovingTopupId('');
+    }
+  };
+
+  const handleDashboardTopupReject = (topup) => {
+    if (!canViewPayments) return;
+    setRejectingTopup(topup);
+  };
+
+  const handleConfirmDashboardTopupReject = async (reason = '') => {
+    const topupId = String(rejectingTopup?.id || '').trim();
+    if (!topupId || !canViewPayments) return;
+
+    try {
+      setApprovingTopupId(topupId);
+      await updateTopupStatus(topupId, 'rejected', { adminNote: reason.trim() });
+      addToast(isArabic ? 'تم رفض الإيداع.' : 'Deposit rejected.', 'success');
+      setRejectingTopup(null);
+    } catch (error) {
+      addToast(error?.message || (isArabic ? 'تعذر رفض الإيداع.' : 'Unable to reject the deposit.'), 'error');
     } finally {
       setApprovingTopupId('');
     }
@@ -1053,7 +1075,10 @@ const AdminDashboard = () => {
               formatDate={formatDate}
               formatMoney={formatMoney}
               onApproveTopup={handleDashboardTopupApprove}
+              onRejectTopup={handleDashboardTopupReject}
+              onPreviewReceipt={setSelectedTopupReceipt}
               approvingTopupId={approvingTopupId}
+              rejectingTopupId={approvingTopupId}
             />
           ) : null}
           {canViewTargets ? (
@@ -1106,6 +1131,32 @@ const AdminDashboard = () => {
         confirmLabel={isArabic ? 'تأكيد الرفض' : 'Confirm rejection'}
         cancelLabel={isArabic ? 'إلغاء' : 'Cancel'}
       />
+
+      <RejectionReasonModal
+        isOpen={Boolean(rejectingTopup)}
+        onClose={() => setRejectingTopup(null)}
+        onConfirm={handleConfirmDashboardTopupReject}
+        title={isArabic ? 'رفض الإيداع' : 'Reject Deposit'}
+        description={isArabic ? 'سبب الرفض اختياري وسيظهر لصاحب الإيداع.' : 'The rejection reason is optional and will be visible to the depositor.'}
+        confirmLabel={isArabic ? 'تأكيد الرفض' : 'Confirm rejection'}
+        cancelLabel={isArabic ? 'إلغاء' : 'Cancel'}
+      />
+
+      <Modal
+        isOpen={Boolean(selectedTopupReceipt)}
+        onClose={() => setSelectedTopupReceipt(null)}
+        title={isArabic ? 'معاينة إيصال الإيداع' : 'Deposit Receipt Preview'}
+        size="lg"
+        className="z-[250]"
+      >
+        {selectedTopupReceipt?.receiptUrl ? (
+          <img
+            src={selectedTopupReceipt.receiptUrl}
+            alt={isArabic ? 'إيصال الإيداع' : 'Deposit receipt'}
+            className="mx-auto max-h-[68vh] w-full rounded-xl object-contain"
+          />
+        ) : null}
+      </Modal>
 
     </div>
   );

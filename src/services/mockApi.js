@@ -25,6 +25,13 @@ const DELAY = 800; // Simulated network latency in ms
 const ACCOUNT_SECURITY_STORAGE_KEY = 'ka-card-account-security-v1';
 const AUTH_STORAGE_KEY = 'auth-storage';
 
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(reader.error || new Error('Could not read image file.'));
+  reader.readAsDataURL(file);
+});
+
 // In-memory simulated "Database"; auth uses localStorage to match real persistence.
 const __inMemoryDB = Object.create(null);
 const readAuthLocalStorage = () => {
@@ -1996,9 +2003,13 @@ const mockApi = {
           ensureCanManageUser(actor, user, 'update avatar for');
           }
 
-          user.avatar = avatar;
+          // Store image contents, not the browser File object, so the mock account
+          // keeps the selected avatar after the session is refreshed.
+          user.avatar = (typeof File !== 'undefined' && avatar instanceof File)
+            ? await readFileAsDataUrl(avatar)
+            : avatar || '';
           saveDB('admin-storage', db);
-            return sanitizeUser(user);
+          return sanitizeUser(user);
       },
 
       updateProfile: async (userId, updates, actorContext) => {

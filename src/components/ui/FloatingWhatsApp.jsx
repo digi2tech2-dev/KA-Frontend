@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/useAuthStore';
 import { isAdminRole } from '../../utils/authRoles';
 import WhatsAppContactChooser from './WhatsAppContactChooser';
-import floatingPromoTwo from '../../assets/floating-promo.png';
+import floatingPromoTwo from '../../assets/floating-promo.webp';
+import { isLitePerformanceMode } from '../../utils/performanceMode';
 
 const FloatingWhatsApp = () => {
   const [showContactChooser, setShowContactChooser] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
   const { i18n } = useTranslation();
   const location = useLocation();
   const { user } = useAuthStore();
   const shouldHideForRole = isAdminRole(user?.role);
   const isAuthPage = location.pathname === '/auth';
+
+  useEffect(() => {
+    if (isLitePerformanceMode()) return undefined;
+
+    const revealPromo = () => setShowPromo(true);
+    if (typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(revealPromo, { timeout: 2500 });
+      return () => window.cancelIdleCallback?.(idleId);
+    }
+
+    const timerId = window.setTimeout(revealPromo, 1800);
+    return () => window.clearTimeout(timerId);
+  }, []);
 
   if (shouldHideForRole || isAuthPage) {
     return null;
@@ -29,15 +44,24 @@ const FloatingWhatsApp = () => {
 
   return (
     <div className="floating-whatsapp">
-      <span className="floating-whatsapp-promos">
+      {showPromo ? <span className="floating-whatsapp-promos">
         <Link
           to="/referral"
           className="floating-whatsapp-promo"
           aria-label={isArabic ? 'افتح رابط الإحالة اكسب واسحب' : 'Open referrals, earn and withdraw'}
         >
-          <img src={floatingPromoTwo} alt="" className="floating-whatsapp-promo-image" />
+          <img
+            src={floatingPromoTwo}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            width="256"
+            height="256"
+            className="floating-whatsapp-promo-image"
+          />
         </Link>
-      </span>
+      </span> : null}
       <button
         type="button"
         onClick={() => setShowContactChooser(true)}

@@ -88,8 +88,8 @@ const useSystemStore = create((set, get) => ({
     const cacheAge = loadedAt ? (Date.now() - loadedAt) : Number.POSITIVE_INFINITY;
     const cacheIsFresh = cacheAge >= 0 && cacheAge < CURRENCIES_CACHE_TTL;
 
-    // Serve cached currencies immediately when still fresh (even if force=true).
-    if (hasCurrencies && cacheIsFresh) {
+    // A forced load is used after admin changes and must not revive stale values.
+    if (hasCurrencies && cacheIsFresh && !force) {
       return state.currencies;
     }
 
@@ -126,28 +126,42 @@ const useSystemStore = create((set, get) => ({
 
   addCurrency: async (payload, actor) => {
     const created = await apiClient.system.addCurrency(payload, actor);
-    set((state) => ({
-      currencies: [...state.currencies, created],
-      currenciesLastLoadedAt: Date.now(),
-    }));
+    const nextLoadedAt = Date.now();
+    set((state) => {
+      const currencies = [...state.currencies, created];
+      writeCurrenciesCache(currencies, nextLoadedAt);
+      return { currencies, currenciesLastLoadedAt: nextLoadedAt };
+    });
     return created;
   },
 
   updateCurrency: async (code, updates, actor) => {
     const updated = await apiClient.system.updateCurrency(code, updates, actor);
-    set((state) => ({
-      currencies: state.currencies.map((item) => (item.code === code ? updated : item)),
-      currenciesLastLoadedAt: Date.now(),
-    }));
+    const normalizedCode = String(code || '').trim().toUpperCase();
+    const nextLoadedAt = Date.now();
+    set((state) => {
+      const currencies = state.currencies.map((item) => (
+        String(item?.code || '').trim().toUpperCase() === normalizedCode
+          ? { ...item, ...updated, code: normalizedCode }
+          : item
+      ));
+      writeCurrenciesCache(currencies, nextLoadedAt);
+      return { currencies, currenciesLastLoadedAt: nextLoadedAt };
+    });
     return updated;
   },
 
   deleteCurrency: async (code, actor) => {
     await apiClient.system.deleteCurrency(code, actor);
-    set((state) => ({
-      currencies: state.currencies.filter((item) => item.code !== code),
-      currenciesLastLoadedAt: Date.now(),
-    }));
+    const normalizedCode = String(code || '').trim().toUpperCase();
+    const nextLoadedAt = Date.now();
+    set((state) => {
+      const currencies = state.currencies.filter((item) => (
+        String(item?.code || '').trim().toUpperCase() !== normalizedCode
+      ));
+      writeCurrenciesCache(currencies, nextLoadedAt);
+      return { currencies, currenciesLastLoadedAt: nextLoadedAt };
+    });
   },
 
   ensureDefaultCurrency: () => {

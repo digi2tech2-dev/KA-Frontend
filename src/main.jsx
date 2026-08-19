@@ -5,6 +5,7 @@ import './index.css';
 import './i18n';
 import { devLogger } from './utils/devLogger';
 import { cleanupVolatileAppStorage } from './utils/storageMaintenance';
+import { applyPerformanceMode } from './utils/performanceMode';
 
 const isExternalExtensionPermissionError = (value) => {
   const message = String(
@@ -42,6 +43,8 @@ const isExternalExtensionPermissionError = (value) => {
 };
 
 if (typeof window !== 'undefined') {
+  applyPerformanceMode();
+
   window.addEventListener('unhandledrejection', (event) => {
     if (isExternalExtensionPermissionError(event)) {
       event.preventDefault();

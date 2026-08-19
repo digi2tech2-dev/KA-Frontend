@@ -15,6 +15,7 @@ import {
   runBarbaInitialReveal,
   runBarbaLeave,
 } from '../../transitions/barbaTransition';
+import { isLitePerformanceMode } from '../../utils/performanceMode';
 
 const locationIdentity = (location) => [
   location?.key || 'default',
@@ -84,6 +85,7 @@ const PageTransition = ({ children }) => {
   const abortControllerRef = useRef(null);
   const commitResolverRef = useRef(null);
   const scrollPositionsRef = useRef(new Map());
+  const performanceLite = isLitePerformanceMode();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -196,14 +198,28 @@ const PageTransition = ({ children }) => {
   }, [commitLocation]);
 
   useEffect(() => {
+    if (performanceLite) return;
     latestNavigationRef.current = {
       location: routerLocation,
       navigationType,
     };
     void processNavigationQueue();
-  }, [navigationType, processNavigationQueue, routerLocation]);
+  }, [navigationType, performanceLite, processNavigationQueue, routerLocation]);
 
   useEffect(() => {
+    if (!performanceLite || routerLocation?.state?.preserveScroll) return undefined;
+
+    const frameId = window.requestAnimationFrame(() => {
+      if (!scrollToHash(routerLocation.hash)) {
+        window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [performanceLite, routerLocation.hash, routerLocation.key, routerLocation.state]);
+
+  useEffect(() => {
+    if (performanceLite) return undefined;
     if (initialRevealRef.current || !containerRef.current) return undefined;
     initialRevealRef.current = true;
 
@@ -224,7 +240,7 @@ const PageTransition = ({ children }) => {
         initialRevealRef.current = false;
       }
     };
-  }, []);
+  }, [performanceLite]);
 
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -236,6 +252,16 @@ const PageTransition = ({ children }) => {
   }, []);
 
   const namespace = getBarbaNamespace(displayedLocation);
+
+  if (performanceLite) {
+    return (
+      <div className="barba-react-wrapper">
+        <div className="barba-page-container">
+          {children(routerLocation)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-barba="wrapper" className="barba-react-wrapper">

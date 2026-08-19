@@ -1333,13 +1333,21 @@ const buildTargetAppFormData = (payload = {}, { partial = false } = {}) => {
 const buildTargetOrderFormData = (payload = {}) => {
   const formData = new FormData();
   const usesSiteWallet = payload.isSiteWalletPayment || isSiteWalletPaymentMethod(payload.paymentMethodId || payload.paymentMethod || payload.paymentMethodName);
+  const transactionReference = String(
+    payload.transactionNumber
+    || payload.transactionId
+    || payload.paymentReference
+    || (usesSiteWallet ? `site-wallet-${Date.now()}` : payload.transferNumber)
+    || ''
+  ).trim();
   formData.append('appId', String(payload.appId || payload.productId || ''));
   formData.append('coinAmount', String(payload.coinAmount ?? payload.quantity ?? ''));
   formData.append('senderId', String(payload.senderId || payload.transferFromId || payload.playerId || '').trim());
   formData.append('transferNumber', String(payload.transferNumber || payload.paymentAccount || (usesSiteWallet ? 'محفظة الموقع' : '')).trim());
-  formData.append('transactionNumber', String(payload.transactionNumber || payload.transactionId || payload.paymentReference || (usesSiteWallet ? `site-wallet-${Date.now()}` : '')).trim());
-  formData.append('paymentReference', String(payload.paymentReference || payload.transactionNumber || payload.transactionId || (usesSiteWallet ? 'site-wallet' : '')).trim());
+  formData.append('transactionNumber', transactionReference);
+  formData.append('paymentReference', transactionReference);
   formData.append('paymentMethod', String(payload.paymentMethod || payload.paymentMethodName || '').trim());
+  appendIfPresent(formData, 'paymentMethodName', String(payload.paymentMethodName || '').trim());
   appendIfPresent(formData, 'paymentMethodId', String(payload.paymentMethodId || '').trim());
   if (usesSiteWallet) formData.append('transferImageUrl', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==');
   appendIfPresent(formData, 'userName', String(payload.userName || '').trim());
@@ -4030,15 +4038,24 @@ const realApi = {
      * FE may send: { rate, platformRate, markupPercentage, isActive, applyDebtAdjustment }
      */
     updateCurrency: async (code, updates, _actorContext) => {
+      const currencyCode = String(code || '').trim().toUpperCase();
+      if (!currencyCode) throw new Error('Currency code is required');
+
       const body = {};
       // Map FE `rate` to BE `platformRate`
       const rate = updates.platformRate ?? updates.rate;
-      if (rate !== undefined) body.platformRate = Number(rate);
+      if (rate !== undefined) {
+        const platformRate = Number(rate);
+        if (!Number.isFinite(platformRate) || platformRate <= 0) {
+          throw new Error('Currency rate must be a positive number');
+        }
+        body.platformRate = platformRate;
+      }
       if (updates.markupPercentage !== undefined) body.markupPercentage = Number(updates.markupPercentage);
       if (updates.isActive !== undefined) body.isActive = updates.isActive;
       if (updates.applyDebtAdjustment) body.applyDebtAdjustment = true;
 
-      const res = await http.patch(`/admin/currencies/${code}`, body);
+      const res = await http.patch(`/admin/currencies/${encodeURIComponent(currencyCode)}`, body);
       const data = unwrap(res);
       const currency = normaliseCurrency(data?.currency || data);
       const debtAdjustment = data?.debtAdjustment || null;

@@ -37,6 +37,7 @@ export const routeLoaders = {
   AddBalance: () => import('../pages/AddBalance'),
   WalletTopupHistory: () => import('../pages/WalletTopupHistory'),
   PaymentDetails: () => import('../pages/PaymentDetails'),
+  DeveloperApi: () => import('../pages/DeveloperApi'),
 };
 
 const publicPaths = new Set([
@@ -83,6 +84,7 @@ const routeMatchers = [
   [/^\/wallet\/add-balance\/?$/, routeLoaders.AddBalance],
   [/^\/wallet\/(?:topups|topup-history)\/?$/, routeLoaders.WalletTopupHistory],
   [/^\/wallet\/payment-details\/[^/]+\/?$/, routeLoaders.PaymentDetails],
+  [/^\/developers\/api\/?$/, routeLoaders.DeveloperApi],
   [/^\/(?:admin|manager\/dashboard|supervisor\/dashboard)\/?$/, routeLoaders.AdminDashboard],
   [/^\/admin\/dashboard\/?$/, routeLoaders.AdminDashboard],
   [/^\/admin\/users\/?$/, routeLoaders.AdminUsers],

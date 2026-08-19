@@ -4,9 +4,10 @@ import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import Button, { cn } from '../ui/Button';
 import EmptyState from './EmptyState';
+import { normalizeTargetOrderStatus } from '../../utils/targetOrders';
 
-const isPendingTarget = (status) => String(status || '').trim().toLowerCase() === 'pending';
-const isRejectedTarget = (status) => String(status || '').trim().toLowerCase() === 'rejected';
+const isPendingTarget = (status) => normalizeTargetOrderStatus(status) === 'PENDING';
+const isRejectedTarget = (status) => normalizeTargetOrderStatus(status) === 'REJECTED';
 
 const copyText = (value) => {
   const text = String(value || '').trim();
@@ -16,15 +17,15 @@ const copyText = (value) => {
 
 const getStatusVariant = (status) => {
   if (isRejectedTarget(status)) return 'danger';
-  if (String(status || '').trim().toLowerCase() === 'done') return 'success';
+  if (normalizeTargetOrderStatus(status) === 'APPROVED') return 'success';
   return 'warning';
 };
 
 const getStatusLabel = (status, isArabic) => {
-  if (!isArabic) return status || 'Pending';
-  if (isRejectedTarget(status)) return 'مرفوض';
-  if (String(status || '').trim().toLowerCase() === 'done') return 'تم';
-  return 'معلّق';
+  const normalizedStatus = normalizeTargetOrderStatus(status);
+  if (normalizedStatus === 'REJECTED') return isArabic ? 'مرفوض' : 'Rejected';
+  if (normalizedStatus === 'APPROVED') return isArabic ? 'مقبول' : 'Approved';
+  return isArabic ? 'قيد الانتظار' : 'Pending';
 };
 
 const TargetRequestsReviewSection = ({
@@ -40,7 +41,7 @@ const TargetRequestsReviewSection = ({
   const canReviewRequests = Boolean(onApproveRequest && onRejectRequest);
 
   return (
-    <Card variant="elevated" className="mx-auto flex max-h-[26rem] w-[calc(100vw-1.5rem)] max-w-[24rem] flex-col overflow-hidden p-3 sm:w-full sm:max-w-[42rem] sm:p-4 xl:max-w-none">
+    <Card variant="elevated" className="mx-auto flex w-[calc(100vw-1.5rem)] max-w-[24rem] flex-col overflow-hidden p-3 sm:w-full sm:max-w-[42rem] sm:p-4 xl:max-w-none">
       <div className={cn(
         'mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between',
         isArabic ? 'items-end text-right sm:flex-row-reverse' : 'items-start text-left'
@@ -69,8 +70,11 @@ const TargetRequestsReviewSection = ({
             : 'Target requests will appear here as soon as users submit them.'}
         />
       ) : (
-        <div className="flex-1 overflow-y-auto pe-1">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className={cn(
+          'overflow-y-auto pe-1.5',
+          requests.length > 2 ? 'h-[26rem]' : 'max-h-[26rem]'
+        )}>
+          <div className="space-y-2.5">
             {requests.map((request) => {
               const isPending = isPendingTarget(request.status);
               const isRejected = isRejectedTarget(request.status);
@@ -83,12 +87,17 @@ const TargetRequestsReviewSection = ({
                 <article
                   key={request.id}
                   className={cn(
-                    'rounded-[1rem] border p-2.5 sm:p-3',
+                    'relative overflow-hidden rounded-[1.15rem] border p-3 sm:p-3.5',
                     isPending
-                      ? 'border-[color:rgb(var(--color-warning-rgb)/0.36)] bg-[color:rgb(var(--color-warning-rgb)/0.08)]'
+                      ? 'border-[color:rgb(var(--color-warning-rgb)/0.42)] bg-[linear-gradient(135deg,rgb(var(--color-warning-rgb)/0.13),rgb(var(--color-card-rgb)/0.88))]'
                       : 'border-[color:rgb(var(--color-border-rgb)/0.85)] bg-[color:rgb(var(--color-card-rgb)/0.78)]'
                   )}
                 >
+                  <span className={cn(
+                    'absolute inset-y-0 w-1',
+                    isArabic ? 'right-0' : 'left-0',
+                    isPending ? 'bg-[var(--color-warning)]' : (isRejected ? 'bg-[var(--color-error)]' : 'bg-[var(--color-success)]')
+                  )} />
                   <div className={cn('flex items-start justify-between gap-2', isArabic && 'flex-row-reverse text-right')}>
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-semibold text-[var(--color-text)]">

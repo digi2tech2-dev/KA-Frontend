@@ -107,18 +107,31 @@
 }
 
 .purchase-dialog-description {
-  margin: 0.55rem 0 0;
-  border: 1px solid rgb(148 163 184 / 0.12);
-  border-radius: 0.85rem;
-  background: rgb(15 23 42 / 0.28);
-  color: rgb(226 232 240 / 0.74);
-  font-size: 0.7rem;
-  font-weight: 800;
-  line-height: 1.65;
-  padding: 0.62rem 0.7rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: -0.1rem 0 0.9rem;
+  border: 1px solid rgb(56 189 248 / 0.24);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgb(14 116 144 / 0.16), rgb(15 23 42 / 0.42));
+  color: rgb(226 232 240 / 0.84);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.7;
+  padding: 0.75rem 0.8rem;
   overflow-wrap: anywhere;
   text-align: start;
   white-space: normal;
+}
+
+.purchase-dialog-description p {
+  margin: 0;
+}
+
+.purchase-dialog-description-icon {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: #67e8f9;
 }
 
 .purchase-dialog-product h2 {
@@ -2111,7 +2124,14 @@
 }
 
 .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-description {
-  display: none;
+  display: flex;
+  border-color: rgb(var(--checkout-cyan) / 0.3);
+  background: linear-gradient(115deg, rgb(var(--checkout-violet) / 0.14), rgb(6 18 43 / 0.86), rgb(var(--checkout-cyan) / 0.1));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 15px 30px -28px rgb(var(--checkout-cyan) / 0.9);
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-description-icon {
+  color: #a5f3fc;
 }
 
 .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card,
@@ -2787,5 +2807,479 @@
     width: 3rem;
     height: 3rem;
     border-radius: 0.85rem;
+  }
+}
+
+/* Compact mobile checkout: keeps the standard purchase flow visible in one screen. */
+@media (max-width: 640px) {
+  .purchase-dialog-overlay {
+    align-items: center;
+    padding: max(0.3rem, env(safe-area-inset-top)) max(0.4rem, env(safe-area-inset-right)) max(0.3rem, env(safe-area-inset-bottom)) max(0.4rem, env(safe-area-inset-left));
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) {
+    width: min(100%, 22rem);
+    max-height: calc(100dvh - 0.6rem);
+    overflow-y: auto;
+    border-radius: 1rem;
+    padding: 0.55rem;
+    background: rgb(var(--color-card-rgb) / 0.99);
+    box-shadow: 0 16px 46px -28px rgb(0 0 0 / 0.72);
+    scrollbar-width: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow)::-webkit-scrollbar {
+    display: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow)::after,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-grid {
+    display: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-close {
+    top: 0.5rem;
+    inset-inline-end: 0.5rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-close svg {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: 2.7rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.4rem;
+    padding: 0.05rem 2.15rem 0.4rem 0.05rem;
+    border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.64);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: start;
+  }
+
+  [dir="ltr"] .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product {
+    padding: 0.05rem 0.05rem 0.4rem 2.15rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-platform-logo {
+    display: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product-visual,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-image {
+    width: 2.7rem;
+    height: 2.7rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-image {
+    border-width: 1px;
+    border-radius: 0.72rem;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    padding: 0;
+    font-size: 0.83rem;
+    line-height: 1.3;
+    text-align: start;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product h2::after,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product p {
+    display: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-product span {
+    margin-top: 0.18rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.58rem;
+    line-height: 1.25;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-price-card {
+    margin-top: 0;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card {
+    min-height: 2.35rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.4rem;
+    border-radius: 0.7rem;
+    padding: 0.35rem 0.5rem;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card span,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card strong,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card svg {
+    grid-row: auto;
+    grid-column: auto;
+    margin: 0;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card span {
+    font-size: 0.6rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card strong {
+    font-size: 0.76rem;
+    text-align: center;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-copy-card svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-field {
+    gap: 0.28rem;
+    margin-top: 0.38rem;
+    border-radius: 0.72rem;
+    padding: 0.38rem;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-field-label {
+    gap: 0.3rem;
+    font-size: 0.66rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-field-label svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    padding: 0.22rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-field input,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-field select {
+    min-height: 2.25rem;
+    border-radius: 0.62rem;
+    font-size: 0.78rem;
+    padding-block: 0;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-input-shell input {
+    padding-inline: 0.6rem 2rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-input-icon {
+    inset-inline-end: 0.65rem;
+    width: 0.82rem;
+    height: 0.82rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-field input::placeholder {
+    font-size: 0.67rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-quantity-limits {
+    gap: 0.3rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-quantity-limits span {
+    min-height: 1.35rem;
+    flex: 1;
+    justify-content: space-between;
+    border-radius: 0.5rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.56rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-quantity-limits strong {
+    font-size: 0.61rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-top: 0.38rem;
+    border: 1px solid rgb(var(--color-primary-rgb) / 0.24);
+    border-radius: 0.78rem;
+    background: rgb(var(--color-primary-rgb) / 0.055);
+    padding: 0.42rem;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-summary-title {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+    font-size: 0.67rem;
+  }
+
+  .purchase-dialog-summary-title svg {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-summary-line {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.05rem;
+    border-radius: 0.5rem;
+    background: rgb(var(--color-card-rgb) / 0.72);
+    padding: 0.22rem 0.35rem;
+    font-size: 0.56rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-summary-line strong {
+    font-size: 0.65rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total-primary,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent {
+    grid-column: 1 / -1;
+    min-height: 0;
+    gap: 0.45rem;
+    margin-top: 0;
+    padding: 0.28rem 0.35rem 0;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total-primary {
+    border-top: 1px dashed rgb(var(--color-primary-rgb) / 0.22);
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total-primary > span,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent span {
+    font-size: 0.61rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total-primary > strong {
+    font-size: 0.9rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent small {
+    display: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent strong {
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 0.72rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-actions {
+    grid-template-columns: minmax(0, 1fr) 4.8rem;
+    gap: 0.4rem;
+    margin-top: 0.42rem;
+    padding-top: 0;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-primary,
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-secondary {
+    min-height: 2.3rem;
+    border-radius: 0.65rem;
+    font-size: 0.72rem;
+    box-shadow: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-primary svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-primary::after {
+    display: none;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-error {
+    margin-top: 0.35rem;
+    border-radius: 0.65rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.67rem;
+    line-height: 1.35;
+  }
+}
+
+/* Supporting purchase details stay available without competing with the form fields. */
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-quantity-limits.is-muted {
+  display: flex;
+  gap: 0.32rem;
+  margin-top: 0.38rem;
+  opacity: 0.65;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-quantity-limits.is-muted span {
+  min-height: 1.55rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: rgb(var(--color-text-rgb) / 0.045);
+  padding: 0.14rem 0.42rem;
+  font-size: 0.6rem;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-quantity-limits.is-muted strong {
+  color: var(--color-text-secondary);
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.65rem;
+  min-height: 0;
+  margin-top: 0.48rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: rgb(var(--color-text-rgb) / 0.035);
+  box-shadow: none;
+  padding: 0.48rem 0.58rem;
+  opacity: 1;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted::after {
+  display: none;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-summary-title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  opacity: 0.58;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-summary-line,
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-usd-equivalent {
+  display: flex;
+  grid-column: auto;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  opacity: 0.58;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted span,
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted strong {
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-shadow: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-usd-equivalent {
+  grid-column: 1 / -1;
+  order: 3;
+  gap: 0.35rem;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-summary-line {
+  order: 1;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-total-primary {
+  display: flex;
+  grid-column: 1 / -1;
+  order: 2;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.55rem;
+  margin: 0.05rem 0;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.34);
+  border-radius: 0.55rem;
+  background: linear-gradient(90deg, rgb(var(--color-primary-rgb) / 0.13), rgb(var(--color-accent-rgb) / 0.1));
+  padding: 0.38rem 0.55rem;
+  opacity: 1;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-total-primary > span {
+  color: var(--color-text);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-total-primary > strong {
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-usd-equivalent small {
+  display: none;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-total.is-muted .purchase-dialog-usd-equivalent strong {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+/* Small USD equivalent row with a clear positive-value accent. */
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent {
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent span {
+  font-size: 0.66rem;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent small {
+  font-size: 0.52rem;
+}
+
+.purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent strong {
+  min-width: auto;
+  border: 1px solid rgb(34 197 94 / 0.22);
+  border-radius: 0.55rem;
+  background: rgb(34 197 94 / 0.08);
+  color: #16a34a;
+  padding: 0.24rem 0.48rem;
+  font-size: 0.76rem;
+  line-height: 1.2;
+  box-shadow: none;
+}
+
+:root.dark .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent strong {
+  color: #4ade80;
+}
+
+@media (max-width: 640px) {
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent {
+    margin-top: 0;
+    padding: 0.2rem 0.35rem 0;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent span {
+    font-size: 0.57rem;
+  }
+
+  .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent strong {
+    border: 1px solid rgb(34 197 94 / 0.2);
+    background: rgb(34 197 94 / 0.07);
+    color: #16a34a;
+    padding: 0.16rem 0.38rem;
+    font-size: 0.66rem;
+  }
+
+  :root.dark .purchase-dialog-card:not(.is-wallet-flow) .purchase-dialog-usd-equivalent strong {
+    color: #4ade80;
   }
 }

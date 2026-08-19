@@ -147,8 +147,8 @@ const TargetOrderDetailsModal = ({
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <DetailItem icon={Target} label="التطبيق" value={appName} />
-          <DetailItem icon={Coins} label="عدد الكوينز" value={formatNumber(order.coinAmount || order.quantity, 'en-US')} />
-          <DetailItem icon={Coins} label="سعر الكوين" value={`${formatNumber(order.unitPriceSnapshot || order.unitPrice, 'en-US', { maximumFractionDigits: 2 })} EGP`} />
+          <DetailItem icon={Coins} label="عدد الدولارات" value={formatNumber(order.coinAmount || order.quantity, 'en-US')} />
+          <DetailItem icon={Coins} label="سعر الدولار" value={`${formatNumber(order.unitPriceSnapshot || order.unitPrice, 'en-US', { maximumFractionDigits: 2 })} EGP`} />
           <DetailItem icon={Hash} label="ايدي المستلم للتارجت" value={targetAccountId} copyable />
           <DetailItem icon={Hash} label="معرّف الحساب" value={accountId} copyable />
           <DetailItem icon={CreditCard} label="طريقة الدفع" value={order.paymentMethod || order.paymentMethodName} />
