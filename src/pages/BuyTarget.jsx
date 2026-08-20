@@ -14,6 +14,8 @@ import {
   isPaymentMethodAllowed,
   resolveAllowedPaymentMethodValue,
 } from '../utils/paymentSettings';
+import { getTargetCommissionRate, TARGET_BASE_EXCHANGE_RATE } from '../utils/targetPricing';
+import { formatNumber } from '../utils/intl';
 
 const TARGET_DATA_REFRESH_INTERVAL = 15 * 1000;
 
@@ -124,6 +126,8 @@ const BuyTarget = () => {
     setSelectedTargetApp(app || null);
   }, []);
 
+  const selectedAppCommissionRate = getTargetCommissionRate(selectedTargetApp?.unitPrice);
+
   return (
     <div className="mx-auto max-w-4xl space-y-4 text-[var(--color-text)] sm:space-y-5">
       <header className="relative overflow-hidden rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[radial-gradient(24rem_circle_at_10%_-50%,rgb(var(--color-primary-rgb)/0.2),transparent_58%),linear-gradient(135deg,rgb(var(--color-card-rgb)/0.98),rgb(var(--color-surface-rgb)/0.86))] px-4 py-4 shadow-[0_20px_55px_-46px_rgb(var(--color-primary-rgb)/0.8)] sm:px-5">
@@ -177,13 +181,13 @@ const BuyTarget = () => {
 
       {selectedTargetApp ? (
         <div className="grid grid-cols-2 gap-2" dir="rtl">
-          <div className="rounded-xl border border-emerald-400/35 bg-[linear-gradient(145deg,rgb(6_63_42/0.8),rgb(8_34_28/0.8))] px-3 py-2.5 text-center shadow-[0_14px_30px_-24px_rgb(16_185_129/0.8)]">
-            <p className="text-[10px] font-bold text-emerald-200/80">سعر الصرف</p>
-            <strong className="mt-0.5 block text-xs font-black text-emerald-300">{selectedTargetApp.unitPrice || 0} EGP / دولار</strong>
+          <div className="rounded-xl border border-emerald-300/70 bg-emerald-50 px-3 py-2.5 text-center shadow-[0_14px_30px_-24px_rgb(16_185_129/0.45)] dark:border-emerald-400/35 dark:bg-[linear-gradient(145deg,rgb(6_63_42/0.8),rgb(8_34_28/0.8))] dark:shadow-[0_14px_30px_-24px_rgb(16_185_129/0.8)]">
+            <p className="text-[10px] font-bold text-emerald-700/80 dark:text-emerald-200/80">سعر الصرف</p>
+            <strong className="mt-0.5 block text-xs font-black text-emerald-700 dark:text-emerald-300">{TARGET_BASE_EXCHANGE_RATE} EGP / دولار</strong>
           </div>
-          <div className="rounded-xl border border-cyan-300/40 bg-[linear-gradient(145deg,rgb(8_64_80/0.82),rgb(9_36_53/0.82))] px-3 py-2.5 text-center shadow-[0_14px_30px_-24px_rgb(34_211_238/0.8)]">
-            <p className="text-[10px] font-bold text-cyan-100/80">نسبة العمولة</p>
-            <strong className="mt-0.5 block text-xs font-black text-cyan-300">{selectedTargetApp.commissionRate ?? selectedTargetApp.commissionPercentage ?? selectedTargetApp.feePercentage ?? selectedTargetApp.commission ?? 0}%</strong>
+          <div className="rounded-xl border border-cyan-300/70 bg-cyan-50 px-3 py-2.5 text-center shadow-[0_14px_30px_-24px_rgb(34_211_238/0.45)] dark:border-cyan-300/40 dark:bg-[linear-gradient(145deg,rgb(8_64_80/0.82),rgb(9_36_53/0.82))] dark:shadow-[0_14px_30px_-24px_rgb(34_211_238/0.8)]">
+            <p className="text-[10px] font-bold text-cyan-700/80 dark:text-cyan-100/80">نسبة العمولة</p>
+            <strong className="mt-0.5 block text-xs font-black text-cyan-700 dark:text-cyan-300">{formatNumber(selectedAppCommissionRate, 'en-US', { maximumFractionDigits: 2 })}%</strong>
           </div>
         </div>
       ) : null}

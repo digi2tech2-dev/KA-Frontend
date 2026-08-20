@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Copy, Landmark, Loader, ReceiptText, ShieldCheck } from 'lucide-react';
+import { AlertCircle, CheckCircle, Copy, Hash, Info, Landmark, Loader, ReceiptText, ShieldCheck, Smartphone, Sparkles, WalletCards } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import UploadReceiptBox from '../components/wallet/UploadReceiptBox';
@@ -14,12 +14,19 @@ import { inputBaseClassName, textareaClassName } from '../components/ui/Input';
 import { findPaymentMethodById } from '../utils/paymentSettings';
 import { devLogger } from '../utils/devLogger';
 import { resolveImageUrl } from '../utils/imageUrl';
+import { getCurrencySymbol } from '../utils/storefront';
 
 const normalizeMethodType = (type) => String(type || '').trim().toLowerCase();
 
 const isVodafoneCashMethod = (method) => {
   const token = `${method?.id || ''} ${method?.name || ''}`.trim().toLowerCase();
   return token.includes('vodafone') || token.includes('فودافون');
+};
+
+const requiresTransactionNumber = (method) => {
+  const type = normalizeMethodType(method?.type);
+  const isMobileWallet = ['mobile_wallet', 'e_wallet', 'ewallet'].includes(type);
+  return isMobileWallet && !isVodafoneCashMethod(method);
 };
 
 const getReceiverDestination = (method) => {
@@ -185,7 +192,7 @@ const PaymentDetails = ({
 
   const group = selectedMethodEntry?.group || null;
   const method = selectedMethodEntry?.method || null;
-  const isVodafoneCash = isVodafoneCashMethod(method);
+  const needsTransactionNumber = requiresTransactionNumber(method);
   const receiverDestination = useMemo(
     () => getReceiverDestination(method),
     [method]
@@ -205,12 +212,8 @@ const PaymentDetails = ({
     () => methodFields.filter((field) => !['senderNumber', 'senderWalletNumber', 'senderWalletAddress', 'transactionId', 'transactionNumber', 'paymentReference'].includes(field)),
     [methodFields]
   );
-  const rawMethodInstructions = method?.instructions || paymentSettings?.instructions || t('payments.chooseMethod');
-  const methodInstructions = String(rawMethodInstructions)
-    .replace(/\s*ورقم العملية\.?/g, '')
-    .replace(/\s*ورقم المعاملة\.?/g, '')
-    .trim();
-  const requiresReceipt = Boolean(method?.accountNumber);
+  const methodInstructions = String(method?.instructions || '').trim();
+  const requiresReceipt = normalizeMethodType(method?.type) !== 'site_wallet';
   const feePercent = useMemo(() => {
     const value = Number(method?.feePercent);
     if (!Number.isFinite(value)) return 0;
@@ -221,6 +224,12 @@ const PaymentDetails = ({
   const feeAmount = Number(((baseAmount * feePercent) / 100).toFixed(2));
   const payableAmount = Number((baseAmount + feeAmount).toFixed(2));
   const paymentCurrencyCode = String(group?.currency || method?.currency || user?.currency || 'USD').toUpperCase();
+  const paymentCurrencySymbol = useMemo(() => {
+    const configuredCurrency = (Array.isArray(currencies) ? currencies : []).find(
+      (currency) => String(currency?.code || '').trim().toUpperCase() === paymentCurrencyCode
+    );
+    return String(configuredCurrency?.symbol || getCurrencySymbol(paymentCurrencyCode));
+  }, [currencies, paymentCurrencyCode]);
   const paymentCurrencyRate = useMemo(
     () => getCurrencyRate(currencies, paymentCurrencyCode),
     [currencies, paymentCurrencyCode]
@@ -320,7 +329,7 @@ const PaymentDetails = ({
     if (senderDetailRequirement && !String(formData[senderDetailRequirement.field] || '').trim()) {
       return senderDetailRequirement.validationMessage;
     }
-    if (!isVodafoneCash && !String(formData.transactionId || '').trim()) {
+    if (needsTransactionNumber && !String(formData.transactionId || '').trim()) {
       return 'يرجى إدخال رقم العملية';
     }
     if (requiresReceipt && !uploadedFile) return t('payments.validationReceipt');
@@ -364,14 +373,14 @@ const PaymentDetails = ({
         ? String(formData[freshSenderRequirement.field] || '').trim()
         : '';
       const transactionId = String(formData.transactionId || '').trim();
-      const freshIsVodafoneCash = isVodafoneCashMethod(freshMethod);
+      const freshNeedsTransactionNumber = requiresTransactionNumber(freshMethod);
 
       if (freshSenderRequirement && !senderValue) {
         addToast(freshSenderRequirement.validationMessage, 'error');
         setFormError(freshSenderRequirement.validationMessage);
         return;
       }
-      if (!freshIsVodafoneCash && !transactionId) {
+      if (freshNeedsTransactionNumber && !transactionId) {
         addToast('يرجى إدخال رقم العملية', 'error');
         setFormError('يرجى إدخال رقم العملية');
         return;
@@ -382,7 +391,7 @@ const PaymentDetails = ({
         field: freshSenderRequirement.field,
         label: freshSenderRequirement.label,
         value: senderValue,
-        transactionNumber: freshIsVodafoneCash ? '' : transactionId,
+        transactionNumber: freshNeedsTransactionNumber ? transactionId : '',
       } : null;
       const { requestTopup } = useTopupStore.getState();
 
@@ -397,9 +406,9 @@ const PaymentDetails = ({
         senderWalletNumber: freshSenderRequirement?.field === 'senderWalletNumber' ? senderValue : '',
         senderWalletAddress: freshSenderRequirement?.field === 'senderWalletAddress' ? senderValue : '',
         transferredFromNumber: senderValue,
-        transactionId: freshIsVodafoneCash ? '' : transactionId,
-        transactionNumber: freshIsVodafoneCash ? '' : transactionId,
-        paymentReference: freshIsVodafoneCash ? '' : transactionId,
+        transactionId: freshNeedsTransactionNumber ? transactionId : '',
+        transactionNumber: freshNeedsTransactionNumber ? transactionId : '',
+        paymentReference: freshNeedsTransactionNumber ? transactionId : '',
         proofImage: uploadedFile || null,
         paymentChannel: freshMethod?.name || methodId || '',
         paymentMethodType: normalizeMethodType(freshMethod?.type),
@@ -609,13 +618,39 @@ const PaymentDetails = ({
                 </div>
               )}
             </div>
-            {methodInstructions && (
-              <p className="mt-3 border-s-2 border-cyan-500 ps-3 text-[10px] font-semibold leading-5 text-[var(--color-text-secondary)]">
-                {methodInstructions}
-              </p>
-            )}
           </motion.div>
         )}
+
+        {methodInstructions ? (
+          <motion.aside
+            initial={{ y: 8, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.25, delay: 0.07, ease: 'easeOut' }}
+            role="note"
+            className="relative isolate my-4 overflow-hidden rounded-2xl border border-amber-300/60 bg-[linear-gradient(135deg,#fffbeb_0%,#fff7ed_54%,#ffffff_100%)] p-4 shadow-[0_20px_44px_-34px_rgb(217_119_6/0.62)] dark:border-amber-300/20 dark:bg-[radial-gradient(18rem_circle_at_100%_0%,rgb(245_158_11/0.16),transparent_52%),linear-gradient(135deg,rgb(50_36_12/0.7),rgb(var(--color-card-rgb)/0.82))]"
+          >
+            <span className="pointer-events-none absolute -end-8 -top-10 -z-10 h-28 w-28 rounded-full bg-amber-300/25 blur-2xl" />
+            <span className="pointer-events-none absolute end-3 top-3 text-amber-500/30"><Sparkles className="h-5 w-5" /></span>
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-300/70 bg-[linear-gradient(145deg,#facc15,#f59e0b)] text-amber-950 shadow-[0_12px_26px_-18px_rgb(217_119_6/0.9)]">
+                <Info className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-xs font-black text-amber-950 dark:text-amber-100">
+                    {dir === 'rtl' ? 'تعليمات مهمة لهذه الوسيلة' : 'Important payment instructions'}
+                  </h3>
+                  <span className="rounded-full border border-amber-400/35 bg-amber-200/55 px-2 py-0.5 text-[8px] font-black text-amber-800 dark:bg-amber-400/10 dark:text-amber-200">
+                    {dir === 'rtl' ? 'يرجى القراءة' : 'Please read'}
+                  </span>
+                </div>
+                <p className="mt-2 whitespace-pre-line break-words text-xs font-semibold leading-6 text-amber-950/80 dark:text-amber-50/80">
+                  {methodInstructions}
+                </p>
+              </div>
+            </div>
+          </motion.aside>
+        ) : null}
 
         <motion.form
           initial={{ y: 10, opacity: 0 }}
@@ -646,16 +681,41 @@ const PaymentDetails = ({
                     <FieldCompletionBadge complete={Number(formData.amount) > 0} />
                   ) : null}
                 </label>
-                <input
-                  type={config.type}
-                  value={formData[field] || ''}
-                  onChange={(e) => handleInputChange(field, e.target.value)}
-                  placeholder={config.placeholder}
-                  min={config.min}
-                  step={config.step}
-                  className={`${paymentInputClassName} ${field === 'amount' ? 'payment-amount-input border-cyan-500/35 bg-cyan-500/[0.045] text-base' : ''} ${isRTL ? 'text-right' : 'text-left'}`}
-                  disabled={isSubmitting}
-                />
+                {field === 'amount' ? (
+                  <div
+                    className="flex h-12 overflow-hidden rounded-xl border border-amber-400/55 bg-[color:rgb(var(--color-surface-rgb)/0.72)] shadow-inner shadow-black/5 transition focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-400/15 dark:bg-[linear-gradient(110deg,rgb(15_23_42/0.82),rgb(30_27_18/0.76))] dark:shadow-black/15"
+                    dir={dir}
+                  >
+                    <span
+                      className="grid min-w-16 shrink-0 place-items-center border-e border-amber-500/55 bg-[linear-gradient(145deg,#fde047,#facc15_55%,#eab308)] px-3 font-['Poppins'] text-xl font-black text-slate-950 shadow-[0_0_24px_-12px_rgb(234_179_8/0.9)]"
+                      dir="ltr"
+                      title={paymentCurrencyCode}
+                    >
+                      {paymentCurrencySymbol}
+                    </span>
+                    <input
+                      type={config.type}
+                      value={formData[field] || ''}
+                      onChange={(e) => handleInputChange(field, e.target.value)}
+                      placeholder={config.placeholder}
+                      min={config.min}
+                      step={config.step}
+                      className="payment-amount-input min-w-0 flex-1 appearance-none bg-transparent px-4 text-right font-['Poppins'] text-base font-black text-[var(--color-text)] outline-none placeholder:text-right placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] [font-variant-numeric:tabular-nums]"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                ) : (
+                  <input
+                    type={config.type}
+                    value={formData[field] || ''}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    placeholder={config.placeholder}
+                    min={config.min}
+                    step={config.step}
+                    className={`${paymentInputClassName} ${isRTL ? 'text-right' : 'text-left'}`}
+                    disabled={isSubmitting}
+                  />
+                )}
                 {field === 'amount' && usdPreviewLabel && (
                   <p className="mt-1.5 px-1 text-[10px] font-black text-emerald-600 dark:text-emerald-300 [direction:ltr]">
                     {usdPreviewLabel}
@@ -672,33 +732,70 @@ const PaymentDetails = ({
                 <span>{senderDetailRequirement.label}</span>
                 <FieldCompletionBadge complete={Boolean(String(formData[senderDetailRequirement.field] || '').trim())} />
               </label>
-              <input
-                type="text"
-                value={formData[senderDetailRequirement.field] || ''}
-                onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
-                placeholder={senderDetailRequirement.placeholder}
-                className={`${paymentInputClassName} ${isRTL ? 'text-right' : 'text-left'}`}
-                disabled={isSubmitting}
-                required
-              />
+              {senderDetailRequirement.field === 'senderWalletNumber' ? (
+                <div
+                  className="flex h-12 overflow-hidden rounded-xl border border-rose-400/55 bg-rose-50/45 shadow-inner shadow-black/5 transition focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-400/15 dark:bg-[linear-gradient(110deg,rgb(31_18_25/0.82),rgb(15_23_42/0.78))] dark:shadow-black/15"
+                  dir={dir}
+                >
+                  <span className="grid min-w-16 shrink-0 place-items-center border-e border-rose-600/55 bg-[linear-gradient(145deg,#fb7185,#e11d48_58%,#be123c)] text-white shadow-[0_0_24px_-12px_rgb(225_29_72/0.9)]">
+                    <Smartphone className="h-5 w-5 drop-shadow-sm" />
+                  </span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={formData[senderDetailRequirement.field] || ''}
+                    onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
+                    placeholder={senderDetailRequirement.placeholder}
+                    className="min-w-0 flex-1 bg-transparent px-4 text-right font-['Poppins'] text-sm font-black text-rose-700 outline-none placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] dark:text-rose-300 [font-variant-numeric:tabular-nums]"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              ) : (
+                <div
+                  className="flex h-12 overflow-hidden rounded-xl border border-emerald-400/50 bg-emerald-50/40 shadow-inner shadow-black/5 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-400/15 dark:bg-[linear-gradient(110deg,rgb(8_39_31/0.78),rgb(15_23_42/0.78))] dark:shadow-black/15"
+                  dir={dir}
+                >
+                  <span className="grid min-w-16 shrink-0 place-items-center border-e border-emerald-600/45 bg-[linear-gradient(145deg,#34d399,#059669_58%,#047857)] text-white shadow-[0_0_24px_-12px_rgb(5_150_105/0.9)]">
+                    <WalletCards className="h-5 w-5 drop-shadow-sm" />
+                  </span>
+                  <input
+                    type="text"
+                    value={formData[senderDetailRequirement.field] || ''}
+                    onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
+                    placeholder={senderDetailRequirement.placeholder}
+                    className="min-w-0 flex-1 bg-transparent px-4 text-right text-sm font-bold text-emerald-800 outline-none placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] dark:text-emerald-200"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+              )}
             </div>
           )}
 
-          {!isVodafoneCash && (
+          {needsTransactionNumber && (
           <div className="mb-4">
             <label className={`mb-1.5 flex items-center justify-between gap-2 text-xs font-black text-[var(--color-text)] ${isRTL ? 'text-right' : 'text-left'}`}>
               <span>رقم العملية</span>
               <FieldCompletionBadge complete={Boolean(String(formData.transactionId || '').trim())} />
             </label>
-            <input
-              type="text"
-              value={formData.transactionId || ''}
-              onChange={(e) => handleInputChange('transactionId', e.target.value)}
-              placeholder="أدخل رقم العملية"
-              className={`${paymentInputClassName} ${isRTL ? 'text-right' : 'text-left'}`}
-              disabled={isSubmitting}
-              required
-            />
+            <div
+              className="flex h-12 overflow-hidden rounded-xl border border-indigo-400/55 bg-indigo-50/50 shadow-inner shadow-black/5 transition focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-400/15 dark:bg-[linear-gradient(110deg,rgb(30_27_75/0.78),rgb(8_47_73/0.72))] dark:shadow-black/15"
+              dir={dir}
+            >
+              <span className="grid min-w-16 shrink-0 place-items-center border-e border-indigo-600/50 bg-[linear-gradient(145deg,#818cf8,#4f46e5_52%,#2563eb)] text-white shadow-[0_0_24px_-12px_rgb(79_70_229/0.9)]">
+                <Hash className="h-5 w-5 drop-shadow-sm" />
+              </span>
+              <input
+                type="text"
+                value={formData.transactionId || ''}
+                onChange={(e) => handleInputChange('transactionId', e.target.value)}
+                placeholder="أدخل رقم العملية"
+                className="min-w-0 flex-1 bg-transparent px-4 text-right font-['Poppins'] text-sm font-black tracking-wide text-indigo-700 outline-none placeholder:font-semibold placeholder:tracking-normal placeholder:text-[var(--color-text-secondary)] dark:text-indigo-200 [font-variant-numeric:tabular-nums]"
+                disabled={isSubmitting}
+                required
+              />
+            </div>
           </div>
           )}
           </div>
@@ -712,7 +809,7 @@ const PaymentDetails = ({
               <UploadReceiptBox
                 onFileUpload={handleReceiptUpload}
                 paymentAmount={formData.amount}
-                transactionId={isVodafoneCash ? '' : formData.transactionId}
+                transactionId={needsTransactionNumber ? formData.transactionId : ''}
                 {...receiverDestination}
               />
             </div>

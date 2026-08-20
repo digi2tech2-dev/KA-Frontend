@@ -26,6 +26,7 @@ import {
   isSiteWalletPaymentMethod,
   resolveAllowedPaymentMethodValue,
 } from '../../utils/paymentSettings';
+import { getTargetPricing } from '../../utils/targetPricing';
 
 const getPaymentMethodLabel = (method) => {
   const normalized = String(method || '').trim().toLowerCase();
@@ -43,54 +44,54 @@ const getPaymentMethodTheme = (method) => {
   if (token.includes('vodafone') || token.includes('فودافون')) {
     return {
       key: 'vodafone',
-      card: 'border-red-400/65 bg-[linear-gradient(105deg,rgb(83_18_28/0.96),rgb(48_15_22/0.94))]',
+      card: 'border-red-300/70 bg-red-50 text-red-950 dark:border-red-400/65 dark:bg-[linear-gradient(105deg,rgb(83_18_28/0.96),rgb(48_15_22/0.94))] dark:text-red-100',
       icon: 'bg-red-500 text-white',
-      accent: 'text-red-200',
-      soft: 'border-red-300/35 bg-red-400/10 text-red-100',
+      accent: 'text-red-700 dark:text-red-200',
+      soft: 'border-red-200 bg-red-50 text-red-800 dark:border-red-300/35 dark:bg-red-400/10 dark:text-red-100',
     };
   }
   if (token.includes('orange') || token.includes('أورانج') || token.includes('اورانج')) {
     return {
       key: 'orange',
-      card: 'border-orange-400/65 bg-[linear-gradient(105deg,rgb(98_43_10/0.96),rgb(56_25_9/0.94))]',
+      card: 'border-orange-300/70 bg-orange-50 text-orange-950 dark:border-orange-400/65 dark:bg-[linear-gradient(105deg,rgb(98_43_10/0.96),rgb(56_25_9/0.94))] dark:text-orange-100',
       icon: 'bg-orange-500 text-white',
-      accent: 'text-orange-100',
-      soft: 'border-orange-300/35 bg-orange-400/10 text-orange-100',
+      accent: 'text-orange-700 dark:text-orange-100',
+      soft: 'border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-300/35 dark:bg-orange-400/10 dark:text-orange-100',
     };
   }
   if (token.includes('etisalat') || token.includes('اتصالات')) {
     return {
       key: 'etisalat',
-      card: 'border-cyan-400/65 bg-[linear-gradient(105deg,rgb(7_69_79/0.96),rgb(7_42_54/0.94))]',
+      card: 'border-cyan-300/70 bg-cyan-50 text-cyan-950 dark:border-cyan-400/65 dark:bg-[linear-gradient(105deg,rgb(7_69_79/0.96),rgb(7_42_54/0.94))] dark:text-cyan-100',
       icon: 'bg-cyan-400 text-cyan-950',
-      accent: 'text-cyan-100',
-      soft: 'border-cyan-300/35 bg-cyan-400/10 text-cyan-100',
+      accent: 'text-cyan-700 dark:text-cyan-100',
+      soft: 'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-300/35 dark:bg-cyan-400/10 dark:text-cyan-100',
     };
   }
   if (token.includes('insta') || token.includes('إنستا')) {
     return {
       key: 'instapay',
-      card: 'border-indigo-400/65 bg-[linear-gradient(105deg,rgb(35_35_104/0.96),rgb(25_25_70/0.94))]',
+      card: 'border-indigo-300/70 bg-indigo-50 text-indigo-950 dark:border-indigo-400/65 dark:bg-[linear-gradient(105deg,rgb(35_35_104/0.96),rgb(25_25_70/0.94))] dark:text-indigo-100',
       icon: 'bg-indigo-400 text-white',
-      accent: 'text-indigo-100',
-      soft: 'border-indigo-300/35 bg-indigo-400/10 text-indigo-100',
+      accent: 'text-indigo-700 dark:text-indigo-100',
+      soft: 'border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-300/35 dark:bg-indigo-400/10 dark:text-indigo-100',
     };
   }
   if (token.includes('binance') || token.includes('بينانس')) {
     return {
       key: 'binance',
-      card: 'border-yellow-400/65 bg-[linear-gradient(105deg,rgb(78_61_7/0.96),rgb(47_36_6/0.94))]',
+      card: 'border-yellow-300/70 bg-yellow-50 text-yellow-950 dark:border-yellow-400/65 dark:bg-[linear-gradient(105deg,rgb(78_61_7/0.96),rgb(47_36_6/0.94))] dark:text-yellow-100',
       icon: 'bg-yellow-400 text-yellow-950',
-      accent: 'text-yellow-100',
-      soft: 'border-yellow-300/35 bg-yellow-400/10 text-yellow-100',
+      accent: 'text-yellow-700 dark:text-yellow-100',
+      soft: 'border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-300/35 dark:bg-yellow-400/10 dark:text-yellow-100',
     };
   }
   return {
     key: 'wallet',
-    card: 'border-emerald-400/70 bg-[linear-gradient(105deg,rgb(7_54_37/0.96),rgb(9_39_31/0.94))]',
+    card: 'border-emerald-300/70 bg-emerald-50 text-emerald-950 dark:border-emerald-400/70 dark:bg-[linear-gradient(105deg,rgb(7_54_37/0.96),rgb(9_39_31/0.94))] dark:text-emerald-100',
     icon: 'bg-emerald-400 text-emerald-950',
-    accent: 'text-emerald-100',
-    soft: 'border-emerald-300/35 bg-emerald-400/10 text-emerald-100',
+    accent: 'text-emerald-700 dark:text-emerald-100',
+    soft: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-300/35 dark:bg-emerald-400/10 dark:text-emerald-100',
   };
 };
 
@@ -141,16 +142,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
   const isSiteWalletMethod = isSiteWalletPaymentMethod(selectedPaymentMethod || paymentMethodId);
   const coinAmountValue = Number(coinAmount || 0);
   const unitPrice = Number(selectedApp?.unitPrice || 0);
-  const totalPrice = Math.max(0, coinAmountValue * unitPrice);
-  const commissionRate = Number(
-    selectedApp?.commissionRate
-      ?? selectedApp?.commissionPercentage
-      ?? selectedApp?.feePercentage
-      ?? selectedApp?.commission
-      ?? 0
-  );
-  const commissionValue = Math.max(0, (totalPrice * commissionRate) / 100);
-  const walletBalance = Math.max(0, totalPrice - commissionValue);
+  const { walletBalance } = getTargetPricing(coinAmountValue, unitPrice);
   const targetAccountId = String(
     selectedApp?.targetAccountId
       || selectedApp?.receivingAccountId
@@ -310,7 +302,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
   if (showWithdrawalInfo && selectedApp) {
     return (
       <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" dir="rtl">
-        <div className="w-full max-w-md overflow-hidden rounded-[1.75rem] border border-[#d4a52c]/45 bg-[#11100d] shadow-[0_30px_90px_-40px_rgb(0_0_0/0.95)]">
+        <div className="w-full max-w-md overflow-hidden rounded-[1.75rem] border border-amber-300/55 bg-[var(--color-card)] shadow-[0_30px_90px_-40px_rgb(0_0_0/0.6)] dark:border-[#d4a52c]/45 dark:bg-[#11100d] dark:shadow-[0_30px_90px_-40px_rgb(0_0_0/0.95)]">
           <div className="h-1 bg-[linear-gradient(90deg,var(--color-primary),#b37a18,var(--color-primary))]" />
           <header className="flex items-start justify-between gap-3 border-b border-[color:rgb(var(--color-primary-rgb)/0.14)] px-5 py-4">
             <div className="flex items-center gap-3">
@@ -345,13 +337,13 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                 type="button"
                 onClick={handleCopyTargetId}
                 disabled={!targetAccountId}
-                className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-[#d4a52c]/70 bg-[#2a210b] px-4 py-3 text-start transition hover:border-[#f2c94c] hover:bg-[#33270d] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-start transition hover:border-amber-500 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#d4a52c]/70 dark:bg-[#2a210b] dark:hover:border-[#f2c94c] dark:hover:bg-[#33270d]"
                 title={targetAccountId ? 'اضغط لنسخ آيدي السحب' : 'لا يوجد آيدي سحب محدد'}
               >
-                <strong className="min-w-0 flex-1 break-all text-base font-black tracking-wide text-[#f2c94c]">
+                <strong className="min-w-0 flex-1 break-all text-base font-black tracking-wide text-amber-800 dark:text-[#f2c94c]">
                   {targetAccountId || 'غير متاح حاليًا'}
                 </strong>
-                <span className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#d4a52c]/20 px-2.5 py-1.5 text-[10px] font-black text-[#f2c94c] transition group-hover:bg-[#d4a52c]/30">
+                <span className="flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-200/70 px-2.5 py-1.5 text-[10px] font-black text-amber-800 transition group-hover:bg-amber-300/70 dark:bg-[#d4a52c]/20 dark:text-[#f2c94c] dark:group-hover:bg-[#d4a52c]/30">
                   {isTargetIdCopied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                   {isTargetIdCopied ? 'تم النسخ' : 'نسخ'}
                 </span>
@@ -465,7 +457,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
           <div className="space-y-4" dir="rtl">
             <div>
               <div className="mb-1.5 flex items-center justify-start gap-2 text-right">
-                <span className="grid h-7 w-7 place-items-center rounded-lg border border-amber-400/35 bg-amber-400/10 text-amber-300">
+                <span className="grid h-7 w-7 place-items-center rounded-lg border border-amber-400/35 bg-amber-400/10 text-amber-700 dark:text-amber-300">
                   <UserRound className="h-4 w-4" />
                 </span>
                 <span className="text-sm font-black text-[var(--color-text)]">ID المستخدم في التطبيق</span>
@@ -480,28 +472,28 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                 }}
                 placeholder="أدخل ID حسابك في التطبيق"
                 className={cn(
-                  'h-12 w-full rounded-xl border bg-[linear-gradient(110deg,rgb(15_23_42/0.76),rgb(34_29_13/0.72))] px-4 text-right text-sm font-bold text-[var(--color-text)] placeholder:text-slate-500/90 shadow-inner shadow-black/10 focus:outline-none focus:ring-2',
+                  'h-12 w-full rounded-xl border bg-[color:rgb(var(--color-surface-rgb)/0.72)] px-4 text-right text-sm font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)] shadow-inner shadow-black/5 focus:outline-none focus:ring-2 dark:bg-[linear-gradient(110deg,rgb(15_23_42/0.76),rgb(34_29_13/0.72))] dark:shadow-black/10',
                   validationErrors.senderId ? 'border-rose-400/90 focus:border-rose-400 focus:ring-rose-400/15' : 'border-amber-300/25 focus:border-amber-300/70 focus:ring-amber-300/10'
                 )}
               />
               <p className="mt-1 flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[var(--color-text-secondary)]">
-                <Info className="h-3 w-3 text-amber-300" />
+                <Info className="h-3 w-3 text-amber-600 dark:text-amber-300" />
                 الـ ID الخاص بحسابك داخل تطبيق {selectedApp.name}
               </p>
               {validationErrors.senderId ? (
-                <p role="alert" className="mt-1 flex items-center justify-end gap-1 text-[11px] font-bold text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.senderId}</p>
+                <p role="alert" className="mt-1 flex items-center justify-end gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.senderId}</p>
               ) : null}
             </div>
 
             <div>
               <div className="mb-1.5 flex items-center justify-start gap-2 text-right">
-                <span className="grid h-7 w-7 place-items-center rounded-lg border border-amber-400/35 bg-amber-400/10 text-amber-300">
+                <span className="grid h-7 w-7 place-items-center rounded-lg border border-amber-400/35 bg-amber-400/10 text-amber-700 dark:text-amber-300">
                   <DollarSign className="h-4 w-4" />
                 </span>
                 <span className="text-sm font-black text-[var(--color-text)]">المبلغ المراد سحبه</span>
               </div>
               <div className={cn(
-                'flex h-12 overflow-hidden rounded-xl border bg-[linear-gradient(110deg,rgb(15_23_42/0.76),rgb(34_29_13/0.72))] shadow-inner shadow-black/10 focus-within:ring-2',
+                'flex h-12 overflow-hidden rounded-xl border bg-[color:rgb(var(--color-surface-rgb)/0.72)] shadow-inner shadow-black/5 focus-within:ring-2 dark:bg-[linear-gradient(110deg,rgb(15_23_42/0.76),rgb(34_29_13/0.72))] dark:shadow-black/10',
                 validationErrors.coinAmount ? 'border-rose-400/90 focus-within:border-rose-400 focus-within:ring-rose-400/15' : 'border-amber-300/25 focus-within:border-amber-300/70 focus-within:ring-amber-300/10'
               )} dir="rtl">
                 <span className="grid w-14 shrink-0 place-items-center bg-gradient-to-br from-amber-300 to-yellow-500 text-2xl font-black text-slate-950">$</span>
@@ -517,15 +509,15 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                     clearValidationError('coinAmount');
                   }}
                   placeholder="0.00"
-                  className="min-w-0 flex-1 bg-transparent px-4 text-right text-lg font-black text-[var(--color-text)] outline-none placeholder:text-slate-500"
+                  className="min-w-0 flex-1 bg-transparent px-4 text-right text-lg font-black text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-secondary)]"
                 />
               </div>
               <p className="mt-1 flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[var(--color-text-secondary)]">
-                <Info className="h-3 w-3 text-amber-300" />
+                <Info className="h-3 w-3 text-amber-600 dark:text-amber-300" />
                 يُدخل المبلغ بالدولار الأمريكي ($)
               </p>
               {validationErrors.coinAmount ? (
-                <p role="alert" className="mt-1 flex items-center justify-end gap-1 text-[11px] font-bold text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.coinAmount}</p>
+                <p role="alert" className="mt-1 flex items-center justify-end gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.coinAmount}</p>
               ) : null}
             </div>
           </div>
@@ -557,14 +549,14 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                   <span className={cn('block text-sm font-black', selectedPaymentTheme.accent)}>
                     {selectedPaymentMethod ? `استلم على ${getPaymentMethodLabel(selectedPaymentMethod.name)}` : 'اختر وسيلة الاستلام'}
                   </span>
-                  <span className="mt-0.5 block text-[10px] font-semibold text-white/65">اضغط لاختيار طريقة استلام أخرى</span>
+                  <span className="mt-0.5 block text-[10px] font-semibold text-[var(--color-text-secondary)]">اضغط لاختيار طريقة استلام أخرى</span>
                 </span>
                 <ChevronLeft className={cn('h-5 w-5 shrink-0', selectedPaymentTheme.accent)} />
               </button>
 
               {showPaymentMethodOptions ? (
-                <div className="absolute inset-x-0 top-[calc(100%+0.4rem)] z-30 space-y-1.5 rounded-xl border border-white/10 bg-[#11141a] p-2 shadow-[0_24px_48px_-24px_rgb(0_0_0/0.95)]">
-                  <p className="px-2 pb-1 text-[10px] font-bold text-white/55">طرق الاستلام المتاحة</p>
+                <div className="absolute inset-x-0 top-[calc(100%+0.4rem)] z-30 space-y-1.5 rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.82)] bg-[var(--color-card)] p-2 shadow-[0_24px_48px_-24px_rgb(0_0_0/0.45)] dark:border-white/10 dark:bg-[#11141a] dark:shadow-[0_24px_48px_-24px_rgb(0_0_0/0.95)]">
+                  <p className="px-2 pb-1 text-[10px] font-bold text-[var(--color-text-secondary)]">طرق الاستلام المتاحة</p>
                   {availablePaymentMethods.map((method) => {
                     const theme = getPaymentMethodTheme(method);
                     const isSelected = String(method.id) === String(paymentMethodId);
@@ -580,7 +572,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                         className={cn(
                           'flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-right transition hover:brightness-110',
                           theme.soft,
-                          isSelected && 'ring-1 ring-white/60'
+                          isSelected && 'ring-1 ring-[var(--color-primary)]'
                         )}
                       >
                         <span className={cn('grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[10px] font-black', theme.icon)}>
@@ -596,7 +588,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
             </div>
 
             {validationErrors.paymentMethod ? (
-              <p role="alert" className="flex items-center justify-end gap-1 text-[11px] font-bold text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.paymentMethod}</p>
+              <p role="alert" className="flex items-center justify-end gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.paymentMethod}</p>
             ) : null}
 
             {!isSiteWalletMethod ? (
@@ -618,18 +610,18 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
             <div className={cn('overflow-hidden rounded-xl border text-right shadow-[0_18px_45px_-30px_rgb(0_0_0/0.7)]', selectedPaymentTheme.card)}>
               <div className="grid grid-cols-2 gap-2 border-b border-current/20 px-3 py-2.5">
                 <p className={cn('text-xs font-black', selectedPaymentTheme.accent)}>الرصيد الذي سيضاف إلى محفظتك</p>
-                <p className="text-[10px] font-bold leading-4 text-white/60">بعد خصم عمولة التطبيق</p>
+                <p className="text-[10px] font-bold leading-4 text-[var(--color-text-secondary)]">بعد خصم عمولة التطبيق</p>
               </div>
               <div className="flex items-center justify-end gap-2 px-3 py-3 text-right" dir="ltr">
                 <span className={cn('text-2xl font-black tracking-tight', selectedPaymentTheme.accent)}>{formatNumber(walletBalance, 'en-US', { maximumFractionDigits: 2 })} <small className="text-xs">EGP</small></span>
                 <span className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg font-black', selectedPaymentTheme.soft)}>EGP</span>
               </div>
-              <p className="px-3 pb-3 text-right text-[11px] font-bold text-white/65">أدخل المبلغ لحساب الصافي</p>
+              <p className="px-3 pb-3 text-right text-[11px] font-bold text-[var(--color-text-secondary)]">أدخل المبلغ لحساب الصافي</p>
             </div>
 
             {isSiteWalletMethod ? (
               <div className="flex gap-2.5 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] px-3 py-3" dir="rtl">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-200" />
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-200" />
                 <div>
                   <h3 className="text-sm font-black text-[var(--color-text)]">تنبيه مهم</h3>
                   <p className="mt-1 text-xs font-semibold leading-5 text-[var(--color-text-secondary)]">يضاف المبلغ إلى محفظتك على الموقع بعد موافقة الإدارة، وللسحب اختر طريقة أخرى.</p>
@@ -641,7 +633,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
           <div className="my-5 border-t border-[color:rgb(var(--color-border-rgb)/0.58)] pt-4">
             <div className="mb-2.5 flex items-center justify-between gap-3" dir="rtl">
               <div className="flex items-center gap-2">
-                <span className="grid h-7 w-7 place-items-center rounded-full border border-emerald-400/45 bg-emerald-400/10 text-xs font-black text-emerald-300">4</span>
+                <span className="grid h-7 w-7 place-items-center rounded-full border border-emerald-400/45 bg-emerald-400/10 text-xs font-black text-emerald-700 dark:text-emerald-300">4</span>
                 <div>
                   <h3 className="text-sm font-black text-[var(--color-text)]">إيصال السحب</h3>
                   <p className="mt-0.5 text-[11px] font-semibold text-[var(--color-text-secondary)]">أرفق صورة واضحة لإتمام المراجعة</p>
@@ -650,7 +642,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgb(52_211_153/0.9)]" />
             </div>
             <div ref={(element) => { fieldRefs.current.proof = element; }} className={cn(
-              'rounded-xl border bg-[linear-gradient(145deg,rgb(26_24_18/0.9),rgb(10_12_17/0.9))] p-1 shadow-[0_18px_42px_-30px_rgb(212_165_44/0.65)]',
+              'rounded-xl border bg-amber-50/65 p-1 shadow-[0_18px_42px_-30px_rgb(212_165_44/0.4)] dark:bg-[linear-gradient(145deg,rgb(26_24_18/0.9),rgb(10_12_17/0.9))] dark:shadow-[0_18px_42px_-30px_rgb(212_165_44/0.65)]',
               validationErrors.proof ? 'border-rose-400/90' : 'border-amber-300/25'
             )}>
               <div className="rounded-lg border border-amber-300/10 bg-[color:rgb(var(--color-card-rgb)/0.35)] px-1.5 py-1.5">
@@ -669,12 +661,12 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
               </div>
             </div>
             {validationErrors.proof ? (
-              <p role="alert" className="mt-1 flex items-center justify-end gap-1 text-[11px] font-bold text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.proof}</p>
+              <p role="alert" className="mt-1 flex items-center justify-end gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-300"><CircleAlert className="h-3 w-3" />{validationErrors.proof}</p>
             ) : null}
           </div>
         </div>
 
-        <footer className="border-t border-emerald-400/15 bg-[linear-gradient(135deg,rgb(5_32_24/0.72),rgb(var(--color-elevated-rgb)/0.34))] px-3 py-3 sm:px-5">
+        <footer className="border-t border-emerald-400/20 bg-emerald-50/65 px-3 py-3 dark:border-emerald-400/15 dark:bg-[linear-gradient(135deg,rgb(5_32_24/0.72),rgb(var(--color-elevated-rgb)/0.34))] sm:px-5">
           <Button type="submit" size="lg" className="h-12 w-full rounded-xl border border-emerald-300/65 bg-[linear-gradient(110deg,#12b76a,#20d47d,#0e9f61)] text-sm font-black text-white shadow-[0_20px_42px_-20px_rgb(16_185_129/0.9)] hover:brightness-110" disabled={isSubmitting || !availablePaymentMethods.length}>
             {isSubmitting ? 'جارٍ إرسال طلب السحب...' : <>إرسال طلب السحب <ChevronLeft className="h-6 w-6" /></>}
           </Button>

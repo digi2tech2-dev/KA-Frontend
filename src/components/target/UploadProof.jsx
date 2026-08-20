@@ -92,7 +92,7 @@ const UploadProof = ({
             <span className={cn('text-[var(--color-text-secondary)]', compact ? 'mt-0.5 text-[10px]' : 'mt-1 text-xs')}>{hint}</span>
             {badge ? (
               <span className={cn(
-                'inline-flex items-center gap-1 rounded-full border border-amber-300/30 bg-amber-300/[0.08] font-black text-amber-200',
+                'inline-flex items-center gap-1 rounded-full border border-amber-400/35 bg-amber-100/75 font-black text-amber-700 dark:border-amber-300/30 dark:bg-amber-300/[0.08] dark:text-amber-200',
                 compact ? 'mt-2 px-2.5 py-0.5 text-[10px]' : 'mt-3 px-3 py-1 text-xs'
               )}>
                 <CheckCircle2 className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />

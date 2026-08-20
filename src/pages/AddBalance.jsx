@@ -71,6 +71,35 @@ const PaymentMethodButton = ({ method, groupImage, onSelect, isRTL }) => {
   );
 };
 
+const PaymentGroupImage = ({ group, isSelected, isGlobal }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const GroupIcon = isGlobal ? Globe2 : Building2;
+  const showImage = Boolean(group?.image) && !imageFailed;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [group?.image]);
+
+  return (
+    <span className={`grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl ${
+      isSelected ? 'bg-indigo-500 text-white' : 'bg-indigo-500/[0.08] text-indigo-500'
+    }`}>
+      {showImage ? (
+        <img
+          src={resolveImageUrl(group.image)}
+          alt=""
+          className="h-full w-full bg-white object-contain p-1"
+          loading="lazy"
+          decoding="async"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <GroupIcon className="h-4.5 w-4.5" />
+      )}
+    </span>
+  );
+};
+
 const AddBalance = ({
   embedded = false,
   automaticAmount = null,
@@ -214,7 +243,6 @@ const AddBalance = ({
                   {paymentGroups.map((group) => {
                     const isSelected = String(activePaymentGroup?.id) === String(group.id);
                     const isGlobal = String(group.currency || '').toUpperCase() === 'USD' || /global|عالمي/i.test(String(group.name || ''));
-                    const GroupIcon = isGlobal ? Globe2 : Building2;
                     return (
                       <button
                         key={group.id}
@@ -227,9 +255,7 @@ const AddBalance = ({
                             : 'border-[color:rgb(var(--color-border-rgb)/0.7)] bg-[color:rgb(var(--color-surface-rgb)/0.5)] hover:border-indigo-500/25 hover:bg-indigo-500/[0.04]'
                         }`}
                       >
-                        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${isSelected ? 'bg-indigo-500 text-white' : 'bg-indigo-500/[0.08] text-indigo-500'}`}>
-                          <GroupIcon className="h-4.5 w-4.5" />
-                        </span>
+                        <PaymentGroupImage group={group} isSelected={isSelected} isGlobal={isGlobal} />
                         <span className="min-w-0 flex-1">
                           <strong
                             className="block whitespace-normal break-words text-xs font-black leading-4 text-[var(--color-text)]"
