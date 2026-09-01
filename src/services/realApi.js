@@ -165,9 +165,9 @@ const normaliseSenderDetails = (source = {}) => {
       ? 'عنوان المحفظة المحول منها'
       : 'رقم المحفظة المحول منها')
   ).trim();
-  const transactionNumber = String(
-    details.transactionNumber
-    || details.transactionId
+  const transactionId = String(
+    details.transactionId
+    || details.transactionNumber
     || details.paymentReference
     || source.transactionNumber
     || source.transactionId
@@ -176,7 +176,7 @@ const normaliseSenderDetails = (source = {}) => {
     || ''
   ).trim();
 
-  return { methodType, field, label, value, transactionNumber };
+  return { methodType, field, label, value, transactionId };
 };
 
 const writeAuthState = (nextState) => {
@@ -1059,7 +1059,7 @@ const normaliseDeposit = (d) => {
     currencyCode: currency,          // alias — AdminPayments reads currencyCode
     exchangeRate,
     paymentMethodId: d.paymentMethodId || '',
-    transactionId: d.transactionId || d.transactionNumber || d.paymentReference || d.referenceNumber || '',
+    transactionId: d.transactionId || d.paymentTransactionId || d.transactionNumber || d.paymentReference || d.referenceNumber || '',
     transactionNumber: d.transactionNumber || d.transactionId || d.paymentReference || d.referenceNumber || '',
     paymentReference: d.paymentReference || d.transactionId || d.transactionNumber || d.referenceNumber || '',
     notes: d.notes || '',
@@ -3746,10 +3746,10 @@ const realApi = {
      *   - requestedAmount      (required, number)
      *   - currency             (required, string — ISO 4217)
      *   - paymentMethodId      (required, string)
-     *   - receipt              (file, required — multer field name)
+     *   - receipt              (file, required except for Electronic Wallet methods)
      *   - notes                (optional, string)
      *
-     * FE sends: { requestedAmount, currency, paymentMethodId, receipt (File), notes }
+     * FE sends: { requestedAmount, currency, paymentMethodId, transactionId?, receipt?, notes }
      */
     create: async (topupData) => {
       const formData = new FormData();
@@ -3772,11 +3772,9 @@ const realApi = {
       const notes = String(topupData.notes || '').trim();
       if (notes) formData.append('notes', notes);
 
-      const transactionId = String(topupData.transactionId || topupData.transactionNumber || topupData.paymentReference || '').trim();
+      const transactionId = String(topupData.transactionId || '').trim();
       if (transactionId) {
         formData.append('transactionId', transactionId);
-        formData.append('transactionNumber', transactionId);
-        formData.append('paymentReference', transactionId);
       }
 
       const senderDetails = normaliseSenderDetails(topupData);

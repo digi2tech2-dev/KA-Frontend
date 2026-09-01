@@ -18,15 +18,9 @@ import { getCurrencySymbol } from '../utils/storefront';
 
 const normalizeMethodType = (type) => String(type || '').trim().toLowerCase();
 
-const isVodafoneCashMethod = (method) => {
-  const token = `${method?.id || ''} ${method?.name || ''}`.trim().toLowerCase();
-  return token.includes('vodafone') || token.includes('فودافون');
-};
-
-const requiresTransactionNumber = (method) => {
+const isElectronicWalletMethod = (method) => {
   const type = normalizeMethodType(method?.type);
-  const isMobileWallet = ['mobile_wallet', 'e_wallet', 'ewallet'].includes(type);
-  return isMobileWallet && !isVodafoneCashMethod(method);
+  return ['mobile_wallet', 'e_wallet', 'ewallet', 'electronic_wallet', 'electronic wallet'].includes(type);
 };
 
 const getReceiverDestination = (method) => {
@@ -192,7 +186,7 @@ const PaymentDetails = ({
 
   const group = selectedMethodEntry?.group || null;
   const method = selectedMethodEntry?.method || null;
-  const needsTransactionNumber = requiresTransactionNumber(method);
+  const needsTransactionNumber = isElectronicWalletMethod(method);
   const receiverDestination = useMemo(
     () => getReceiverDestination(method),
     [method]
@@ -213,7 +207,7 @@ const PaymentDetails = ({
     [methodFields]
   );
   const methodInstructions = String(method?.instructions || '').trim();
-  const requiresReceipt = normalizeMethodType(method?.type) !== 'site_wallet';
+  const requiresReceipt = normalizeMethodType(method?.type) !== 'site_wallet' && !isElectronicWalletMethod(method);
   const feePercent = useMemo(() => {
     const value = Number(method?.feePercent);
     if (!Number.isFinite(value)) return 0;
@@ -373,7 +367,7 @@ const PaymentDetails = ({
         ? String(formData[freshSenderRequirement.field] || '').trim()
         : '';
       const transactionId = String(formData.transactionId || '').trim();
-      const freshNeedsTransactionNumber = requiresTransactionNumber(freshMethod);
+      const freshNeedsTransactionNumber = isElectronicWalletMethod(freshMethod);
 
       if (freshSenderRequirement && !senderValue) {
         addToast(freshSenderRequirement.validationMessage, 'error');
@@ -391,7 +385,7 @@ const PaymentDetails = ({
         field: freshSenderRequirement.field,
         label: freshSenderRequirement.label,
         value: senderValue,
-        transactionNumber: freshNeedsTransactionNumber ? transactionId : '',
+        transactionId: freshNeedsTransactionNumber ? transactionId : '',
       } : null;
       const { requestTopup } = useTopupStore.getState();
 
@@ -407,8 +401,6 @@ const PaymentDetails = ({
         senderWalletAddress: freshSenderRequirement?.field === 'senderWalletAddress' ? senderValue : '',
         transferredFromNumber: senderValue,
         transactionId: freshNeedsTransactionNumber ? transactionId : '',
-        transactionNumber: freshNeedsTransactionNumber ? transactionId : '',
-        paymentReference: freshNeedsTransactionNumber ? transactionId : '',
         proofImage: uploadedFile || null,
         paymentChannel: freshMethod?.name || methodId || '',
         paymentMethodType: normalizeMethodType(freshMethod?.type),
@@ -962,4 +954,3 @@ const PaymentDetails = ({
 };
 
 export default PaymentDetails;
-
