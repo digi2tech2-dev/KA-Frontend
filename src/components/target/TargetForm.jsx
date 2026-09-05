@@ -425,27 +425,6 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
     <Card className="mx-auto max-w-4xl overflow-hidden rounded-[1.75rem] border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[radial-gradient(38rem_circle_at_8%_-12%,rgb(var(--color-primary-rgb)/0.12),transparent_48%),linear-gradient(145deg,rgb(var(--color-card-rgb)/0.99),rgb(var(--color-surface-rgb)/0.88))] shadow-[0_28px_80px_-50px_rgb(var(--color-primary-rgb)/0.62)]">
       <form onSubmit={handleSubmit}>
         <div className="h-1 bg-[linear-gradient(90deg,var(--color-primary),#b37a18,var(--color-primary))]" />
-        <header className="border-b border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(90deg,rgb(var(--color-primary-rgb)/0.08),transparent_65%)] px-4 py-4 sm:px-6 sm:py-5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-black text-[var(--color-text)]">إتمام الطلب</span>
-          </div>
-
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.16)] bg-[linear-gradient(90deg,rgb(var(--color-primary-rgb)/0.11),rgb(179_122_24/0.06))] p-3">
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[color:rgb(var(--color-primary-rgb)/0.22)] bg-[color:rgb(var(--color-primary-rgb)/0.1)] shadow-[0_10px_24px_-18px_rgb(var(--color-primary-rgb)/0.9)]">
-              {selectedApp.image ? (
-                <img src={resolveImageUrl(selectedApp.image)} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-[var(--color-primary)]"><Target className="h-5 w-5" /></span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black text-[var(--color-text)]">{selectedApp.name}</p>
-              <p className="mt-1 w-fit rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.1)] px-2 py-0.5 text-xs font-black text-[var(--color-primary)]">{formatNumber(unitPrice, 'en-US', { maximumFractionDigits: 2 })} EGP / دولار</p>
-            </div>
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-[var(--color-primary)]" />
-          </div>
-        </header>
-
         <div className="px-3 py-4 sm:px-5 sm:py-5">
           {targetAccountId ? (
             <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-[color:rgb(var(--color-border-rgb)/0.58)] pb-4 text-sm">
