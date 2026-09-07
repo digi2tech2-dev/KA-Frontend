@@ -34,8 +34,11 @@ const WhatsAppContactChooser = ({ isOpen, onClose, message = '', isArabic = true
                 <MessageCircle className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <strong className="block text-sm font-black text-[var(--color-text)]">
+                <strong className="flex items-baseline gap-1.5 text-sm font-black text-[var(--color-text)]">
                   {isArabic ? contact.nameAr : contact.nameEn}
+                  <small className={contact.roleAr === 'صاحب المنصة' ? 'text-[10px] font-bold text-amber-500' : 'text-[10px] font-bold text-sky-500'}>
+                    {isArabic ? contact.roleAr : contact.roleEn}
+                  </small>
                 </strong>
                 <span dir="ltr" className="mt-1 flex items-center gap-1.5 text-xs font-bold text-[var(--color-text-secondary)]">
                   <Phone className="h-3.5 w-3.5" />

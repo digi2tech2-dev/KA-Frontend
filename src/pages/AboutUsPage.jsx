@@ -226,7 +226,12 @@ const AboutUsPage = () => {
                       >
                         <MessageCircle className="h-4 w-4" />
                         <span>
-                          <span className="block">{isArabic ? contact.nameAr : contact.nameEn}</span>
+                          <span className="flex items-baseline gap-1">
+                            {isArabic ? contact.nameAr : contact.nameEn}
+                            <small className={contact.roleAr === 'صاحب المنصة' ? 'text-[9px] font-bold text-amber-200' : 'text-[9px] font-bold text-sky-200'}>
+                              {isArabic ? contact.roleAr : contact.roleEn}
+                            </small>
+                          </span>
                           <span dir="ltr" className="block text-[10px] font-bold opacity-85">{contact.number}</span>
                         </span>
                       </a>
