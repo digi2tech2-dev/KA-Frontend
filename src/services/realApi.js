@@ -2458,7 +2458,13 @@ const realApi = {
         params: { limit },
       });
       const data = unwrap(res);
-      const items = Array.isArray(data) ? data : (data?.providerProducts || []);
+      const items = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.providerProducts)
+          ? data.providerProducts
+          : Array.isArray(data?.products)
+            ? data.products
+            : [];
       return items.map((pp) => ({
         ...pp,
         id: pp._id || pp.id,
