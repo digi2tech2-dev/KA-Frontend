@@ -93,7 +93,7 @@ const DeveloperApi = () => {
         <div className="flex items-center gap-2"><ShieldCheck className={`h-5 w-5 ${apiEnabled ? 'text-emerald-500' : 'text-amber-500'}`} /><h2 className="font-bold text-[var(--color-text)]">API token</h2></div>
         <p className="mt-2 text-sm text-[var(--color-text-secondary)]">API access is <strong className="text-[var(--color-text)]">{apiEnabled ? 'enabled' : 'not enabled'}</strong> for this account. Regenerating a token invalidates the previous token.</p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <input readOnly value={rawToken || 'Generate a token to reveal a new value.'} className="min-w-0 flex-1 rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.8)] bg-[color:rgb(var(--color-elevated-rgb)/0.55)] px-4 py-3 font-mono text-sm text-[var(--color-text)]" />
+          <input aria-label="New API token" readOnly value={rawToken || 'Generate a token to reveal a new value.'} className="min-w-0 flex-1 rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.8)] bg-[color:rgb(var(--color-elevated-rgb)/0.55)] px-4 py-3 font-mono text-sm text-[var(--color-text)]" />
           <Button type="button" variant="outline" disabled={!rawToken} onClick={copyToken}><ClipboardCopy className="h-4 w-4" />Copy</Button>
           <Button type="button" disabled={isGenerating || !apiEnabled} onClick={generateToken}><RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />{rawToken ? 'Regenerate token' : 'Generate token'}</Button>
         </div>
