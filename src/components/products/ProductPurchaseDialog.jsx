@@ -32,6 +32,8 @@ import AddBalance from '../../pages/AddBalance';
 import PaymentDetails from '../../pages/PaymentDetails';
 import './ProductPurchaseDialog.css';
 
+const isInstantMockCheckout = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase() === 'mock';
+
 const getCopy = (language = 'ar') => (
   language === 'en'
     ? {
@@ -533,10 +535,25 @@ const ProductPurchaseDialog = ({
     }
 
     const identifier = sanitizeOrderFieldValue(userId).trim();
-    setIsSubmitting(true);
+    const orderId = `#${product?.name?.replace(/\s+/g, '').toUpperCase() || 'ORD'}-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`;
+
+    // The demo checkout is intentionally instant: never show a transient
+    // "Processing" state before its confirmation.
+    if (isInstantMockCheckout) {
+      setSuccessOrder({
+        orderId,
+        orderNumber: orderId,
+        productName: product?.nameAr || product?.name,
+        quantity,
+        total: totalPrice,
+        userId: identifier,
+        status: language === 'en' ? 'Completed' : 'مكتمل',
+      });
+    } else {
+      setIsSubmitting(true);
+    }
 
     try {
-      const orderId = `#${product?.name?.replace(/\s+/g, '').toUpperCase() || 'ORD'}-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`;
       const normalizedFields = hasPrimaryOrderField ? { [primaryOrderFieldKey]: identifier } : {};
 
       for (const field of additionalOrderFields) {
@@ -608,14 +625,7 @@ const ProductPurchaseDialog = ({
         || returnedOrder?.displayOrderId
         || returnedId
       ).trim();
-      let returnedWalletSource = result?.wallet || result?.walletSummary || result?.user || returnedOrder?.wallet || returnedOrder?.walletSummary || null;
-      if (!returnedWalletSource && user?.id) {
-        try {
-          returnedWalletSource = await apiClient.auth.getProfile(user.id);
-        } catch (profileError) {
-          devLogger.warnUnlessBenign('Failed to refresh profile after purchase', profileError, { once: true });
-        }
-      }
+      const returnedWalletSource = result?.wallet || result?.walletSummary || result?.user || returnedOrder?.wallet || returnedOrder?.walletSummary || null;
       const nextBalance = Number(result?.updatedBalance);
       const nextWalletSummary = getWalletBalanceSummary(
         returnedWalletSource
@@ -633,6 +643,27 @@ const ProductPurchaseDialog = ({
         availableCredit: nextWalletSummary.availableCredit,
         availableBalance: nextWalletSummary.availableBalance,
       });
+
+      // Refresh in the background when the order response did not include wallet
+      // details. The customer should see the completed purchase immediately.
+      if (!returnedWalletSource && user?.id) {
+        apiClient.auth.getProfile(user.id)
+          .then((profile) => {
+            const refreshedWallet = getWalletBalanceSummary(profile);
+            updateUserSession({
+              coins: refreshedWallet.walletBalance,
+              walletBalance: refreshedWallet.walletBalance,
+              balance: refreshedWallet.walletBalance,
+              creditLimit: refreshedWallet.creditLimit,
+              creditUsed: refreshedWallet.creditUsed,
+              availableCredit: refreshedWallet.availableCredit,
+              availableBalance: refreshedWallet.availableBalance,
+            });
+          })
+          .catch((profileError) => {
+            devLogger.warnUnlessBenign('Failed to refresh profile after purchase', profileError, { once: true });
+          });
+      }
 
       setSuccessOrder({
         orderId: returnedId,

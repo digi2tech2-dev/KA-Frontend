@@ -21,7 +21,9 @@ import {
   resolveWalletTransactionOriginalCurrency,
 } from '../utils/transactionCurrency';
 
-const DELAY = 800; // Simulated network latency in ms
+// Keep the local demo responsive.  A small delay still makes async states testable
+// without making every click (and especially checkout) feel stalled.
+const DELAY = 120;
 const ACCOUNT_SECURITY_STORAGE_KEY = 'ka-card-account-security-v1';
 const AUTH_STORAGE_KEY = 'auth-storage';
 
@@ -1400,7 +1402,8 @@ const mockApi = {
     },
     
     create: async (orderData) => {
-      await new Promise(resolve => setTimeout(resolve, DELAY));
+      // Checkout is a local transaction in mock mode: persist it immediately so
+      // the first click goes straight to the success state.
       const db = getDB('order-storage', { state: { orders: mockOrders } });
       const existingOrders = db.state.orders || [];
       const idempotencyKey = String(orderData.idempotencyKey || '').trim();
@@ -1446,8 +1449,11 @@ const mockApi = {
       // Create Order
       const newOrder = {
           id: `ord-${Date.now()}`,
-          status: 'pending',
+          // The local storefront has no real fulfilment queue. Complete every
+          // demo purchase at once, including products without a supplier.
+          status: 'completed',
           createdAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
           ...orderData,
           idempotencyKey: idempotencyKey || null,
           supplierId: null,
@@ -1508,23 +1514,26 @@ const mockApi = {
         }
 
         // Simulated provider call (secured snapshot without credentials)
-        const simulatedSuccess = Math.random() > 0.08;
+        // A demo checkout must be deterministic. Supplier failures can still be
+        // tested from the supplier tools without randomly blocking a customer.
+        const simulatedSuccess = true;
         const externalId = `${supplier.supplierCode}-${Date.now()}`;
         const response = simulatedSuccess
-          ? { success: true, message: 'Accepted', data: { orderId: externalId, status: 'pending' } }
+          ? { success: true, message: 'Completed', data: { orderId: externalId, status: 'completed' } }
           : { success: false, message: 'Provider rejected request', data: { status: 'failed' } };
 
         newOrder.supplierId = supplier.id;
         newOrder.supplierName = supplier.supplierName;
         newOrder.externalProductId = product.externalProductId;
         newOrder.externalOrderId = response?.data?.orderId || null;
-        newOrder.externalStatus = response?.data?.status || (simulatedSuccess ? 'pending' : 'failed');
+        newOrder.externalStatus = response?.data?.status || (simulatedSuccess ? 'completed' : 'failed');
         newOrder.supplierRequestSnapshot = payload;
         newOrder.supplierResponseSnapshot = response;
         newOrder.supplierLastSyncAt = new Date().toISOString();
         newOrder.providerReferenceMessage = response?.message || '';
         newOrder.fulfillmentMode = 'auto';
-        newOrder.status = simulatedSuccess ? 'processing' : 'failed';
+        newOrder.status = simulatedSuccess ? 'completed' : 'failed';
+        if (simulatedSuccess) newOrder.completedAt = new Date().toISOString();
 
         writeAuditLog({
           actorId: String(orderData.userId || 'system'),

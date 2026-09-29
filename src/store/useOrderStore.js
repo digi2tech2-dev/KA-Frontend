@@ -226,13 +226,16 @@ const useOrderStore = create((set, get) => ({
             ''
           ).trim();
 
-          // Get current pricing and exchange rates for financial snapshot
-          const currencies = await apiClient.system.currencies().catch(() => []);
-          const products = await apiClient.products.list().catch(() => []);
-
-          const product = products.find((p) => p.id === order.productId);
+          // Checkout already supplies a price and exchange-rate snapshot. Do not
+          // hold a completed purchase behind two extra network requests just to
+          // recreate data that is already available in the client cache.
+          const products = useMediaStore.getState?.().products || [];
+          const product = products.find((p) => String(p.id) === String(order.productId));
           const currencyCode = String(order.currencyCode || 'USD').toUpperCase();
-          const userCurrency = currencies.find((c) => String(c.code || '').toUpperCase() === currencyCode) || { code: currencyCode, rate: 1 };
+          const userCurrency = {
+            code: currencyCode,
+            rate: Number(order.exchangeRateAtExecution || 1),
+          };
 
           // Calculate pricing snapshot
           const basePrice = Number(order.unitPriceBase || product?.basePriceCoins || product?.price || 0);
