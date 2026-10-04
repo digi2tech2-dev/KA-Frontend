@@ -5,6 +5,7 @@ import FloatingWhatsApp from './components/ui/FloatingWhatsApp';
 import CustomerBottomNav from './components/layout/CustomerBottomNav';
 import PageTransition from './components/app/PageTransition';
 import SessionBootstrap from './components/app/SessionBootstrap';
+import GuestIntro from './components/app/GuestIntro';
 import RouteErrorBoundary from './components/app/RouteErrorBoundary';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -455,6 +456,7 @@ function App() {
             </PageTransition>
             <CustomerBottomNav />
             <FloatingWhatsApp />
+            <GuestIntro />
           </BrowserRouter>
         </ToastProvider>
       </LanguageProvider>

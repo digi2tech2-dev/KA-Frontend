@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
     plugins: [react(), tailwindcss()],
-    assetsInclude: ['**/*.PNG'],
+    assetsInclude: ['**/*.PNG', '**/*.MP4'],
     define: {
       'process.env.VITE_API_BASE_URL': JSON.stringify(env.VITE_API_BASE_URL),
       'process.env.VITE_APP_ENV': JSON.stringify(env.VITE_APP_ENV || mode),

@@ -775,12 +775,12 @@
   }
 
   .floating-whatsapp-promos {
-    position: absolute;
-    right: 50%;
-    bottom: calc(100% + 0.75rem);
-    width: 6.25rem;
+    position: fixed;
+    right: 1rem;
+    bottom: 5.7rem;
+    width: 5.4rem;
     aspect-ratio: 1;
-    transform: translateX(50%);
+    transform: none;
     filter: drop-shadow(0 14px 16px rgb(0 0 0 / 0.26)) drop-shadow(0 0 12px rgb(212 164 45 / 0.2));
   }
 
@@ -806,7 +806,7 @@
   }
 
   .floating-whatsapp-promo:hover {
-    transform: translateY(-0.2rem) scale(1.04);
+    transform: none;
   }
 
   .floating-whatsapp-button {
@@ -828,7 +828,7 @@
   }
 
   .floating-whatsapp:hover .floating-whatsapp-button {
-    transform: translateY(-3px);
+    transform: none;
     box-shadow: 0 25px 48px -22px rgb(165 28 147 / 0.9), 0 0 30px -15px rgb(189 112 65 / 0.82), inset 0 1px 0 rgb(255 255 255 / 0.36);
   }
 
@@ -1766,7 +1766,7 @@ html[data-page-transition="running"] {
   .auth-atmosphere__halo--left {
     width: 18rem;
     height: 18rem;
-    top: -7rem;
+    top: 0;
   }
 
   .auth-atmosphere__halo--right {
@@ -1789,8 +1789,9 @@ html[data-page-transition="running"] {
   }
 
   .floating-whatsapp-promos {
-    bottom: calc(100% + 0.6rem);
-    width: 5rem;
+    right: 0.85rem;
+    bottom: 5rem;
+    width: 4.6rem;
   }
 
   .floating-whatsapp-tooltip {
@@ -4222,6 +4223,12 @@ html.performance-lite :where(button, a, [role="button"], .transition, [class*="t
     height: 3rem;
   }
 
+  body[data-customer-bottom-nav="true"] .floating-whatsapp-promos {
+    right: max(0.9rem, env(safe-area-inset-right));
+    bottom: calc(9.25rem + env(safe-area-inset-bottom));
+    width: 5rem;
+  }
+
   body[data-customer-bottom-nav="true"] .floating-whatsapp-headset {
     inset: 0.35rem;
     border-width: 0.13rem;
@@ -4337,10 +4344,10 @@ html.performance-lite :where(button, a, [role="button"], .transition, [class*="t
   body[data-mobile-bottom-nav="true"] .floating-whatsapp-promos {
     position: fixed;
     right: max(0.85rem, env(safe-area-inset-right));
-    bottom: calc(5.35rem + env(safe-area-inset-bottom));
+    bottom: calc(5.9rem + env(safe-area-inset-bottom));
     left: auto;
-    width: 3.9rem;
-    height: 3.9rem;
+    width: 4.35rem;
+    height: 4.35rem;
     transform: none;
   }
 
