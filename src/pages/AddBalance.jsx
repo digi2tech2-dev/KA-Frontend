@@ -27,9 +27,9 @@ const getMethodIcon = (method) => {
 
 /* ─── Currency badge colours ─── */
 const CURRENCY_COLORS = {
-  EGP: { bg: "from-emerald-700 to-green-900",  badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" },
-  USD: { bg: "from-blue-700   to-blue-900",     badge: "bg-blue-500/20    text-blue-300    border-blue-500/30"    },
-  MAD: { bg: "from-orange-700 to-red-900",      badge: "bg-orange-500/20  text-orange-300  border-orange-500/30"  },
+  EGP: { bg: "from-[#8b1c80] via-[#a51c93] to-[#5f195d]", badge: "bg-[#f1b979]/15 text-[#fff0c9] border-[#f1b979]/35" },
+  USD: { bg: "from-[#5f195d] via-[#8b1c80] to-[#a51c93]", badge: "bg-[#f18bdd]/15 text-[#ffd8f5] border-[#f18bdd]/35" },
+  MAD: { bg: "from-[#bd7041] via-[#a51c93] to-[#76106b]", badge: "bg-[#f1b979]/15 text-[#fff0c9] border-[#f1b979]/35" },
 };
 const getCurrencyStyle = (currency) => CURRENCY_COLORS[String(currency || "").toUpperCase()] || { bg: "from-gray-700 to-gray-900", badge: "bg-white/10 text-white/70 border-white/20" };
 
@@ -46,15 +46,15 @@ const PaymentMethodButton = ({ method, groupName, groupCurrency, onSelect, isRTL
       type="button"
       onClick={() => onSelect(method)}
       className="group relative flex flex-col overflow-hidden rounded-2xl text-white shadow-[0_12px_40px_-16px_rgba(0,0,0,0.7)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_48px_-16px_rgba(0,0,0,0.85)] focus:outline-none"
-      style={{ background: "linear-gradient(145deg,#c0002a 0%,#8b0000 42%,#5c0000 100%)", border: "2px solid rgba(255,80,80,0.35)" }}
+      style={{ background: "radial-gradient(circle at 15% 8%,rgba(241,185,121,0.24),transparent 28%), radial-gradient(circle at 90% 94%,rgba(217,54,194,0.26),transparent 38%), linear-gradient(145deg,#3a0b38 0%,#8b1c80 42%,#a51c93 68%,#5f195d 100%)", border: "2px solid rgba(241,185,121,0.42)" }}
     >
       {/* sparkle dots */}
       <span className="pointer-events-none absolute inset-0" style={{ backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.18) 1px,transparent 1px)", backgroundSize: "18px 18px", opacity: 0.4 }} />
 
       {/* header */}
       <div className="relative flex items-center justify-between px-2.5 pt-2.5 pb-1">
-        <span className="flex items-center gap-1 text-[9px] font-black text-yellow-200 drop-shadow"><span>💰</span><span>{isRTL ? "اشحن رصيدك" : "Top-up"}</span></span>
-        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[8px] font-black text-white/90 backdrop-blur">Recharge</span>
+        <span className="flex items-center gap-1 text-[9px] font-black text-[#fff0c9] drop-shadow"><span>💰</span><span>{isRTL ? "اشحن رصيدك" : "Top-up"}</span></span>
+        <span className="rounded-full border border-[#f1b979]/30 bg-[#f1b979]/15 px-2 py-0.5 text-[8px] font-black text-[#fff0c9] backdrop-blur">Recharge</span>
       </div>
 
       {/* logo */}
@@ -70,11 +70,11 @@ const PaymentMethodButton = ({ method, groupName, groupCurrency, onSelect, isRTL
       <div className="px-2.5 pt-1 text-center text-sm leading-none select-none">🪙🪙🪙🪙</div>
 
       {/* name badge */}
-      <div className="mx-2.5 mt-1 rounded-lg bg-gradient-to-r from-red-700 to-rose-800 py-1 text-center text-[11px] font-black text-white shadow-[0_4px_14px_-6px_rgba(0,0,0,0.6)]">{method.name}</div>
+      <div className="mx-2.5 mt-1 rounded-lg bg-gradient-to-r from-[#76106b] via-[#d936c2] to-[#bd7041] py-1 text-center text-[11px] font-black text-white shadow-[0_4px_14px_-6px_rgba(49,16,47,0.72)]">{method.name}</div>
 
       {/* note section */}
-      <div className="mx-2.5 mt-1.5 overflow-hidden rounded-lg border border-white/15 bg-white/10 backdrop-blur">
-        <div className="bg-white/20 px-2 py-0.5 text-center text-[8px] font-black text-yellow-100">{isRTL ? "ملاحظة" : "Note"}</div>
+      <div className="mx-2.5 mt-1.5 overflow-hidden rounded-lg border border-[#f18bdd]/25 bg-[#5f195d]/30 backdrop-blur">
+        <div className="bg-[#f1b979]/16 px-2 py-0.5 text-center text-[8px] font-black text-[#fff0c9]">{isRTL ? "ملاحظة" : "Note"}</div>
         <div className="px-2 py-1 text-center text-[8px] font-semibold leading-4 text-white/85">{note}</div>
       </div>
 

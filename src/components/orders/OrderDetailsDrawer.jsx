@@ -290,6 +290,8 @@ const OrderDetailsDrawer = ({
       message,
     });
 
+    if (!href) return;
+
     window.open(href, '_blank', 'noopener,noreferrer');
   };
   const detailItems = [

@@ -10,6 +10,7 @@ import CategoryCard from '../components/home/CategoryCard';
 import BestSellingSection from '../components/home/BestSellingSection';
 import ProductSearchBar from '../components/products/ProductSearchBar';
 import ProductPurchaseDialog from '../components/products/ProductPurchaseDialog';
+import StorefrontQuickOffers from '../components/products/StorefrontQuickOffers';
 import slideOneHeroImage from '../assets/slide-1.jpg';
 import slideTwoHeroImage from '../assets/slide-2.jpg';
 import slideThreeHeroImage from '../assets/slide-3.jpg';
@@ -166,22 +167,26 @@ const Dashboard = () => {
     navigate(`/orders/${encodeURIComponent(orderId)}`);
   }, [navigate]);
 
+  const handleSellTarget = useCallback(() => {
+    navigate('/buy-target');
+  }, [navigate]);
+
   return (
     <div className="space-y-5 pb-5 sm:space-y-6">
       {!isTwoFactorEnabled ? (
-        <section className="group relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-400/20 bg-[linear-gradient(120deg,rgb(16_185_129/0.08),rgb(var(--color-card-rgb)/0.72)_48%,rgb(56_189_248/0.07))] p-2 shadow-[0_16px_40px_-34px_rgb(16_185_129/0.72)] backdrop-blur-xl sm:p-2.5">
-          <span className="pointer-events-none absolute -start-8 -top-10 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
-          <div className="relative flex items-center justify-between gap-2.5">
-            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-              <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-emerald-300/25 bg-[linear-gradient(145deg,rgb(16_185_129/0.18),rgb(56_189_248/0.12))] text-emerald-500 shadow-[inset_0_1px_0_rgb(255_255_255/0.16)] sm:h-10 sm:w-10">
-                <span className="absolute end-0 top-0 h-2 w-2 -translate-y-1/4 translate-x-1/4 rounded-full border-2 border-[rgb(var(--color-card-rgb))] bg-emerald-400" />
-                <ShieldCheck className="h-4.5 w-4.5 sm:h-5 sm:w-5" strokeWidth={2.2} />
+        <section className="group relative mx-auto w-full max-w-md overflow-hidden rounded-xl border border-sky-400/18 bg-[linear-gradient(110deg,rgb(14_31_55/0.92),rgb(var(--color-card-rgb)/0.8),rgb(67_56_202/0.11))] p-1 shadow-[0_12px_26px_-22px_rgb(14_116_144/0.8)] backdrop-blur-xl">
+          <span className="pointer-events-none absolute -start-6 -top-8 h-16 w-16 rounded-full bg-sky-400/10 blur-xl" />
+          <div className="relative flex items-center justify-between gap-1.5">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-sky-300/20 bg-sky-400/10 text-sky-400">
+                <span className="absolute end-0 top-0 h-1.5 w-1.5 -translate-y-1/4 translate-x-1/4 rounded-full border border-[rgb(var(--color-card-rgb))] bg-sky-400" />
+                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.2} />
               </span>
               <div className="min-w-0 leading-tight">
-                <p className="truncate text-[0.75rem] font-bold text-[var(--color-text)] sm:text-[0.84rem]">
+                <p className="truncate text-[0.62rem] font-bold text-[var(--color-text)]">
                   {language === 'ar' ? 'حماية إضافية لحسابك' : 'Extra protection for your account'}
                 </p>
-                <p className="mt-0.5 truncate text-[0.64rem] font-medium text-[var(--color-text-secondary)] sm:text-[0.71rem]">
+                <p className="mt-px truncate text-[0.52rem] font-medium text-[var(--color-text-secondary)]">
                   {language === 'ar' ? 'فعّل المصادقة الثنائية في أقل من دقيقة.' : 'Enable two-factor authentication in under a minute.'}
                 </p>
               </div>
@@ -189,16 +194,20 @@ const Dashboard = () => {
 
             <Link
               to="/account-security"
-              className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-2.5 text-[0.66rem] font-extrabold text-emerald-500 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-400/40 hover:bg-emerald-500/16 hover:shadow-[0_10px_24px_-16px_rgb(16_185_129/0.9)] sm:h-9 sm:px-3 sm:text-[0.73rem]"
+              className="inline-flex h-7 shrink-0 items-center justify-center gap-1 rounded-lg border border-sky-400/25 bg-sky-400/10 px-2 text-[0.55rem] font-extrabold text-sky-500 transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-400/45 hover:bg-sky-400/16 hover:shadow-[0_8px_18px_-14px_rgb(14_165_233/0.9)]"
             >
               <span>{language === 'ar' ? 'تفعيل الحماية' : 'Protect now'}</span>
-              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.4} />
+              <ArrowUpRight className="h-3 w-3" strokeWidth={2.4} />
             </Link>
           </div>
         </section>
       ) : null}
 
       <HeroSlider slides={heroSlides} />
+
+      <div className="mx-auto w-full max-w-5xl px-0.5 sm:px-2">
+        <StorefrontQuickOffers language={language} onSellTarget={handleSellTarget} />
+      </div>
 
       <section id="categories" className="scroll-mt-28 space-y-3 sm:space-y-3.5">
         <div className="relative z-10 mx-auto flex w-full max-w-5xl justify-center px-0.5 sm:px-2">

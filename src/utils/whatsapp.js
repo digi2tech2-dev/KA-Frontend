@@ -1,9 +1,8 @@
 const SUPPORT_CONTACTS = Object.freeze([
-  { nameAr: 'أحمد كارد', nameEn: 'Ahmed Card', roleAr: 'صاحب المنصة', roleEn: 'Platform owner', number: '01012286661' },
-  { nameAr: 'ياسمين', nameEn: 'Yasmin', roleAr: 'خدمة العملاء', roleEn: 'Customer support', number: '01201111390' },
-  { nameAr: 'فريق الدعم', nameEn: 'Support team', roleAr: 'خدمة العملاء', roleEn: 'Customer support', number: '01013669339' },
+  { name: 'AHMED CARD', number: '01012286661', icon: 'male' },
+  { name: 'DARREN CARD', number: '01013669339', icon: 'female' },
 ]);
-const FALLBACK_WHATSAPP_NUMBER = SUPPORT_CONTACTS[0].number;
+
 const ENV_ADMIN_WHATSAPP_NUMBER =
   import.meta.env.VITE_ADMIN_WHATSAPP_NUMBER
   || import.meta.env.ADMIN_WHATSAPP_NUMBER
@@ -11,7 +10,7 @@ const ENV_ADMIN_WHATSAPP_NUMBER =
 
 export const normalizeWhatsAppNumber = (value) => {
   const digits = String(value || '').replace(/\D/g, '');
-  if (!digits) return FALLBACK_WHATSAPP_NUMBER;
+  if (!digits) return '';
 
   // Support local numbers like 010xxxxxxxx by defaulting to Egypt country code.
   if (digits.startsWith('0') && digits.length >= 10) {
@@ -23,11 +22,12 @@ export const normalizeWhatsAppNumber = (value) => {
 
 export const buildWhatsAppLink = ({ number, message = '' }) => {
   const normalizedNumber = normalizeWhatsAppNumber(number);
+  if (!normalizedNumber) return null;
   const text = String(message || '').trim();
   const suffix = text ? `?text=${encodeURIComponent(text)}` : '';
   return `https://wa.me/${normalizedNumber}${suffix}`;
 };
 
-export const getDefaultWhatsAppNumber = () => FALLBACK_WHATSAPP_NUMBER;
-export const getAdminWhatsAppNumber = () => normalizeWhatsAppNumber(ENV_ADMIN_WHATSAPP_NUMBER || FALLBACK_WHATSAPP_NUMBER);
+export const getDefaultWhatsAppNumber = () => normalizeWhatsAppNumber(ENV_ADMIN_WHATSAPP_NUMBER || SUPPORT_CONTACTS[0].number);
+export const getAdminWhatsAppNumber = () => normalizeWhatsAppNumber(ENV_ADMIN_WHATSAPP_NUMBER || SUPPORT_CONTACTS[0].number);
 export const getSupportContacts = () => SUPPORT_CONTACTS;

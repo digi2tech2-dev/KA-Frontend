@@ -214,6 +214,11 @@ const ContactUs = ({ accountOnly = false }) => {
       message: trimmedMessage,
     });
 
+    if (!href) {
+      setMessageError(isArabic ? 'قناة واتساب الرسمية غير مفعلة حالياً.' : 'The official WhatsApp channel is not active yet.');
+      return;
+    }
+
     window.open(href, '_blank', 'noopener,noreferrer');
     setSubmitted(true);
   };

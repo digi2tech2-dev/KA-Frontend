@@ -95,14 +95,14 @@ const getMethodPresentation = (method) => {
   const token = `${method?.id || ''} ${method?.name || ''}`.toLowerCase();
   const type = normalizeMethodType(method?.type);
 
-  if (token.includes('vodafone')) return { icon: 'VC', color: 'from-red-500 to-yellow-500' };
-  if (token.includes('etisalat')) return { icon: 'EC', color: 'from-green-500 to-indigo-500' };
-  if (token.includes('orange')) return { icon: 'OC', color: 'from-orange-500 to-red-500' };
-  if (type === 'bank_transfer') return { icon: 'BT', color: 'from-indigo-500 to-amber-500' };
-  if (type === 'usdt' || type === 'crypto') return { icon: 'USDT', color: 'from-emerald-500 to-indigo-600' };
-  if (type === 'credit_card') return { icon: 'CC', color: 'from-amber-500 to-orange-600' };
+  if (token.includes('vodafone')) return { icon: 'VC', color: 'from-[#76106b] via-[#d936c2] to-[#bd7041]' };
+  if (token.includes('etisalat')) return { icon: 'EC', color: 'from-[#5f195d] via-[#a51c93] to-[#f1b979]' };
+  if (token.includes('orange')) return { icon: 'OC', color: 'from-[#bd7041] via-[#d936c2] to-[#76106b]' };
+  if (type === 'bank_transfer') return { icon: 'BT', color: 'from-[#8b1c80] to-[#bd7041]' };
+  if (type === 'usdt' || type === 'crypto') return { icon: 'USDT', color: 'from-[#5f195d] to-[#d936c2]' };
+  if (type === 'credit_card') return { icon: 'CC', color: 'from-[#bd7041] to-[#8b1c80]' };
 
-  return { icon: 'PM', color: 'from-emerald-500 to-indigo-600' };
+  return { icon: 'PM', color: 'from-[#8b1c80] to-[#d936c2]' };
 };
 
 const getCurrencyRate = (currencies = [], currencyCode = 'USD') => {
@@ -548,13 +548,13 @@ const PaymentDetails = ({
           {flowSteps.map((step, index) => (
             <React.Fragment key={step.label}>
               <div className="flex w-16 shrink-0 flex-col items-center text-center sm:w-20">
-                <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-cyan-500 bg-[var(--color-card)] font-['Poppins'] text-[10px] font-black text-cyan-600 dark:text-cyan-300">
+                <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-[color:rgb(var(--color-primary-rgb)/0.8)] bg-[var(--color-card)] font-['Poppins'] text-[10px] font-black text-[var(--color-primary)]">
                   {index + 1}
                 </span>
                 <span className="mt-1.5 text-[9px] font-black text-[var(--color-text-secondary)]">{step.label}</span>
               </div>
               {index < flowSteps.length - 1 ? (
-                <span className="mt-3.5 h-px min-w-4 flex-1 bg-gradient-to-l from-cyan-500/60 to-indigo-500/20" />
+                <span className="mt-3.5 h-px min-w-4 flex-1 bg-gradient-to-l from-[color:rgb(var(--color-primary-rgb)/0.7)] to-[color:rgb(var(--color-secondary-rgb)/0.28)]" />
               ) : null}
             </React.Fragment>
           ))}
@@ -569,7 +569,7 @@ const PaymentDetails = ({
             className="min-w-0 border-y border-[color:rgb(var(--color-border-rgb)/0.62)] py-5"
           >
             <div className="mb-4 flex items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.1)] text-[var(--color-primary)]">
                 <Landmark className="h-4 w-4" />
               </span>
               <div>
@@ -580,12 +580,12 @@ const PaymentDetails = ({
             <button
               type="button"
               onClick={handleCopyAccount}
-              className="group relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#082f49_0%,#0e7490_48%,#2563eb_100%)] px-4 py-4 text-white shadow-[0_20px_45px_-28px_rgba(8,145,178,0.9)] transition hover:-translate-y-0.5 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-[var(--color-bg)] sm:px-5"
+              className="group relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#5f195d_0%,#a51c93_46%,#d936c2_70%,#bd7041_100%)] px-4 py-4 text-white shadow-[0_20px_45px_-28px_rgb(165_28_147/0.9),0_0_28px_-18px_rgb(189_112_65/0.7)] transition hover:-translate-y-0.5 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[color:rgb(var(--color-secondary-rgb)/0.55)] focus:ring-offset-2 focus:ring-offset-[var(--color-bg)] sm:px-5"
               title={dir === 'rtl' ? 'اضغط للنسخ' : 'Tap to copy'}
             >
-              <span className="pointer-events-none absolute -top-10 end-5 h-24 w-24 rounded-full bg-cyan-300/20 blur-2xl" />
+              <span className="pointer-events-none absolute -top-10 end-5 h-24 w-24 rounded-full bg-[#f1b979]/25 blur-2xl" />
               <span className="relative min-w-0 text-start">
-                <span className="block text-[9px] font-bold text-cyan-100/75">{dir === 'rtl' ? 'رقم التحويل' : 'Transfer number'}</span>
+                <span className="block text-[9px] font-bold text-[#fff0c9]/82">{dir === 'rtl' ? 'رقم التحويل' : 'Transfer number'}</span>
                 <span className="mt-1 block break-all font-['Poppins'] text-xl font-black tracking-[0.08em] [direction:ltr] sm:text-2xl">{method.accountNumber}</span>
               </span>
               <span className="relative inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-2.5 py-2 text-[10px] font-black text-white backdrop-blur-sm transition group-hover:bg-white/20">
@@ -593,8 +593,8 @@ const PaymentDetails = ({
                 {dir === 'rtl' ? 'نسخ' : 'Copy'}
               </span>
             </button>
-            <p className="mt-2 text-center text-[9px] font-bold text-cyan-600 dark:text-cyan-300">{dir === 'rtl' ? 'اضغط على الرقم لنسخه فورًا' : 'Tap the number to copy it instantly'}</p>
-            <div className="relative mt-4 grid grid-cols-2 border-b border-[color:rgb(var(--color-border-rgb)/0.5)] pb-3 text-start after:absolute after:inset-y-2 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-gradient-to-b after:from-transparent after:via-cyan-500/35 after:to-transparent">
+            <p className="mt-2 text-center text-[9px] font-bold text-[var(--color-primary)]">{dir === 'rtl' ? 'اضغط على الرقم لنسخه فورًا' : 'Tap the number to copy it instantly'}</p>
+            <div className="relative mt-4 grid grid-cols-2 border-b border-[color:rgb(var(--color-border-rgb)/0.5)] pb-3 text-start after:absolute after:inset-y-2 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-gradient-to-b after:from-transparent after:via-[color:rgb(var(--color-primary-rgb)/0.42)] after:to-transparent">
               {method.accountName && (
                 <div className="min-w-0 px-3 py-2 sm:px-5">
                   <p className="text-[9px] font-bold text-[var(--color-text-secondary)]">
@@ -652,7 +652,7 @@ const PaymentDetails = ({
           className="mx-auto min-w-0 max-w-2xl py-5"
         >
           <div className="mb-5 flex items-center gap-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-500 dark:text-indigo-300">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:rgb(var(--color-primary-rgb)/0.1)] text-[var(--color-primary)]">
               <ReceiptText className="h-4 w-4" />
             </span>
             <div>
@@ -675,11 +675,11 @@ const PaymentDetails = ({
                 </label>
                 {field === 'amount' ? (
                   <div
-                    className="flex h-12 overflow-hidden rounded-xl border border-amber-400/55 bg-[color:rgb(var(--color-surface-rgb)/0.72)] shadow-inner shadow-black/5 transition focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-400/15 dark:bg-[linear-gradient(110deg,rgb(15_23_42/0.82),rgb(30_27_18/0.76))] dark:shadow-black/15"
+                    className="flex h-12 overflow-hidden rounded-xl border border-[color:rgb(var(--color-secondary-rgb)/0.55)] bg-[color:rgb(var(--color-surface-rgb)/0.72)] shadow-inner shadow-black/5 transition focus-within:border-[var(--color-secondary)] focus-within:ring-2 focus-within:ring-[color:rgb(var(--color-secondary-rgb)/0.16)] dark:bg-[linear-gradient(110deg,rgb(49_16_47/0.82),rgb(95_25_93/0.76))] dark:shadow-black/15"
                     dir={dir}
                   >
                     <span
-                      className="grid min-w-16 shrink-0 place-items-center border-e border-amber-500/55 bg-[linear-gradient(145deg,#fde047,#facc15_55%,#eab308)] px-3 font-['Poppins'] text-xl font-black text-slate-950 shadow-[0_0_24px_-12px_rgb(234_179_8/0.9)]"
+                      className="grid min-w-16 shrink-0 place-items-center border-e border-[#bd7041]/55 bg-[linear-gradient(145deg,#fff0c9,#f1b979_55%,#bd7041)] px-3 font-['Poppins'] text-xl font-black text-[#31102f] shadow-[0_0_24px_-12px_rgb(189_112_65/0.9)]"
                       dir="ltr"
                       title={paymentCurrencyCode}
                     >
@@ -726,10 +726,10 @@ const PaymentDetails = ({
               </label>
               {senderDetailRequirement.field === 'senderWalletNumber' ? (
                 <div
-                  className="flex h-12 overflow-hidden rounded-xl border border-rose-400/55 bg-rose-50/45 shadow-inner shadow-black/5 transition focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-400/15 dark:bg-[linear-gradient(110deg,rgb(31_18_25/0.82),rgb(15_23_42/0.78))] dark:shadow-black/15"
+                  className="flex h-12 overflow-hidden rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.55)] bg-[color:rgb(var(--color-primary-rgb)/0.06)] shadow-inner shadow-black/5 transition focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:rgb(var(--color-primary-rgb)/0.16)] dark:bg-[linear-gradient(110deg,rgb(49_16_47/0.82),rgb(95_25_93/0.78))] dark:shadow-black/15"
                   dir={dir}
                 >
-                  <span className="grid min-w-16 shrink-0 place-items-center border-e border-rose-600/55 bg-[linear-gradient(145deg,#fb7185,#e11d48_58%,#be123c)] text-white shadow-[0_0_24px_-12px_rgb(225_29_72/0.9)]">
+                  <span className="grid min-w-16 shrink-0 place-items-center border-e border-[#8b1c80]/55 bg-[linear-gradient(145deg,#f18bdd,#d936c2_58%,#8b1c80)] text-white shadow-[0_0_24px_-12px_rgb(217_54_194/0.9)]">
                     <Smartphone className="h-5 w-5 drop-shadow-sm" />
                   </span>
                   <input
@@ -738,17 +738,17 @@ const PaymentDetails = ({
                     value={formData[senderDetailRequirement.field] || ''}
                     onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
                     placeholder={senderDetailRequirement.placeholder}
-                    className="min-w-0 flex-1 bg-transparent px-4 text-right font-['Poppins'] text-sm font-black text-rose-700 outline-none placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] dark:text-rose-300 [font-variant-numeric:tabular-nums]"
+                    className="min-w-0 flex-1 bg-transparent px-4 text-right font-['Poppins'] text-sm font-black text-[var(--color-primary-hover)] outline-none placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] dark:text-[#f18bdd] [font-variant-numeric:tabular-nums]"
                     disabled={isSubmitting}
                     required
                   />
                 </div>
               ) : (
                 <div
-                  className="flex h-12 overflow-hidden rounded-xl border border-emerald-400/50 bg-emerald-50/40 shadow-inner shadow-black/5 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-400/15 dark:bg-[linear-gradient(110deg,rgb(8_39_31/0.78),rgb(15_23_42/0.78))] dark:shadow-black/15"
+                  className="flex h-12 overflow-hidden rounded-xl border border-[color:rgb(var(--color-secondary-rgb)/0.48)] bg-[color:rgb(var(--color-secondary-rgb)/0.07)] shadow-inner shadow-black/5 transition focus-within:border-[var(--color-secondary)] focus-within:ring-2 focus-within:ring-[color:rgb(var(--color-secondary-rgb)/0.16)] dark:bg-[linear-gradient(110deg,rgb(49_16_47/0.78),rgb(95_25_93/0.78))] dark:shadow-black/15"
                   dir={dir}
                 >
-                  <span className="grid min-w-16 shrink-0 place-items-center border-e border-emerald-600/45 bg-[linear-gradient(145deg,#34d399,#059669_58%,#047857)] text-white shadow-[0_0_24px_-12px_rgb(5_150_105/0.9)]">
+                  <span className="grid min-w-16 shrink-0 place-items-center border-e border-[#bd7041]/50 bg-[linear-gradient(145deg,#f1b979,#bd7041_58%,#8b1c80)] text-white shadow-[0_0_24px_-12px_rgb(189_112_65/0.82)]">
                     <WalletCards className="h-5 w-5 drop-shadow-sm" />
                   </span>
                   <input
@@ -756,7 +756,7 @@ const PaymentDetails = ({
                     value={formData[senderDetailRequirement.field] || ''}
                     onChange={(e) => handleInputChange(senderDetailRequirement.field, e.target.value)}
                     placeholder={senderDetailRequirement.placeholder}
-                    className="min-w-0 flex-1 bg-transparent px-4 text-right text-sm font-bold text-emerald-800 outline-none placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] dark:text-emerald-200"
+                    className="min-w-0 flex-1 bg-transparent px-4 text-right text-sm font-bold text-[var(--color-secondary)] outline-none placeholder:font-semibold placeholder:text-[var(--color-text-secondary)] dark:text-[#f1b979]"
                     disabled={isSubmitting}
                     required
                   />
@@ -772,10 +772,10 @@ const PaymentDetails = ({
               <FieldCompletionBadge complete={Boolean(String(formData.transactionId || '').trim())} />
             </label>
             <div
-              className="flex h-12 overflow-hidden rounded-xl border border-indigo-400/55 bg-indigo-50/50 shadow-inner shadow-black/5 transition focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-400/15 dark:bg-[linear-gradient(110deg,rgb(30_27_75/0.78),rgb(8_47_73/0.72))] dark:shadow-black/15"
+              className="flex h-12 overflow-hidden rounded-xl border border-[color:rgb(var(--color-primary-rgb)/0.55)] bg-[color:rgb(var(--color-primary-rgb)/0.06)] shadow-inner shadow-black/5 transition focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:rgb(var(--color-primary-rgb)/0.16)] dark:bg-[linear-gradient(110deg,rgb(95_25_93/0.78),rgb(49_16_47/0.72))] dark:shadow-black/15"
               dir={dir}
             >
-              <span className="grid min-w-16 shrink-0 place-items-center border-e border-indigo-600/50 bg-[linear-gradient(145deg,#818cf8,#4f46e5_52%,#2563eb)] text-white shadow-[0_0_24px_-12px_rgb(79_70_229/0.9)]">
+              <span className="grid min-w-16 shrink-0 place-items-center border-e border-[#8b1c80]/50 bg-[linear-gradient(145deg,#f18bdd,#a51c93_52%,#5f195d)] text-white shadow-[0_0_24px_-12px_rgb(165_28_147/0.9)]">
                 <Hash className="h-5 w-5 drop-shadow-sm" />
               </span>
               <input
@@ -783,7 +783,7 @@ const PaymentDetails = ({
                 value={formData.transactionId || ''}
                 onChange={(e) => handleInputChange('transactionId', e.target.value)}
                 placeholder="أدخل رقم العملية"
-                className="min-w-0 flex-1 bg-transparent px-4 text-right font-['Poppins'] text-sm font-black tracking-wide text-indigo-700 outline-none placeholder:font-semibold placeholder:tracking-normal placeholder:text-[var(--color-text-secondary)] dark:text-indigo-200 [font-variant-numeric:tabular-nums]"
+                className="min-w-0 flex-1 bg-transparent px-4 text-right font-['Poppins'] text-sm font-black tracking-wide text-[var(--color-primary-hover)] outline-none placeholder:font-semibold placeholder:tracking-normal placeholder:text-[var(--color-text-secondary)] dark:text-[#f18bdd] [font-variant-numeric:tabular-nums]"
                 disabled={isSubmitting}
                 required
               />
@@ -807,7 +807,7 @@ const PaymentDetails = ({
             </div>
           )}
 
-          <div className="mb-5 rounded-2xl border border-indigo-500/15 bg-[linear-gradient(135deg,rgb(6_182_212/0.07),rgb(79_70_229/0.08))] p-4">
+          <div className="mb-5 rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.22)] bg-[linear-gradient(135deg,rgb(var(--color-primary-rgb)/0.08),rgb(var(--color-secondary-rgb)/0.1))] p-4">
             <div className="flex items-center justify-between gap-3 px-1 text-xs">
               <span className="font-bold text-[var(--color-text-secondary)]">
                 {t('payments.subtotalLabel', {
@@ -829,13 +829,13 @@ const PaymentDetails = ({
               </div>
             )}
 
-            <div className="mt-3 flex items-end justify-between gap-3 border-t border-indigo-500/15 px-1 pt-3 text-xs">
+            <div className="mt-3 flex items-end justify-between gap-3 border-t border-[color:rgb(var(--color-primary-rgb)/0.2)] px-1 pt-3 text-xs">
               <span className="font-black text-[var(--color-text)]">
                 {t('payments.totalToTransferLabel', {
                   defaultValue: dir === 'rtl' ? 'الإجمالي المطلوب تحويله' : 'Total to transfer',
                 })}
               </span>
-              <span className="font-['Poppins'] text-lg font-black tracking-tight text-cyan-600 [direction:ltr] [font-variant-numeric:tabular-nums] dark:text-cyan-300">{formatMoney(payableAmount)}</span>
+              <span className="font-['Poppins'] text-lg font-black tracking-tight text-[var(--color-primary)] [direction:ltr] [font-variant-numeric:tabular-nums] dark:text-[#f18bdd]">{formatMoney(payableAmount)}</span>
             </div>
           </div>
 
@@ -865,7 +865,7 @@ const PaymentDetails = ({
             aria-busy={isSubmitting}
             whileTap={{ scale: 0.985 }}
             whileHover={!isSubmitting ? { y: -1 } : undefined}
-            className="group flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#0891b2_0%,#2563eb_55%,#4f46e5_100%)] px-5 text-sm font-black text-white shadow-[0_20px_38px_-22px_rgba(37,99,235,0.9)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+            className="group flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#76106b_0%,#d936c2_48%,#a51c93_70%,#bd7041_100%)] px-5 text-sm font-black text-white shadow-[0_20px_38px_-22px_rgb(165_28_147/0.9),0_0_26px_-18px_rgb(189_112_65/0.76)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Home, Menu, MessageCircle, ShieldCheck, UserRound, Zap } from 'lucide-react';
+import { CheckCircle2, Home, Menu, ShieldCheck, UserRound, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../store/useAuthStore';
 import ThemeToggle from '../components/ui/ThemeToggle';
@@ -10,7 +10,6 @@ import HeaderBrand from '../components/layout/HeaderBrand';
 import PublicSidebar from '../components/layout/PublicSidebar';
 import SiteCopyrightFooter from '../components/layout/SiteCopyrightFooter';
 import { useBodyScrollLock } from '../utils/bodyScrollLock';
-import { buildWhatsAppLink, getAdminWhatsAppNumber, getSupportContacts } from '../utils/whatsapp';
 import brandIconImage from '../assets/LOGO.PNG';
 
 const AboutUsPage = () => {
@@ -20,16 +19,7 @@ const AboutUsPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isArabic = String(i18n.resolvedLanguage || i18n.language || 'ar').toLowerCase().startsWith('ar');
-  const supportContacts = getSupportContacts();
-
   useBodyScrollLock(isMenuOpen);
-
-  const whatsappLink = useMemo(() => buildWhatsAppLink({
-    number: getAdminWhatsAppNumber(),
-    message: isArabic
-      ? 'مرحبا، أريد التواصل مع خدمة العملاء بخصوص شكوى.'
-      : 'Hello, I want to contact customer support about a complaint.',
-  }), [isArabic]);
 
   const handleLogin = useCallback(() => {
     navigate('/auth?mode=login');
@@ -209,35 +199,6 @@ const AboutUsPage = () => {
                   ))}
                 </div>
 
-                <div className="flex flex-col items-stretch gap-3 rounded-[14px] border border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f8fafc)] p-3 shadow-[0_18px_38px_-30px_rgba(16,185,129,0.72)] sm:flex-row sm:items-center sm:justify-between dark:border-emerald-300/18 dark:bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(15,23,42,0.24))]">
-                  <p className="text-center text-sm font-bold leading-7 text-emerald-950 sm:text-start dark:text-emerald-50">
-                    {isArabic
-                      ? 'للشكوي تواصل مع خدمه العملاء'
-                      : 'For complaints, contact customer support.'}
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2 sm:justify-end">
-                    {supportContacts.map((contact) => (
-                      <a
-                        key={contact.number}
-                        href={buildWhatsAppLink({ number: contact.number, message: isArabic ? 'مرحبًا، أحتاج إلى مساعدة من فريق AD CARD.' : 'Hello, I need help from the AD CARD support team.' })}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full border border-emerald-300/45 bg-[linear-gradient(135deg,#20c66b,#128c7e)] px-3 text-xs font-extrabold text-white shadow-[0_18px_34px_-24px_rgba(34,197,94,0.95)] transition-all hover:-translate-y-0.5"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        <span>
-                          <span className="flex items-baseline gap-1">
-                            {isArabic ? contact.nameAr : contact.nameEn}
-                            <small className={contact.roleAr === 'صاحب المنصة' ? 'text-[9px] font-bold text-amber-200' : 'text-[9px] font-bold text-sky-200'}>
-                              {isArabic ? contact.roleAr : contact.roleEn}
-                            </small>
-                          </span>
-                          <span dir="ltr" className="block text-[10px] font-bold opacity-85">{contact.number}</span>
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>

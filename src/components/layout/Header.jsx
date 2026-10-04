@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, CheckCircle2, Clock3, CreditCard, Menu, ShoppingBag, UserCheck, Wallet, XCircle } from 'lucide-react';
+import { Bell, CheckCircle2, Clock3, CreditCard, ShoppingBag, UserCheck, Wallet, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/useAuthStore';
@@ -7,6 +7,7 @@ import useNotificationStore from '../../store/useNotificationStore';
 import { useLanguage } from '../../context/LanguageContext';
 import ThemeToggle from '../ui/ThemeToggle';
 import HeaderBrand from './HeaderBrand';
+import SidebarToggleIcon from './SidebarToggleIcon';
 import { formatWalletAmount } from '../../utils/storefront';
 import { getDefaultRouteForRole, isAdminRole, isSupervisorRole } from '../../utils/authRoles';
 import { cn } from '../ui/Button';
@@ -199,10 +200,10 @@ const Header = ({ toggleSidebar }) => {
   return (
     <header dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-full">
       <div className={cn(
-        'app-shell-header-panel ka-card-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0.5 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-1',
+        'app-shell-header-panel ka-card-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-0',
         isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
       )}>
-        <div dir="ltr" className="grid min-h-[2.55rem] min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:min-h-[2.9rem] sm:gap-4">
+        <div dir="ltr" className="grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:gap-4">
           <div className="col-start-2 row-start-1 min-w-0 justify-self-center">
             <button
               type="button"
@@ -210,7 +211,7 @@ const Header = ({ toggleSidebar }) => {
               className="inline-flex items-center gap-2 rounded-[14px] px-0 py-0 transition-all hover:-translate-y-0.5 sm:gap-4"
             >
               <HeaderBrand
-                className="translate-x-11 scale-[0.96] min-[380px]:translate-x-16 sm:translate-x-28 sm:scale-[1.02] lg:translate-x-52"
+                className="-my-2 translate-x-11 scale-[0.96] min-[380px]:translate-x-16 sm:translate-x-28 sm:scale-[1.02] lg:translate-x-52"
                 iconClassName="scale-[0.98]"
               />
             </button>
@@ -331,10 +332,10 @@ const Header = ({ toggleSidebar }) => {
           <button
             type="button"
             onClick={toggleSidebar}
-            className="col-start-3 row-start-1 inline-flex h-[1.875rem] w-[1.875rem] shrink-0 items-center justify-center justify-self-end rounded-full border border-[color:rgb(var(--color-border-rgb)/0.84)] bg-[linear-gradient(180deg,rgb(3_8_22/0.9),rgb(2_6_19/0.78))] text-[var(--color-text)] shadow-[inset_0_0_18px_rgb(255_255_255/0.035),0_0_26px_-18px_rgb(34_211_238/0.9)] transition-all hover:-translate-y-0.5 hover:border-[color:rgb(var(--color-primary-rgb)/0.38)] hover:text-[var(--color-primary)] min-[380px]:h-8 min-[380px]:w-8 sm:h-8 sm:w-8"
+            className="sidebar-toggle-button col-start-3 row-start-1 inline-flex h-[1.875rem] w-[1.875rem] shrink-0 items-center justify-center justify-self-end rounded-full text-[var(--color-text)] min-[380px]:h-8 min-[380px]:w-8 sm:h-8 sm:w-8"
             aria-label={language === 'ar' ? 'فتح القائمة' : 'Open menu'}
           >
-            <Menu className="h-3.5 w-3.5" />
+            <SidebarToggleIcon className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
