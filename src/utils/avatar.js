@@ -52,7 +52,7 @@ const isGeneratedSvgAvatarUrl = (value) => {
 };
 
 const hashString = (value) => {
-  const text = String(value || 'KA-CARD');
+  const text = String(value || 'AD CARD');
   let hash = 0;
 
   for (let index = 0; index < text.length; index += 1) {
@@ -64,7 +64,7 @@ const hashString = (value) => {
 };
 
 const getInitials = (value) => {
-  const parts = String(value || 'KA-CARD User')
+  const parts = String(value || 'AD CARD User')
     .replace(/[^\p{L}\p{N}\s._-]/gu, ' ')
     .split(/[\s._-]+/)
     .map((part) => part.trim())
@@ -196,12 +196,12 @@ const isAdminIdentity = (source, identity = '') => {
   return text.includes('platform admin') || text.includes('مدير المنصة') || text.includes('مدير المنصه');
 };
 
-export const getDefaultAvatarUrl = (identity = 'KA-CARD User', options = {}) => {
+export const getDefaultAvatarUrl = (identity = 'AD CARD User', options = {}) => {
   if (options.variant === 'gulf-admin') {
     return getGulfAdminAvatarUrl(identity);
   }
 
-  const seed = String(identity || 'KA-CARD User').trim() || 'KA-CARD User';
+  const seed = String(identity || 'AD CARD User').trim() || 'AD CARD User';
   const cacheKey = `anime:${seed}`;
 
   return getCachedAvatar(cacheKey, () => {
@@ -319,13 +319,13 @@ export const getDefaultAvatarUrl = (identity = 'KA-CARD User', options = {}) => 
   });
 };
 
-export const resolveUserAvatar = (source, fallbackIdentity = 'KA-CARD User') => {
+export const resolveUserAvatar = (source, fallbackIdentity = 'AD CARD User') => {
   const isObject = source && typeof source === 'object';
   const rawAvatar = isObject ? source.avatar : source;
   const identity = String(
     fallbackIdentity
     || (isObject ? (source.name || source.username || source.email) : '')
-    || 'KA-CARD User'
+    || 'AD CARD User'
   ).trim();
   const resolved = resolveImageUrl(rawAvatar);
 

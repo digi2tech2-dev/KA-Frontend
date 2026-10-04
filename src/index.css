@@ -2682,7 +2682,7 @@ html[data-page-transition="running"] {
   box-shadow: none !important;
 }
 
-/* KA-CARD final brand palette: petroleum blue, deep teal, and polished gold. */
+/* AD CARD final brand palette: petroleum blue, deep teal, and polished gold. */
 body {
   background:
     radial-gradient(46rem circle at 16% -12%, rgb(8 127 155 / 0.22), transparent 40%),
@@ -2726,6 +2726,15 @@ body {
 
 .ka-brand-title {
   text-shadow: none !important;
+}
+
+/* The AD letters use an angular, wide display face to echo the monogram in the logo. */
+.ad-brand-monogram {
+  display: inline-block;
+  font-family: "Russo One", "Orbitron", sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.02em !important;
+  transform: skewX(-5deg);
 }
 
 .ka-card-panel,
@@ -3699,7 +3708,7 @@ body {
   }
 }
 
-/* KA-CARD identity: deep navy, luminous cyan and premium gold. */
+/* AD CARD identity: plum, fuchsia, and metallic copper. */
 :root body {
   background:
     radial-gradient(52rem circle at 12% -10%, rgb(var(--color-primary-rgb) / 0.18), transparent 42%),
@@ -3709,9 +3718,9 @@ body {
 
 :root.dark body {
   background:
-    radial-gradient(54rem circle at 12% -12%, rgb(var(--color-primary-rgb) / 0.13), transparent 43%),
-    radial-gradient(48rem circle at 98% 0%, rgb(var(--color-secondary-rgb) / 0.18), transparent 40%),
-    linear-gradient(180deg, #030914 0%, #071525 52%, #030914 100%) !important;
+    radial-gradient(54rem circle at 12% -12%, rgb(var(--color-primary-rgb) / 0.16), transparent 43%),
+    radial-gradient(48rem circle at 98% 0%, rgb(var(--color-secondary-rgb) / 0.16), transparent 40%),
+    linear-gradient(180deg, #080308 0%, #1a0719 52%, #080308 100%) !important;
 }
 
 :root ::selection {
@@ -3727,11 +3736,11 @@ body {
 }
 
 :root:not(.dark) .theme-toggle {
-  background: linear-gradient(135deg, rgb(248 253 254 / 0.96), rgb(var(--color-primary-rgb) / 0.1)) !important;
+  background: linear-gradient(135deg, rgb(255 250 255 / 0.96), rgb(var(--color-primary-rgb) / 0.1)) !important;
 }
 
 :root.dark .theme-toggle {
-  background: linear-gradient(135deg, rgb(7 21 37 / 0.96), rgb(var(--color-primary-rgb) / 0.16)) !important;
+  background: linear-gradient(135deg, rgb(33 16 34 / 0.96), rgb(var(--color-primary-rgb) / 0.16)) !important;
 }
 
 .ka-sidebar-icon-bubble.is-active,
@@ -3739,7 +3748,7 @@ body {
 .sidebar-item.active [class*="icon"],
 .glow-button,
 .ka-sidebar-primary-button {
-  background-image: linear-gradient(135deg, #8debf3 0%, var(--color-primary) 48%, #224c72 72%, var(--color-secondary) 100%) !important;
+  background-image: linear-gradient(135deg, #f5a0e6 0%, var(--color-primary) 48%, #75146d 72%, var(--color-secondary) 100%) !important;
   color: var(--color-button-text) !important;
   border-color: rgb(var(--color-primary-rgb) / 0.5) !important;
   box-shadow: var(--shadow-gold) !important;
@@ -3773,7 +3782,7 @@ body {
     from var(--neon-edge-angle),
     transparent 0deg 282deg,
     rgb(var(--color-primary-rgb) / 0.08) 292deg,
-    #66e6f2 306deg,
+    #f58be1 306deg,
     var(--color-primary) 320deg,
     var(--color-secondary) 338deg,
     rgb(var(--color-secondary-rgb) / 0.12) 354deg,
@@ -3786,61 +3795,61 @@ body {
   box-shadow: var(--shadow-focus);
 }
 
-/* Dark identity lock: cinematic black and metallic gold, matching the KA card reference. */
+/* Dark identity lock: black, fuchsia, and metallic copper from the AD CARD logo. */
 :root.dark body {
   background:
-    radial-gradient(54rem circle at 12% -14%, rgb(232 189 91 / 0.13), transparent 42%),
-    radial-gradient(46rem circle at 96% 4%, rgb(185 121 22 / 0.1), transparent 38%),
-    linear-gradient(180deg, #050504 0%, #0d0c09 50%, #050504 100%) !important;
+    radial-gradient(54rem circle at 12% -14%, rgb(223 61 204 / 0.16), transparent 42%),
+    radial-gradient(46rem circle at 96% 4%, rgb(216 141 87 / 0.12), transparent 38%),
+    linear-gradient(180deg, #080308 0%, #160817 50%, #080308 100%) !important;
 }
 
 :root.dark .ambient-background__veil {
-  background: linear-gradient(180deg, rgb(5 5 4 / 0.35), rgb(5 5 4 / 0.82)) !important;
+  background: linear-gradient(180deg, rgb(8 3 8 / 0.35), rgb(8 3 8 / 0.84)) !important;
 }
 
 :root.dark .ambient-background__mesh {
   background-image:
-    linear-gradient(rgb(232 189 91 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(232 189 91 / 0.035) 1px, transparent 1px) !important;
+    linear-gradient(rgb(223 61 204 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(223 61 204 / 0.04) 1px, transparent 1px) !important;
 }
 
 :root.dark :where(.app-shell-header-panel, .ka-sidebar-panel, .premium-card, .premium-card-elevated, .premium-card-premium, .product-led-card, .admin-premium-hero, .admin-premium-panel, .admin-premium-toolbar, .admin-premium-stat) {
-  border-color: rgb(232 189 91 / 0.2) !important;
+  border-color: rgb(223 61 204 / 0.22) !important;
   background:
-    radial-gradient(circle at 90% 0%, rgb(232 189 91 / 0.075), transparent 34%),
-    linear-gradient(145deg, rgb(25 22 15 / 0.94), rgb(10 9 7 / 0.94)) !important;
-  box-shadow: inset 0 1px 0 rgb(255 237 180 / 0.06), 0 26px 64px -44px rgb(0 0 0 / 0.92) !important;
+    radial-gradient(circle at 90% 0%, rgb(223 61 204 / 0.09), transparent 34%),
+    linear-gradient(145deg, rgb(39 16 39 / 0.94), rgb(12 4 13 / 0.94)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 219 250 / 0.06), 0 26px 64px -44px rgb(0 0 0 / 0.92) !important;
 }
 
 :root.dark [class*="text-cyan-"] {
-  color: #e8bd5b !important;
+  color: #f18bdd !important;
 }
 
 :root.dark [class*="border-cyan-"] {
-  border-color: rgb(232 189 91 / 0.38) !important;
+  border-color: rgb(223 61 204 / 0.38) !important;
 }
 
 :root.dark [class*="bg-cyan-"] {
-  background-color: rgb(232 189 91 / 0.12) !important;
+  background-color: rgb(223 61 204 / 0.12) !important;
 }
 
 :root.dark .ka-sidebar-icon-bubble.is-active,
 :root.dark .ka-sidebar-nav-item:hover .ka-sidebar-icon-bubble,
 :root.dark .glow-button,
 :root.dark .ka-sidebar-primary-button {
-  color: #171006 !important;
-  background-image: linear-gradient(135deg, #fff0ad 0%, #e8bd5b 38%, #9b5c0b 72%, #e1ad42 100%) !important;
-  border-color: rgb(255 226 148 / 0.54) !important;
-  box-shadow: 0 16px 38px -22px rgb(232 189 91 / 0.76) !important;
+  color: #260723 !important;
+  background-image: linear-gradient(135deg, #ffd3f4 0%, #df3dcc 38%, #8b1c80 72%, #e8a56c 100%) !important;
+  border-color: rgb(255 194 238 / 0.54) !important;
+  box-shadow: 0 16px 38px -22px rgb(223 61 204 / 0.64) !important;
 }
 
 :root.dark .storefront-category-card--neon .storefront-category-neon-frame::before {
-  background: conic-gradient(from var(--neon-edge-angle), transparent 0deg 284deg, #7c4a0c 296deg, #e8bd5b 316deg, #fff0ad 334deg, #9b5c0b 350deg, transparent 360deg) !important;
+  background: conic-gradient(from var(--neon-edge-angle), transparent 0deg 284deg, #8b1c80 296deg, #df3dcc 316deg, #ffd3f4 334deg, #e8a56c 350deg, transparent 360deg) !important;
 }
 
 :root.dark .theme-toggle {
-  border-color: rgb(232 189 91 / 0.35) !important;
-  background: linear-gradient(135deg, rgb(25 22 15 / 0.98), rgb(8 7 5 / 0.98)) !important;
+  border-color: rgb(223 61 204 / 0.35) !important;
+  background: linear-gradient(135deg, rgb(39 16 39 / 0.98), rgb(12 4 13 / 0.98)) !important;
 }
 
 /* Mobile sidebar performance: keep compositing cheap on lower-power devices. */

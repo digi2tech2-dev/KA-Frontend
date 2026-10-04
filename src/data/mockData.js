@@ -5,8 +5,8 @@ import buyCardsImage from '../assets/slide-3.jpg';
 export const mockUsers = [
   {
     id: 'u1',
-    name: 'KA-CARD Admin',
-    email: 'admin@ka-card.com',
+    name: 'AD CARD Admin',
+    email: 'admin@ad-card.com',
     password: 'REDACTED',
     role: 'admin',
     status: 'approved',
@@ -56,7 +56,7 @@ export const mockUsers = [
   {
     id: 'u4',
     name: 'Operations Manager',
-    email: 'manager@ka-card.com',
+    email: 'manager@ad-card.com',
     password: 'REDACTED',
     role: 'manager',
     status: 'approved',

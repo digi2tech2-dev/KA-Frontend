@@ -230,7 +230,7 @@ const Header = ({ toggleSidebar }) => {
               >
                 <Bell className="h-3.5 w-3.5" />
                 {unreadCount > 0 ? (
-                  <span className="absolute -end-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(135deg,#b37a18,#f0cf7a)] px-1 text-[10px] font-black text-white shadow-[0_0_18px_rgb(244_63_221/0.52)]">
+                  <span className="absolute -end-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(135deg,#a51c93,#e5a668)] px-1 text-[10px] font-black text-white shadow-[0_0_18px_rgb(217_54_194/0.52)]">
                     {unreadCount > 9 ? '+9' : unreadCount}
                   </span>
                 ) : null}

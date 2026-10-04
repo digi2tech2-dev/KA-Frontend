@@ -182,7 +182,7 @@ const sanitizeUser = (user) => {
   });
   return {
     ...safeUser,
-    avatar: resolveUserAvatar(safeUser, safeUser.name || safeUser.email || 'KA-CARD User'),
+    avatar: resolveUserAvatar(safeUser, safeUser.name || safeUser.email || 'AD CARD User'),
     coins: walletSummary.walletBalance,
     walletBalance: walletSummary.walletBalance,
     balance: walletSummary.walletBalance,
@@ -790,7 +790,7 @@ const mockApi = {
       const migrated = await secureUsersInDb(db);
       if (migrated) saveDB('admin-storage', db);
 
-      const googleEmail = 'google.user@ka-card.app';
+      const googleEmail = 'google.user@ad-card.app';
       let user = users.find((item) => String(item.email || '').toLowerCase() === googleEmail);
 
       if (!user) {
@@ -862,7 +862,7 @@ const mockApi = {
         signupMethod: normalizeSignupMethod(userData.signupMethod || 'email'),
         approvedAt: null,
         rejectedAt: null,
-        avatar: resolveUserAvatar(userData, userData.name || userData.username || userData.email || 'KA-CARD User')
+        avatar: resolveUserAvatar(userData, userData.name || userData.username || userData.email || 'AD CARD User')
       };
       delete newUser.password;
       

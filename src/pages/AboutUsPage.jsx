@@ -11,7 +11,7 @@ import PublicSidebar from '../components/layout/PublicSidebar';
 import SiteCopyrightFooter from '../components/layout/SiteCopyrightFooter';
 import { useBodyScrollLock } from '../utils/bodyScrollLock';
 import { buildWhatsAppLink, getAdminWhatsAppNumber, getSupportContacts } from '../utils/whatsapp';
-import brandIconImage from '../assets/logo.svg';
+import brandIconImage from '../assets/LOGO.PNG';
 
 const AboutUsPage = () => {
   const navigate = useNavigate();
@@ -152,7 +152,7 @@ const AboutUsPage = () => {
           className="mx-auto flex min-h-[calc(100vh-10rem)] max-w-5xl items-center"
         >
           <div className="relative w-full overflow-hidden rounded-[18px] border border-amber-200/80 bg-white p-4 shadow-[0_28px_80px_-56px_rgba(15,23,42,0.55)] ring-1 ring-white/80 sm:p-6 lg:p-8 dark:border-cyan-300/18 dark:bg-[linear-gradient(135deg,rgba(5,18,30,0.96),rgba(12,10,27,0.92))] dark:shadow-[0_28px_90px_-62px_rgba(124,58,237,0.75)] dark:ring-white/5">
-            <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#f59e0b,#087f9b,#13b8d2)] dark:bg-[linear-gradient(90deg,#f0cf7a,#087f9b,#13b8d2)]" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#bd7041,#a51c93,#d936c2)] dark:bg-[linear-gradient(90deg,#f1b979,#df3dcc,#f18bdd)]" />
 
             <div className="grid items-stretch gap-5 lg:grid-cols-[0.82fr_1.18fr]">
               <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-[14px] border border-cyan-200 bg-[linear-gradient(160deg,#e0f7ff_0%,#fff7df_56%,#ffffff_100%)] px-5 py-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] sm:py-10 dark:border-cyan-300/16 dark:bg-[linear-gradient(160deg,rgba(124,58,237,0.18)_0%,rgba(244,114,208,0.1)_54%,rgba(139,92,246,0.12)_100%)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
@@ -163,7 +163,7 @@ const AboutUsPage = () => {
                     <span className="absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,rgba(245,158,11,0.18),rgba(6,182,212,0.12),rgba(139,92,246,0.13))]" />
                     <img
                       src={brandIconImage}
-                      alt="KA-CARD"
+                      alt="AD CARD"
                       loading="eager"
                       decoding="async"
                       className="relative h-full w-full object-contain drop-shadow-[0_10px_18px_rgba(15,23,42,0.18)] dark:drop-shadow-[0_10px_18px_rgba(34,211,238,0.2)]"
@@ -171,8 +171,8 @@ const AboutUsPage = () => {
                   </div>
                   <div dir="ltr" className="text-center">
                     <p className="text-[1.15rem] font-black uppercase leading-none tracking-[0.12em] sm:text-[1.35rem]">
-                      <span className="bg-[linear-gradient(120deg,#0f172a_0%,#087f9b_34%,#f59e0b_70%,#087f9b_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(120deg,#fff7d6_0%,#f0cf7a_30%,#42d7e9_66%,#a78bfa_100%)]">
-                        KA
+                      <span className="bg-[linear-gradient(120deg,#31102f_0%,#a51c93_34%,#bd7041_70%,#a51c93_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(120deg,#fff4fd_0%,#f1b979_30%,#f18bdd_66%,#df3dcc_100%)]">
+                        AD
                       </span>
                       <span className="mx-1 text-cyan-600 dark:text-cyan-200">—</span>
                       <span className="bg-[linear-gradient(120deg,#7c2d12_0%,#d97706_38%,#0f766e_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(120deg,#fef3c7_0%,#c4b5fd_48%,#67e8f9_100%)]">
@@ -219,7 +219,7 @@ const AboutUsPage = () => {
                     {supportContacts.map((contact) => (
                       <a
                         key={contact.number}
-                        href={buildWhatsAppLink({ number: contact.number, message: isArabic ? 'مرحبًا، أحتاج إلى مساعدة من فريق KA-CARD.' : 'Hello, I need help from the KA-CARD support team.' })}
+                        href={buildWhatsAppLink({ number: contact.number, message: isArabic ? 'مرحبًا، أحتاج إلى مساعدة من فريق AD CARD.' : 'Hello, I need help from the AD CARD support team.' })}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full border border-emerald-300/45 bg-[linear-gradient(135deg,#20c66b,#128c7e)] px-3 text-xs font-extrabold text-white shadow-[0_18px_34px_-24px_rgba(34,197,94,0.95)] transition-all hover:-translate-y-0.5"

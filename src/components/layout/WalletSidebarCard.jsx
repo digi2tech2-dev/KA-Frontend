@@ -112,7 +112,7 @@ const WalletSidebarCard = ({ className, isVisible = true, onNavigate }) => {
           <button
             type="button"
             onClick={() => handleNavigate('/wallet/add-balance')}
-            className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-[10px] border border-[color:rgb(var(--color-primary-rgb)/0.34)] bg-[linear-gradient(135deg,#087f9b_0%,#312e81_52%,#b37a18_100%)] px-1.5 text-[9px] font-bold text-white shadow-[0_0_26px_-16px_rgba(124,58,237,0.8),0_0_28px_-18px_rgba(192,38,211,0.82)] transition-colors hover:brightness-[1.05]"
+            className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-[10px] border border-[color:rgb(var(--color-primary-rgb)/0.34)] bg-[linear-gradient(135deg,#a51c93_0%,#75146d_52%,#e5a668_100%)] px-1.5 text-[9px] font-bold text-white shadow-[0_0_26px_-16px_rgba(165,28,147,0.8),0_0_28px_-18px_rgba(217,54,194,0.82)] transition-colors hover:brightness-[1.05]"
           >
             <ArrowUpLeft className="h-3 w-3" />
             <span>اشحن الآن</span>

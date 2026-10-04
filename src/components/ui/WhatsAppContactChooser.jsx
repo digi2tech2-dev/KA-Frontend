@@ -16,7 +16,7 @@ const WhatsAppContactChooser = ({ isOpen, onClose, message = '', isArabic = true
       isOpen={isOpen}
       onClose={onClose}
       size="xxs"
-      title={isArabic ? 'تواصل مع فريق KA-CARD' : 'Contact the KA-CARD team'}
+      title={isArabic ? 'تواصل مع فريق AD CARD' : 'Contact the AD CARD team'}
     >
       <div dir={isArabic ? 'rtl' : 'ltr'}>
         <p className="mb-4 text-sm font-bold leading-6 text-[var(--color-text-secondary)]">

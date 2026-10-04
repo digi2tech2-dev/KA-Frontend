@@ -39,8 +39,8 @@ const FloatingWhatsApp = () => {
     .startsWith('ar');
 
   const message = isArabic
-    ? 'مرحباً، أحتاج مساعدة من فريق KA-CARD'
-    : 'Hello, I need help from the KA-CARD team';
+    ? 'مرحباً، أحتاج مساعدة من فريق AD CARD'
+    : 'Hello, I need help from the AD CARD team';
   const tooltipText = isArabic ? 'تواصل معنا' : 'Chat with us';
 
   return (

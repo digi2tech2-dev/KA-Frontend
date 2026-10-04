@@ -1,7 +1,7 @@
 import resolveImageUrl from './imageUrl';
 
-const STORE_NAME = 'KA CARD';
-const DEFAULT_DESCRIPTION = 'KA CARD منصة متكاملة لشحن الألعاب وتطبيقات الدردشة الصوتية وشراء الاشتراكات والبطاقات والخدمات الرقمية بسرعة وأمان.';
+const STORE_NAME = 'AD CARD';
+const DEFAULT_DESCRIPTION = 'AD CARD منصة متكاملة لشحن الألعاب وتطبيقات الدردشة الصوتية وشراء الاشتراكات والبطاقات والخدمات الرقمية بسرعة وأمان.';
 
 const SEARCH_PHRASES = [
   'شحن تطبيقات دردشة صوتية',
@@ -13,8 +13,7 @@ const SEARCH_PHRASES = [
   'اشتراكات رقمية',
   'بطاقات رقمية',
   'شحن منتجات رقمية',
-  'KA CARD',
-  'KA-CARD',
+  'AD CARD',
 ];
 
 const cleanText = (value) => String(value || '')
@@ -56,8 +55,8 @@ export const getProductSeoDescription = (product, language = 'ar') => {
   const productName = getProductSeoName(product, language);
   const description = cleanText(product?.displayDescription || product?.descriptionAr || product?.description);
   const fallback = language === 'ar'
-    ? `شحن ${productName} عبر KA-CARD ضمن خدمات شحن تطبيقات الدردشة الصوتية، الألعاب، الاشتراكات، والمنتجات الرقمية.`
-    : `Top up ${productName} through KA-CARD for voice chat apps, games, subscriptions, and digital products.`;
+    ? `شحن ${productName} عبر AD CARD ضمن خدمات شحن تطبيقات الدردشة الصوتية، الألعاب، الاشتراكات، والمنتجات الرقمية.`
+    : `Top up ${productName} through AD CARD for voice chat apps, games, subscriptions, and digital products.`;
 
   return truncateText(description || fallback, 220);
 };
@@ -141,16 +140,16 @@ export const buildStoreSeo = ({
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: STORE_NAME,
-      alternateName: 'KA-CARD',
+      alternateName: 'AD CARD',
       url: origin || canonicalUrl,
-      logo: origin ? `${origin}/android-chrome-192x192.png?v=ka-card` : '/android-chrome-192x192.png?v=ka-card',
+      logo: origin ? `${origin}/ad-card-logo.png` : '/ad-card-logo.png',
       description: seoDescription,
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: STORE_NAME,
-      alternateName: 'KA-CARD',
+      alternateName: 'AD CARD',
       url: origin || canonicalUrl,
       inLanguage: language === 'ar' ? 'ar-EG' : 'en',
     },
@@ -169,7 +168,7 @@ export const buildStoreSeo = ({
     jsonLd.push({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      name: language === 'ar' ? 'منتجات KA-CARD' : 'KA-CARD Products',
+      name: language === 'ar' ? 'منتجات AD CARD' : 'AD CARD Products',
       description: seoDescription,
       itemListElement: productList,
     });

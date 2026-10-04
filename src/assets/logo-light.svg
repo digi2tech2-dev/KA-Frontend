@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">KA-CARD</title>
-  <desc id="desc">Luxury gold KA monogram on a black premium card</desc>
+  <title id="title">AD CARD</title>
+  <desc id="desc">Luxury gold AD monogram on a black premium card</desc>
   <defs>
     <linearGradient id="black" x1="54" y1="30" x2="458" y2="482" gradientUnits="userSpaceOnUse">
       <stop stop-color="#fffdf7"/>
@@ -36,12 +36,7 @@
     <circle cx="398" cy="269" r="4" fill="#E8BD5B"/>
   </g>
 
-  <g filter="url(#depth)">
-    <path d="M118 111h70v117l103-117h91L250 253l139 148h-93l-94-103-14 15v88h-70V111Z" fill="#050504" stroke="#3F2709" stroke-width="16" stroke-linejoin="round"/>
-    <path d="M118 111h70v117l103-117h91L250 253l139 148h-93l-94-103-14 15v88h-70V111Z" fill="url(#gold)" stroke="#FFEAA2" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M336 168 431 401h-75l-20-52h-86l45-57h21l-22-63 42-61Zm-19 124h39l-20-57-19 57Z" fill="#060504" stroke="#442B0A" stroke-width="15" stroke-linejoin="round"/>
-    <path d="M336 168 431 401h-75l-20-52h-86l45-57h21l-22-63 42-61Zm-19 124h39l-20-57-19 57Z" fill="url(#gold)" stroke="#FFF0AE" stroke-width="3" stroke-linejoin="round"/>
-  </g>
+  <text x="256" y="322" text-anchor="middle" fill="url(#gold)" stroke="#FFF0AE" stroke-width="3" paint-order="stroke" font-family="Arial Black, Arial, sans-serif" font-size="190" font-weight="900" letter-spacing="-18" filter="url(#depth)">AD</text>
   <path d="M108 417h115M289 93h113" stroke="#E8BD5B" stroke-width="4" stroke-linecap="round" opacity=".8"/>
   <circle cx="414" cy="94" r="6" fill="#FFE08A"/>
 </svg>

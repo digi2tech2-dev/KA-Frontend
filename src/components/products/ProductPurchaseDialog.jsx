@@ -11,8 +11,8 @@ import apiClient from '../../services/client';
 import { useToast } from '../ui/Toast';
 import { useLanguage } from '../../context/LanguageContext';
 import { resolveImageUrl } from '../../utils/imageUrl';
-import brandLogoDark from '../../assets/logo.svg';
-import brandLogoLight from '../../assets/logo-light.svg';
+import brandLogoDark from '../../assets/LOGO.PNG';
+import brandLogoLight from '../../assets/LOGO.PNG';
 import {
   calculateProductPrice,
   formatCurrencyAmount,
@@ -975,9 +975,9 @@ const ProductPurchaseDialog = ({
         ) : (
           <>
             <div className="purchase-dialog-product">
-              <div className="purchase-dialog-platform-logo" title="KA-CARD">
-                <img className="purchase-dialog-logo-dark" src={brandLogoDark} alt="KA-CARD" />
-                <img className="purchase-dialog-logo-light" src={brandLogoLight} alt="KA-CARD" />
+              <div className="purchase-dialog-platform-logo" title="AD CARD">
+                <img className="purchase-dialog-logo-dark" src={brandLogoDark} alt="AD CARD" />
+                <img className="purchase-dialog-logo-light" src={brandLogoLight} alt="AD CARD" />
               </div>
               <div className="purchase-dialog-product-visual">
                 <div className={`purchase-dialog-image ${isPurchasable ? '' : 'is-unavailable'}`}>

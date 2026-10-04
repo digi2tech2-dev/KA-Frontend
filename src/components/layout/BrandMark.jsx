@@ -1,8 +1,6 @@
 import React from 'react';
 import { cn } from '../ui/Button';
-import brandIconImage from '../../assets/logo.svg';
-import brandIconLightImage from '../../assets/logo-light.svg';
-import { useTheme } from '../../context/ThemeContext';
+import brandIconImage from '../../assets/LOGO.PNG';
 
 const stylesBySize = {
   xs: {
@@ -40,7 +38,6 @@ const BrandMark = ({
   titleClassName,
   captionClassName,
 }) => {
-  const { isDark } = useTheme();
   const styles = stylesBySize[size] || stylesBySize.md;
   const isIconEnd = iconPosition === 'end';
 
@@ -48,8 +45,8 @@ const BrandMark = ({
     <div className={cn('flex items-center', isIconEnd && 'flex-row-reverse', styles.wrapper, className)}>
       <div className={cn('relative overflow-hidden', styles.iconShell)}>
         <img
-          src={isDark ? brandIconImage : brandIconLightImage}
-          alt="KA-CARD"
+          src={brandIconImage}
+          alt="AD CARD"
           loading="eager"
           decoding="async"
           className="relative h-full w-full object-contain"
@@ -65,8 +62,8 @@ const BrandMark = ({
               titleClassName
             )}
           >
-            <span className="text-[#9a690d] dark:text-[#e8bd5b]">
-              KA
+            <span className="ad-brand-monogram text-[#8b1c80] dark:text-[#f18bdd]">
+              AD
             </span>
             <span className="mx-1 text-[color:rgb(var(--color-text-secondary)/0.64)]">—</span>
             <span className="text-[color:rgb(var(--color-text-secondary)/0.78)]">CARD</span>

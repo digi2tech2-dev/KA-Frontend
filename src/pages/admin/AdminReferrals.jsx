@@ -40,17 +40,17 @@ const DEFAULT_METHODS = [
   { id: 'instapay', name: 'إنستا باي', enabled: true, requiresAccount: true, discountPercent: 0 },
 ];
 const DEMO_WITHDRAWAL_REQUESTS = [
-  { id: 'demo-request-1', ownerName: 'أحمد محمد', ownerEmail: 'ahmed@kacard.com', method: 'vodafone', methodName: 'فودافون كاش', accountHolder: 'أحمد محمد', accountNumber: '01012345678', amount: 50, currency: 'EGP', status: 'processing', createdAt: '2026-07-19T10:30:00Z', isTest: true },
-  { id: 'demo-request-2', ownerName: 'مريم محمود', ownerEmail: 'mariam@kacard.com', method: 'instapay', methodName: 'إنستا باي', accountHolder: 'مريم محمود', accountNumber: 'mariam.mahmoud@instapay', amount: 90, currency: 'EGP', status: 'processing', createdAt: '2026-07-19T12:15:00Z', isTest: true },
+  { id: 'demo-request-1', ownerName: 'أحمد محمد', ownerEmail: 'ahmed@adcard.com', method: 'vodafone', methodName: 'فودافون كاش', accountHolder: 'أحمد محمد', accountNumber: '01012345678', amount: 50, currency: 'EGP', status: 'processing', createdAt: '2026-07-19T10:30:00Z', isTest: true },
+  { id: 'demo-request-2', ownerName: 'مريم محمود', ownerEmail: 'mariam@adcard.com', method: 'instapay', methodName: 'إنستا باي', accountHolder: 'مريم محمود', accountNumber: 'mariam.mahmoud@instapay', amount: 90, currency: 'EGP', status: 'processing', createdAt: '2026-07-19T12:15:00Z', isTest: true },
 ];
 const DEMO_AGENT_REQUESTS = [
-  { id: 'agent-request-1', name: 'أحمد محمد', email: 'ahmed@kacard.com', message: 'لدي مجموعة من العملاء وأقوم بتوفير خدمات الشحن لهم بشكل مستمر، وأرغب في الانضمام إلى مجموعة الوكلاء الفرعيين.', proofImage: agentProofImage, status: 'pending', createdAt: '2026-07-19T12:30:00Z', isTest: true },
-  { id: 'agent-request-2', name: 'مريم محمود', email: 'mariam@kacard.com', message: 'أتعامل مع عدد من المتاجر والعملاء وأرفقت صورة توضح نشاطي الحالي.', proofImage: agentProofImage, status: 'pending', createdAt: '2026-07-20T09:15:00Z', isTest: true },
+  { id: 'agent-request-1', name: 'أحمد محمد', email: 'ahmed@adcard.com', message: 'لدي مجموعة من العملاء وأقوم بتوفير خدمات الشحن لهم بشكل مستمر، وأرغب في الانضمام إلى مجموعة الوكلاء الفرعيين.', proofImage: agentProofImage, status: 'pending', createdAt: '2026-07-19T12:30:00Z', isTest: true },
+  { id: 'agent-request-2', name: 'مريم محمود', email: 'mariam@adcard.com', message: 'أتعامل مع عدد من المتاجر والعملاء وأرفقت صورة توضح نشاطي الحالي.', proofImage: agentProofImage, status: 'pending', createdAt: '2026-07-20T09:15:00Z', isTest: true },
 ];
 
 const DEMO_REFERRALS = [
   {
-    id: 'demo-ahmed', name: 'أحمد محمد', email: 'ahmed@kacard.com', code: 'AHMED25',
+    id: 'demo-ahmed', name: 'أحمد محمد', email: 'ahmed@adcard.com', code: 'AHMED25',
     earnings: 250, withdrawn: 50, currency: 'EGP', invitedAt: '2026-07-01T10:00:00Z', isTest: true,
     referrals: [
       { id: 'demo-1', name: 'محمد علي', email: 'mohamed.ali@test.com', addedAmount: 1000, earnings: 50, invitedAt: '2026-07-02T12:00:00Z' },
@@ -60,7 +60,7 @@ const DEMO_REFERRALS = [
     withdrawals: [{ id: 'wd-1', amount: 50, status: 'completed', createdAt: '2026-07-15T18:30:00Z' }],
   },
   {
-    id: 'demo-mariam', name: 'مريم محمود', email: 'mariam@kacard.com', code: 'MARYAM9',
+    id: 'demo-mariam', name: 'مريم محمود', email: 'mariam@adcard.com', code: 'MARYAM9',
     earnings: 90, withdrawn: 0, currency: 'EGP', invitedAt: '2026-07-08T10:00:00Z', isTest: true,
     referrals: [
       { id: 'demo-4', name: 'نور أحمد', email: 'nour.ahmed@test.com', addedAmount: 1200, earnings: 60, invitedAt: '2026-07-10T11:00:00Z' },
