@@ -3,7 +3,7 @@ import { BookOpen, Check, Copy, ExternalLink, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import brandLogo from '../assets/LOGO.PNG';
 
-const baseUrl = 'https://ka-cards.com/client/api';
+const baseUrl = import.meta.env.VITE_B2B_API_BASE_URL || 'https://ad-card.com/client/api';
 const navigation = [['introduction', 'Introduction'], ['base-url', 'Base URL'], ['authentication', 'Authentication'], ['profile', 'Profile'], ['products', 'Products'], ['product-fields', 'Product Fields'], ['content', 'Content / Categories'], ['create-order', 'Create Order'], ['check-orders', 'Check Orders'], ['status-values', 'Status Values'], ['errors', 'Error Codes'], ['code-examples', 'Code Examples'], ['legacy', 'Legacy Compatibility']];
 const product = `[
   { "id": 1000, "name": "Example package", "price": 1.5, "currency": "USD", "available": true,

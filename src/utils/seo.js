@@ -1,6 +1,7 @@
 import resolveImageUrl from './imageUrl';
 
 const STORE_NAME = 'AD CARD';
+const PRIMARY_SITE_ORIGIN = 'https://ad-card.com';
 const DEFAULT_DESCRIPTION = 'AD CARD منصة متكاملة لشحن الألعاب وتطبيقات الدردشة الصوتية وشراء الاشتراكات والبطاقات والخدمات الرقمية بسرعة وأمان.';
 
 const SEARCH_PHRASES = [
@@ -29,8 +30,7 @@ const truncateText = (value, maxLength = 155) => {
 export const getSiteOrigin = () => {
   const configuredUrl = cleanText(import.meta.env.VITE_SITE_URL || import.meta.env.VITE_PUBLIC_SITE_URL);
   if (configuredUrl) return configuredUrl.replace(/\/+$/, '');
-  if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin;
-  return '';
+  return PRIMARY_SITE_ORIGIN;
 };
 
 export const toAbsoluteUrl = (value) => {

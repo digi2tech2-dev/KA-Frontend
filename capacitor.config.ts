@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const serverUrl = process.env.CAPACITOR_SERVER_URL || 'https://www.jasser-card.com';
+const serverUrl = process.env.CAPACITOR_SERVER_URL || 'https://ad-card.com';
 
-let allowedHost = 'www.jasser-card.com';
+let allowedHost = 'ad-card.com';
 try {
   const parsedUrl = new URL(serverUrl);
   if (parsedUrl.protocol !== 'https:') throw new Error('CAPACITOR_SERVER_URL must use HTTPS.');

@@ -74,7 +74,7 @@ const createSevenLetterCode = (value) => {
 };
 
 const getPublicAppUrl = () => {
-  const configuredUrl = String(import.meta.env.VITE_PUBLIC_APP_URL || 'http://kacard.com').trim();
+  const configuredUrl = String(import.meta.env.VITE_PUBLIC_APP_URL || 'https://ad-card.com').trim();
   const currentOrigin = typeof window === 'undefined' ? '' : window.location.origin;
   return (configuredUrl || currentOrigin).replace(/\/+$/, '');
 };
