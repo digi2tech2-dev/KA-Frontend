@@ -29,7 +29,7 @@ public class NativeGoogleAuthPlugin extends Plugin {
 
     @com.getcapacitor.PluginMethod
     public void signIn(PluginCall call) {
-        String webClientId = getContext().getString(R.string.google_web_client_id).trim();
+        String webClientId = getContext().getString(R.string.adcard_google_web_client_id).trim();
         if (webClientId.isEmpty()) {
             call.reject("GOOGLE_CONFIG_MISSING: GOOGLE_WEB_CLIENT_ID is not configured in the Android build.");
             return;

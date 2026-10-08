@@ -1,17 +1,17 @@
 apply plugin: 'com.android.application'
 
-def googleWebClientId = project.findProperty('GOOGLE_WEB_CLIENT_ID') ?: System.getenv('GOOGLE_WEB_CLIENT_ID') ?: ''
+def googleWebClientId = System.getenv('GOOGLE_WEB_CLIENT_ID') ?: project.findProperty('GOOGLE_WEB_CLIENT_ID') ?: ''
 
 android {
     namespace = "com.adcard.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.adcard.app"
-        resValue "string", "google_web_client_id", googleWebClientId
+        resValue "string", "adcard_google_web_client_id", googleWebClientId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.2.0"
+        versionCode 4
+        versionName "1.2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
