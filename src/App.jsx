@@ -6,6 +6,7 @@ import CustomerBottomNav from './components/layout/CustomerBottomNav';
 import PageTransition from './components/app/PageTransition';
 import SessionBootstrap from './components/app/SessionBootstrap';
 import GuestIntro from './components/app/GuestIntro';
+import NativePlatformBootstrap from './components/app/NativePlatformBootstrap';
 import RouteErrorBoundary from './components/app/RouteErrorBoundary';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -451,6 +452,7 @@ function App() {
         <ToastProvider>
           <SessionBootstrap />
           <BrowserRouter>
+            <NativePlatformBootstrap />
             <PageTransition>
               {(location) => <AnimatedAppRoutes location={location} />}
             </PageTransition>

@@ -1,10 +1,13 @@
 apply plugin: 'com.android.application'
 
+def googleWebClientId = project.findProperty('GOOGLE_WEB_CLIENT_ID') ?: System.getenv('GOOGLE_WEB_CLIENT_ID') ?: ''
+
 android {
     namespace = "com.adcard.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.adcard.app"
+        resValue "string", "google_web_client_id", googleWebClientId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2
@@ -40,6 +43,9 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation 'androidx.credentials:credentials:1.5.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.5.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 }
 
 apply from: 'capacitor.build.gradle'

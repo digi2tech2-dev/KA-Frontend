@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(NativeGoogleAuthPlugin.class);
         super.onCreate(savedInstanceState);
         requestRequiredPermissions();
     }
@@ -27,7 +28,6 @@ public class MainActivity extends BridgeActivity {
         addIfMissing(missingPermissions, Manifest.permission.CAMERA);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            addIfMissing(missingPermissions, Manifest.permission.POST_NOTIFICATIONS);
             addIfMissing(missingPermissions, Manifest.permission.READ_MEDIA_IMAGES);
             addIfMissing(missingPermissions, Manifest.permission.READ_MEDIA_VIDEO);
         } else {

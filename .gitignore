@@ -76,3 +76,11 @@ Thumbs.db
 .gradle-build-cache/
 .gradle/
 **/.gradle/
+
+# Android/Firebase credentials and signing material (never commit)
+android/app/google-services.json
+*.jks
+*.keystore
+service-account*.json
+firebase-service-account*.json
+firebase-adminsdk*.json

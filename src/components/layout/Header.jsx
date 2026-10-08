@@ -11,6 +11,7 @@ import SidebarToggleIcon from './SidebarToggleIcon';
 import { formatWalletAmount } from '../../utils/storefront';
 import { getDefaultRouteForRole, isAdminRole, isSupervisorRole } from '../../utils/authRoles';
 import { cn } from '../ui/Button';
+import { getSafeInternalRoute } from '../../utils/safeInternalRoute';
 
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -50,7 +51,8 @@ const Header = ({ toggleSidebar }) => {
 
   const resolveNotificationTarget = (notification) => {
     if (notification?.targetUrl) {
-      const explicitTarget = String(notification.targetUrl).trim();
+      const explicitTarget = getSafeInternalRoute(notification.targetUrl);
+      if (!explicitTarget) return getDefaultRouteForRole(user?.role);
       if (isCustomer && explicitTarget.startsWith('/admin/payments')) {
         return '/wallet/topups';
       }

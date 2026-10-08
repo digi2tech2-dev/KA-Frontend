@@ -25,6 +25,9 @@ import { resolveImageUrl } from '../utils/imageUrl';
 import { resolveUserAvatar } from '../utils/avatar';
 import { getAccountAccessRoute, normalizeAccountStatus } from '../utils/accountStatus';
 import { readReferralBridge, readReferralCodeFromSearch } from '../utils/referralCode';
+import { isAndroidNativeApp, isNativeGoogleAuthAvailable } from '../utils/platform';
+import { signInWithNativeGoogle, clearNativeGoogleCredentialState } from './nativeGoogleAuth';
+import { unregisterNativePush } from './nativePush';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -1912,6 +1915,42 @@ const realApi = {
     },
 
     loginWithGoogle: async () => {
+      if (isAndroidNativeApp() && isNativeGoogleAuthAvailable()) {
+        const nativeIdentity = await signInWithNativeGoogle();
+        const referralCode = readReferralCodeFromSearch(window.location.search) || readReferralBridge();
+        const signupIntent = window.sessionStorage?.getItem('auth:google-signup-intent') === '1';
+        const res = await http.post('/auth/google/native', {
+          idToken: nativeIdentity?.idToken,
+          intent: signupIntent ? 'signup' : 'login',
+          ...(referralCode ? { referralCode } : {}),
+        });
+        const data = unwrap(res);
+        if (String(data?.status || '').toUpperCase() === 'PROFILE_COMPLETION_REQUIRED') {
+          return {
+            user: data?.user ? normaliseUser(data.user) : null,
+            token: null,
+            completionToken: data.completionToken,
+            status: 'profile_completion_required',
+            redirectTo: '/auth?status=PROFILE_COMPLETION_REQUIRED',
+            canAccessApp: false,
+          };
+        }
+        const user = normaliseUser(data?.user);
+        const token = data?.token || data?.accessToken || null;
+        if (!token) {
+          const status = normalizeAccountStatus(data?.status || 'pending');
+          return {
+            user: null,
+            token: null,
+            status,
+            redirectTo: getAccountAccessRoute(status),
+            canAccessApp: false,
+          };
+        }
+        if (token) setStoredAuthTokens(token, data?.refreshToken ?? null);
+        return { user, token, status: normalizeAccountStatus(data?.status || 'LOGIN_COMPLETE') };
+      }
+
       // Google OAuth uses redirect flow — open the BE endpoint in the browser.
       // The BE redirects back either with ?token= or ?status=pending.
       // This method is called from FE after capturing the token from the redirect.
@@ -2032,8 +2071,16 @@ const realApi = {
     },
 
     logout: async () => {
-      // The current backend contract has no logout endpoint. The API uses
-      // bearer tokens, so clearing the persisted session is the logout action.
+      const logoutToken = getStoredToken();
+      await Promise.allSettled([
+        unregisterNativePush({
+          unregisterToken: (token) => http.delete('/me/devices/push', {
+            data: { token },
+            ...(logoutToken ? { headers: { Authorization: `Bearer ${logoutToken}` } } : {}),
+          }),
+        }),
+        clearNativeGoogleCredentialState(),
+      ]);
       clearStoredSession();
       return { success: true };
     },
@@ -2284,27 +2331,42 @@ const realApi = {
 
   notifications: {
     unreadCount: async () => {
-      // Notifications are maintained optimistically in the client. There are
-      // no notification endpoints in the deployed API contract.
-      return null;
+      const res = await http.get('/me/notifications/unread-count');
+      const data = unwrap(res);
+      return Number(data?.unreadCount || 0);
     },
 
     list: async () => {
-      return null;
+      const res = await http.get('/me/notifications');
+      const data = unwrap(res);
+      return Array.isArray(data) ? data : [];
     },
 
     markAsRead: async (id) => {
       const normalizedId = String(id || '').trim();
       if (!normalizedId) return { success: true };
-      return { success: true };
+      const res = await http.patch(`/me/notifications/${encodeURIComponent(normalizedId)}/read`);
+      return unwrap(res);
     },
 
     markAllAsRead: async () => {
-      return { success: true };
+      const res = await http.patch('/me/notifications/read-all');
+      return unwrap(res);
     },
 
     send: async (payload = {}) => {
       const res = await http.post('/admin/notifications/send', payload);
+      return unwrap(res);
+    },
+  },
+
+  devices: {
+    registerPush: async (token) => {
+      const res = await http.post('/me/devices/push', { token, platform: 'android' });
+      return unwrap(res);
+    },
+    unregisterPush: async (token) => {
+      const res = await http.delete('/me/devices/push', { data: { token } });
       return unwrap(res);
     },
   },

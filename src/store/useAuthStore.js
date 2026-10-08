@@ -528,6 +528,9 @@ const useAuthStore = create((set, get) => ({
 
       logout: async () => {
         profileRefreshRequest = null;
+        // Start native cleanup while the bearer token is still available, but do
+        // not let network or plugin work delay the local logout state transition.
+        Promise.resolve(apiClient.auth.logout?.()).catch(() => {});
         set({
           user: null,
           token: null,
@@ -539,12 +542,6 @@ const useAuthStore = create((set, get) => ({
           profileLastLoadedAt: 0,
         });
         clearStoredAuthState();
-
-        try {
-          await apiClient.auth.logout?.();
-        } catch {
-          // Frontend state reset above remains the primary guard.
-        }
       },
 
       updateUserSession: (updates) => {
