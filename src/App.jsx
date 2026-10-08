@@ -61,6 +61,7 @@ const AddBalance = lazy(routeLoaders.AddBalance);
 const WalletTopupHistory = lazy(routeLoaders.WalletTopupHistory);
 const PaymentDetails = lazy(routeLoaders.PaymentDetails);
 const DeveloperApi = lazy(routeLoaders.DeveloperApi);
+const DownloadApp = lazy(routeLoaders.DownloadApp);
 
 const ADMIN_PANEL_ROLES = [...ADMIN_ROLES, ...SUPERVISOR_ROLES];
 
@@ -104,6 +105,7 @@ const AnimatedAppRoutes = ({ location }) => {
       <Route path="/about-us" element={renderSuspended(<AboutUsPage />)} />
       <Route path="/created-by" element={renderSuspended(<CreatedBy />)} />
       <Route path="/api-docs" element={renderSuspended(<ApiDocs />)} />
+      <Route path="/download-app" element={renderSuspended(<DownloadApp />)} />
       <Route path="/public-contact-us" element={renderSuspended(<ContactUs accountOnly />)} />
       <Route path="/auth" element={renderSuspended(<Auth />)} />
       <Route path="/login" element={renderSuspended(<Auth />)} />

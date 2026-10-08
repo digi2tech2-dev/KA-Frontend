@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { BadgeDollarSign, Download, Sparkles } from 'lucide-react';
 import { cn } from '../ui/Button';
+import { isNativeApp } from '../../utils/platform';
 
 const StorefrontQuickOffers = ({ language = 'ar', onSellTarget }) => {
   const [activeOffer, setActiveOffer] = useState(0);
   const isArabic = language === 'ar';
-  const androidAppUrl = import.meta.env.VITE_ANDROID_APP_URL || '/ad-card.apk';
   const offers = useMemo(() => {
     const targetOffer = {
       id: 'target-sale',
@@ -18,7 +17,7 @@ const StorefrontQuickOffers = ({ language = 'ar', onSellTarget }) => {
       tone: 'target',
     };
 
-    if (Capacitor.isNativePlatform()) return [targetOffer];
+    if (isNativeApp()) return [targetOffer];
 
     return [
       {
@@ -27,12 +26,12 @@ const StorefrontQuickOffers = ({ language = 'ar', onSellTarget }) => {
         title: isArabic ? 'تطبيق AD CARD بين إيديك' : 'AD CARD in your hands',
         description: isArabic ? 'تصفّح أسرع وتجربة أكثر استقرارًا.' : 'Faster browsing and a more stable experience.',
         action: isArabic ? 'نزّل التطبيق الآن' : 'Download the app',
-        href: androidAppUrl,
+        href: '/download-app',
         tone: 'app',
       },
       targetOffer,
     ];
-  }, [androidAppUrl, isArabic, onSellTarget]);
+  }, [isArabic, onSellTarget]);
 
   useEffect(() => setActiveOffer(0), [offers.length]);
 
@@ -78,7 +77,7 @@ const StorefrontQuickOffers = ({ language = 'ar', onSellTarget }) => {
           <p className="text-xs font-extrabold text-white sm:text-sm">{offer.title}</p>
           <p className="mt-px text-[10px] text-white/72 sm:text-xs">{offer.description}</p>
         </div>
-        {offer.href ? <a href={offer.href} download className={actionClassName}>{action}</a> : <button type="button" onClick={offer.onClick} className={actionClassName}>{action}</button>}
+        {offer.href ? <a href={offer.href} className={actionClassName}>{action}</a> : <button type="button" onClick={offer.onClick} className={actionClassName}>{action}</button>}
       </div>
       {offers.length > 1 ? <div className="relative mt-1 flex justify-center gap-1" aria-label={isArabic ? 'اختيار العرض' : 'Choose offer'}>{offers.map((item, index) => <button key={item.id} type="button" onClick={() => setActiveOffer(index)} aria-label={item.title} aria-current={index === activeOffer ? 'true' : undefined} className={cn('h-1 rounded-full transition-all', index === activeOffer ? cn('w-4', isTarget ? 'bg-fuchsia-200' : 'bg-amber-200') : 'w-1 bg-white/25 hover:bg-white/55')} />)}</div> : null}
     </section>
