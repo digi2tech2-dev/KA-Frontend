@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import FloatingWhatsApp from './components/ui/FloatingWhatsApp';
 import CustomerBottomNav from './components/layout/CustomerBottomNav';
+import AdminBottomNav from './components/layout/AdminBottomNav';
 import PageTransition from './components/app/PageTransition';
 import SessionBootstrap from './components/app/SessionBootstrap';
 import GuestIntro from './components/app/GuestIntro';
@@ -60,6 +61,7 @@ const BuyTarget = lazy(routeLoaders.BuyTarget);
 const TargetOrders = lazy(routeLoaders.TargetOrders);
 const AddBalance = lazy(routeLoaders.AddBalance);
 const WalletTopupHistory = lazy(routeLoaders.WalletTopupHistory);
+const WalletTransactions = lazy(routeLoaders.WalletTransactions);
 const PaymentDetails = lazy(routeLoaders.PaymentDetails);
 const DeveloperApi = lazy(routeLoaders.DeveloperApi);
 const DownloadApp = lazy(routeLoaders.DownloadApp);
@@ -264,6 +266,14 @@ const AnimatedAppRoutes = ({ location }) => {
           )}
         />
         <Route
+          path="/wallet/transactions"
+          element={(
+            <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
+              {renderSuspended(<WalletTransactions />)}
+            </ProtectedRoute>
+          )}
+        />
+        <Route
           path="/wallet/payment-details/:methodId"
           element={(
             <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
@@ -461,6 +471,7 @@ function App() {
               {(location) => <AnimatedAppRoutes location={location} />}
             </PageTransition>
             <CustomerBottomNav />
+            <AdminBottomNav />
             <FloatingWhatsApp />
             <GuestIntro />
           </BrowserRouter>

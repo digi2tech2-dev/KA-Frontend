@@ -27,7 +27,8 @@ import {
   Target,
   Truck,
   UserCog,
-  UsersRound
+  UsersRound,
+  WalletCards
 } from 'lucide-react';
 import ConfirmDialog from '../account/ConfirmDialog';
 import { motion } from 'framer-motion';
@@ -207,6 +208,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       permission: PERMISSIONS.ADMIN_PAYMENTS,
       section: 'admin',
     },
+    { icon: WalletCards, label: dir === 'rtl' ? 'سجل العمليات المالية' : 'Wallet Transactions', path: '/wallet/transactions', roles: ['customer', 'admin', ...SUPERVISOR_ROLES] },
     { icon: CreditCard, label: t('sidebar.paymentMethods'), path: '/admin/payment-methods', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_PAYMENT_METHODS, section: 'admin' },
     { icon: MessageCircle, label: 'تكامل الواتساب', path: '/admin/whatsapp', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_WHATSAPP, section: 'admin' },
     { icon: Coins, label: t('sidebar.currencies'), path: '/admin/currencies', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_CURRENCIES, section: 'admin' },
