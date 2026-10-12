@@ -463,11 +463,11 @@ const useMediaStore = create((set, get) => ({
     const hasCategories = Array.isArray(state.categories) && state.categories.length > 0;
     const lastLoadedAt = Number(state.lastLoadedAt || 0);
     const cacheAge = lastLoadedAt ? (Date.now() - lastLoadedAt) : Number.POSITIVE_INFINITY;
-    const cacheIsFresh = cacheAge >= 0 && cacheAge < PRODUCTS_CACHE_TTL;
+    const cacheIsFresh = cacheAge >= 0 && cacheAge < (isRealProvider ? 30_000 : PRODUCTS_CACHE_TTL);
 
     // Serve cached data immediately when available and still fresh.
     // This keeps pages responsive even if callers pass force=true frequently.
-    const canUseProductsCache = !isRealProvider && !bypassCache;
+    const canUseProductsCache = !bypassCache;
 
     if (canUseProductsCache && hasProducts && hasCategories && cacheIsFresh) {
       return Promise.resolve({

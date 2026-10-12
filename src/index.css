@@ -1335,6 +1335,7 @@ html[data-page-transition="running"] {
   visibility: visible;
   pointer-events: all;
   backdrop-filter: blur(5px) saturate(1.06);
+  transition-delay: 140ms;
 }
 
 .page-transition-overlay__card {

@@ -13,6 +13,7 @@ import {
   Copy,
   CreditCard,
   Headset,
+  Heart,
   FolderKanban,
   Gauge,
   House,
@@ -34,6 +35,7 @@ import ConfirmDialog from '../account/ConfirmDialog';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/useAuthStore';
+import useFavoritesStore, { favoriteUserKey } from '../../store/useFavoritesStore';
 import { cn } from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
@@ -81,6 +83,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const [copiedUserId, setCopiedUserId] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({});
   const { user, logout } = useAuthStore();
+  const favoriteCount = useFavoritesStore((state) => (state.favoritesByUser[favoriteUserKey(user)] || []).length);
   const navigate = useNavigate();
   const { dir } = useLanguage();
   const { t } = useTranslation();
@@ -151,6 +154,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       path: '/dashboard',
       roles: ['customer', 'admin', ...SUPERVISOR_ROLES]
     },
+    { icon: Heart, label: dir === 'rtl' ? 'المفضلة' : 'Favorites', path: '/favorites', roles: ['customer', 'admin', ...SUPERVISOR_ROLES], count: favoriteCount },
     {
       icon: Gauge,
       label: t('sidebar.adminDashboard', { defaultValue: dir === 'rtl' ? 'لوحة التحكم' : 'Dashboard' }),
@@ -269,6 +273,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       <NavLink
         key={item.path}
         to={item.path}
+        title={item.count !== undefined ? `${item.label}: ${item.count}` : item.label}
         onClick={closeSidebarOnMobile}
         className={({ isActive }) =>
           cn(
@@ -284,8 +289,10 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
           <>
             <span className={cn('ka-sidebar-icon-bubble', isActive && 'is-active')}>
               <item.icon className="h-5 w-5" strokeWidth={2.15} />
+              {!isExpanded && item.count !== undefined && <span className="absolute -end-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-0.5 text-[0.6rem] font-bold leading-none text-white">{item.count}</span>}
             </span>
             {isExpanded && <span className="truncate text-[0.8rem] font-semibold">{item.label}</span>}
+            {isExpanded && item.count !== undefined && <span className="ms-auto rounded-full bg-rose-500/12 px-2 py-0.5 text-[0.7rem] font-bold text-rose-500">{item.count}</span>}
           </>
         )}
       </NavLink>

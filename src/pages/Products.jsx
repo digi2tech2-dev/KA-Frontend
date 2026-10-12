@@ -102,13 +102,15 @@ const Products = () => {
 
   useEffect(() => {
     const refreshProducts = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - Number(useMediaStore.getState().lastLoadedAt || 0) < 30_000) return;
       void loadProducts({ force: true, bypassCache: true });
     };
     const refreshWhenVisible = () => {
       if (document.visibilityState === 'visible') refreshProducts();
     };
 
-    refreshProducts();
+    void loadProducts({ force: true });
     window.addEventListener('focus', refreshProducts);
     document.addEventListener('visibilitychange', refreshWhenVisible);
     const refreshInterval = window.setInterval(refreshProducts, 30_000);

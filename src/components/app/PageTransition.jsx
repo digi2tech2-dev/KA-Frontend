@@ -133,6 +133,14 @@ const PageTransition = ({ children }) => {
 
         if (locationIdentity(from) === locationIdentity(to)) break;
 
+        if (from.pathname === to.pathname) {
+          const fallbackPosition = { x: window.scrollX, y: window.scrollY };
+          scrollPositionsRef.current.set(from.key, fallbackPosition);
+          await commitLocation(to);
+          restoreScroll(to, targetNavigation.navigationType, scrollPositionsRef.current, fallbackPosition);
+          continue;
+        }
+
         const controller = new AbortController();
         abortControllerRef.current = controller;
         initialRevealControllerRef.current?.abort();
@@ -146,8 +154,6 @@ const PageTransition = ({ children }) => {
         document.activeElement?.blur?.();
 
         const preloadPromise = preloadRoute(to.pathname);
-        await nextPaint();
-
         const barbaData = await runBarbaLeave({
           from,
           to,

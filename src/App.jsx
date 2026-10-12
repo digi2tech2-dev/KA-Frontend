@@ -36,6 +36,7 @@ const Dashboard = lazy(routeLoaders.Dashboard);
 const AdminDashboard = lazy(routeLoaders.AdminDashboard);
 const Orders = lazy(routeLoaders.Orders);
 const Products = lazy(routeLoaders.Products);
+const Favorites = lazy(routeLoaders.Favorites);
 const ProductPurchasePage = lazy(routeLoaders.ProductPurchasePage);
 const Settings = lazy(routeLoaders.Settings);
 const ContactUs = lazy(routeLoaders.ContactUs);
@@ -150,6 +151,14 @@ const AnimatedAppRoutes = ({ location }) => {
           element={(
             <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
               {renderSuspended(<Products />)}
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/favorites"
+          element={(
+            <ProtectedRoute roles={['customer', 'admin', ...SUPERVISOR_ROLES]}>
+              {renderSuspended(<Favorites />)}
             </ProtectedRoute>
           )}
         />
