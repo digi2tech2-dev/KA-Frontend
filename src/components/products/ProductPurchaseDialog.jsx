@@ -34,6 +34,12 @@ import './ProductPurchaseDialog.css';
 
 const isInstantMockCheckout = (import.meta.env.VITE_DATA_PROVIDER || 'mock').toLowerCase() === 'mock';
 
+const truncatePurchaseTotal = (amount) => {
+  const value = String(amount);
+  const match = value.match(/^(-?\d+)\.(\d{3,})$/);
+  return match ? Number(`${match[1]}.${match[2].slice(0, 2)}`) : amount;
+};
+
 const getCopy = (language = 'ar') => (
   language === 'en'
     ? {
@@ -313,9 +319,9 @@ const ProductPurchaseDialog = ({
   const walletBalance = walletSummary.walletBalance;
   const availableBalance = walletSummary.availableBalance;
   const locale = language === 'en' ? 'en-US' : 'ar-EG';
-  const purchaseDisplayFormat = { minimumFractionDigits: 0, maximumFractionDigits: 5 };
-  const formattedTotalPrice = formatCurrencyAmount(totalPrice, userCurrencyCode, currencies, locale, purchaseDisplayFormat);
-  const formattedTotalPriceUsd = formatCurrencyAmount(totalPriceUsd, 'USD', currencies, locale, purchaseDisplayFormat);
+  const purchaseDisplayFormat = { minimumFractionDigits: 0, maximumFractionDigits: 2 };
+  const formattedTotalPrice = formatCurrencyAmount(truncatePurchaseTotal(totalPrice), userCurrencyCode, currencies, locale, purchaseDisplayFormat);
+  const formattedTotalPriceUsd = formatCurrencyAmount(truncatePurchaseTotal(totalPriceUsd), 'USD', currencies, locale, purchaseDisplayFormat);
   const shouldShowUsdEquivalent = userCurrencyCode !== 'USD';
   const balanceShortfall = normalizeMoneyAmount(Math.max(0, totalPrice - availableBalance));
   const formattedAvailableBalance = formatCurrencyAmount(availableBalance, userCurrencyCode, currencies, locale);
