@@ -1,3 +1,5 @@
+import { isAndroidNativeApp } from './platform.js';
+
 const readAndroidMajorVersion = (userAgent = '') => {
   const match = String(userAgent).match(/Android\s+(\d+)/i);
   return match ? Number(match[1]) : null;
@@ -5,6 +7,11 @@ const readAndroidMajorVersion = (userAgent = '') => {
 
 export const detectLitePerformanceMode = () => {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+
+  // WebView shares the device's rendering budget with the native shell.
+  // Prefer immediate navigation and cheaper compositing on every Android APK,
+  // including devices that omit memory/CPU hints or report powerful hardware.
+  if (isAndroidNativeApp()) return true;
 
   const userAgent = navigator.userAgent || '';
   const isAndroid = /Android/i.test(userAgent);

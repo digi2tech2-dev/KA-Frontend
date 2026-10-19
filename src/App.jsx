@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+import { MotionConfig } from 'framer-motion';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import FloatingWhatsApp from './components/ui/FloatingWhatsApp';
@@ -22,6 +23,7 @@ import {
 } from './utils/accountStatus';
 import useAuthStore from './store/useAuthStore';
 import { routeLoaders } from './transitions/routeModules';
+import { isLitePerformanceMode } from './utils/performanceMode';
 
 const Layout = lazy(routeLoaders.Layout);
 const ApiDocs = lazy(routeLoaders.ApiDocs);
@@ -469,6 +471,7 @@ const AnimatedAppRoutes = ({ location }) => {
 
 function App() {
   return (
+    <MotionConfig reducedMotion={isLitePerformanceMode() ? 'always' : 'user'}>
     <ThemeProvider>
       <LanguageProvider>
         <ToastProvider>
@@ -487,6 +490,7 @@ function App() {
         </ToastProvider>
       </LanguageProvider>
     </ThemeProvider>
+    </MotionConfig>
   );
 }
 

@@ -3936,13 +3936,17 @@ body {
   }
 }
 
-/* Automatically enabled on constrained and older Android phones. */
+/* Enabled in the Android APK and on constrained browsers. */
 html.performance-lite {
   scroll-behavior: auto;
 }
 
 html.performance-lite body {
   background: var(--color-bg);
+}
+
+html.performance-lite .ambient-background {
+  display: none;
 }
 
 html.performance-lite :where(

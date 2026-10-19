@@ -27,7 +27,7 @@ const Layout = ({ children = null }) => {
   const [isMobile, setIsMobile] = useState(getInitialMobileState);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => !getInitialMobileState());
   const { dir, language } = useLanguage();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const location = useLocation();
   const navigate = useNavigate();
   const performanceLite = isLitePerformanceMode();

@@ -266,11 +266,12 @@ const useNotificationStore = create((set, get) => ({
         return get().unreadCount;
       }
       const unreadCount = Number(count || 0);
-      set({ unreadCount: Number.isFinite(unreadCount) ? unreadCount : 0 });
+      const nextCount = Number.isFinite(unreadCount) ? unreadCount : 0;
+      if (get().unreadCount !== nextCount) set({ unreadCount: nextCount });
       return get().unreadCount;
     } catch {
       const fallbackCount = get().notifications.filter((item) => !item.read).length;
-      set({ unreadCount: fallbackCount });
+      if (get().unreadCount !== fallbackCount) set({ unreadCount: fallbackCount });
       return fallbackCount;
     }
   },

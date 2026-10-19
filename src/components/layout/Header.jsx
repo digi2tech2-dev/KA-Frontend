@@ -16,7 +16,7 @@ import { getSafeInternalRoute } from '../../utils/safeInternalRoute';
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const { notifications, unreadCount, isLoading, loadNotifications, loadUnreadCount, markAsRead, markAllAsRead } = useNotificationStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef(null);
@@ -42,11 +42,28 @@ const Header = ({ toggleSidebar }) => {
 
   useEffect(() => {
     if (!user?.id) return undefined;
-    void loadUnreadCount().catch(() => {});
-    const timer = setInterval(() => {
-      void loadUnreadCount().catch(() => {});
-    }, 30000);
-    return () => clearInterval(timer);
+    let inFlight = false;
+    let lastRefreshAt = 0;
+    const refresh = async () => {
+      if (document.visibilityState === 'hidden' || inFlight) return;
+      if (Date.now() - lastRefreshAt < 30000) return;
+      inFlight = true;
+      lastRefreshAt = Date.now();
+      try {
+        await loadUnreadCount();
+      } catch {
+        // A later poll or foreground event will retry.
+      } finally {
+        inFlight = false;
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [loadUnreadCount, user?.id]);
 
   const resolveNotificationTarget = (notification) => {
