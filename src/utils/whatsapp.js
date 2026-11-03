@@ -1,6 +1,7 @@
 const SUPPORT_CONTACTS = Object.freeze([
   { name: 'AHMED CARD', number: '01012286661', icon: 'male' },
   { name: 'DARREN CARD', number: '01013669339', icon: 'female' },
+  { name: 'CUSTOMER SERVICE', number: '01112121289', icon: 'support' },
 ]);
 
 const ENV_ADMIN_WHATSAPP_NUMBER =

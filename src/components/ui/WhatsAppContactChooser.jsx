@@ -32,7 +32,7 @@ const WhatsAppContactChooser = ({ isOpen, onClose, message = '', isArabic = true
           </p>
           <div className="mt-4 grid gap-2 text-start">
             {contacts.map((contact) => {
-              const ContactIcon = contact.icon === 'female' ? Venus : UserRound;
+              const ContactIcon = contact.icon === 'support' ? Headphones : (contact.icon === 'female' ? Venus : UserRound);
               return (
                 <button
                   key={contact.number}
