@@ -165,6 +165,7 @@ const extractSupplierBalanceSnapshot = (payload = {}) => {
   const parsedBalance = Number(balanceCandidate);
 
   return {
+    unit: raw.unit || innerData.unit || null,
     balance: Number.isFinite(parsedBalance) ? parsedBalance : null,
     rawBalance: balanceCandidate ?? null,
     currency: String(
@@ -512,7 +513,7 @@ const AdminDashboard = () => {
         numberingSystem: 'latn',
       }).format(entry.balance);
 
-      return entry?.currency ? `${formatted} ${entry.currency}` : formatted;
+      return entry?.unit === 'coins' ? `${formatted} ${isArabic ? 'عملات' : 'coins'}` : (entry?.currency ? `${formatted} ${entry.currency}` : formatted);
     }
 
     if (entry?.rawBalance !== undefined && entry?.rawBalance !== null && String(entry.rawBalance).trim()) {

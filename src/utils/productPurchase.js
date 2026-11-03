@@ -99,7 +99,8 @@ export const resolveProductOrderFields = (product, language = 'ar') => {
     });
 
     const hasPlayerId = mappedFields.some((field) => String(field?.key || '').trim().toLowerCase() === 'playerid');
-    if (!hasPlayerId) {
+    const hasCoinTarget = mappedFields.some((field) => field.key === 'target_uid');
+    if (!hasPlayerId && !hasCoinTarget) {
       return [{
         key: 'playerId',
         label: FIELD_COPY.playerId[language] || FIELD_COPY.playerId.en,

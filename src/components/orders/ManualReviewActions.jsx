@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -18,6 +18,9 @@ import Button from '../ui/Button';
  *   onUpdateStatus – (order, nextStatus) → void
  */
 const ManualReviewActions = ({ order, isArabic, isLoading, onUpdateStatus }) => {
+  const [reason, setReason] = useState('');
+  useEffect(() => setReason(''), [order?.id]);
+  const isCoinRecharge = String(order?.providerCode || '').toLowerCase() === 'coin-recharge';
   const isManualReview = String(order?.status || '').toLowerCase() === 'manual_review';
   if (!isManualReview) return null;
 
@@ -37,7 +40,9 @@ const ManualReviewActions = ({ order, isArabic, isLoading, onUpdateStatus }) => 
               {isArabic ? 'إجراء يدوي مطلوب' : 'Manual action required'}
             </p>
             <p className="mt-0.5 text-[11px] leading-5 text-[var(--color-text-secondary)]">
-              {isArabic
+              {isCoinRecharge
+                ? (isArabic ? 'نتيجة الشحن غير مؤكدة. راجع المورد قبل إكمال الطلب أو إرجاع الرصيد.' : 'Delivery is uncertain. Check with the supplier before completing or refunding this order.')
+                : isArabic
                 ? 'هذا الطلب تجاوز الحد الأقصى لمحاولات الاستعلام ولم يستجب المزود. يرجى حل الطلب يدويًا.'
                 : 'This order exceeded its maximum polling retries without provider response. Resolve it manually.'}
             </p>
@@ -47,13 +52,17 @@ const ManualReviewActions = ({ order, isArabic, isLoading, onUpdateStatus }) => 
         {/* Divider */}
         <div className="border-t border-[color:rgb(var(--color-border-rgb)/0.6)]" />
 
+        {isCoinRecharge ? <label className="block space-y-2 text-sm">
+          <span>{isArabic ? 'راجع نتيجة الشحن لدى المورد ثم اكتب سبب القرار' : 'Check delivery with the supplier and record your reason'}</span>
+          <textarea maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} className="w-full rounded-xl border border-gray-500 bg-transparent p-2" />
+        </label> : null}
         {/* Action buttons */}
         <div className="flex flex-col gap-2 sm:flex-row">
           {/* Button A: Force Complete */}
           <button
             type="button"
-            disabled={isLoading}
-            onClick={() => onUpdateStatus(order, 'COMPLETED')}
+            disabled={isLoading || (isCoinRecharge && reason.trim().length < 3)}
+            onClick={() => onUpdateStatus(order, 'COMPLETED', reason.trim())}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[color:rgb(34_197_94/0.4)] bg-[color:rgb(34_197_94/0.12)] px-3.5 py-2.5 text-sm font-semibold text-[color:rgb(22_163_74)] transition-all hover:bg-[color:rgb(34_197_94/0.22)] hover:border-[color:rgb(34_197_94/0.6)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -63,8 +72,8 @@ const ManualReviewActions = ({ order, isArabic, isLoading, onUpdateStatus }) => 
           {/* Button B: Fail & Refund */}
           <button
             type="button"
-            disabled={isLoading}
-            onClick={() => onUpdateStatus(order, 'FAILED')}
+            disabled={isLoading || (isCoinRecharge && reason.trim().length < 3)}
+            onClick={() => onUpdateStatus(order, 'FAILED', reason.trim())}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[color:rgb(239_68_68/0.4)] bg-[color:rgb(239_68_68/0.1)] px-3.5 py-2.5 text-sm font-semibold text-[color:rgb(220_38_38)] transition-all hover:bg-[color:rgb(239_68_68/0.2)] hover:border-[color:rgb(239_68_68/0.55)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <XCircle className="h-4 w-4 shrink-0" />

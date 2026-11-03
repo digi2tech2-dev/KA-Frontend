@@ -9,6 +9,7 @@ const AdminOrderActions = ({
   isLoading,
   onUpdateStatus,
 }) => {
+  if (String(order?.providerCode || '').toLowerCase() === 'coin-recharge') return null;
   if (!isManualStatusEditableOrder(order)) {
     return (
       <Card variant="flat" className="border-[color:rgb(var(--color-border-rgb)/0.88)] bg-[color:rgb(var(--color-card-rgb)/0.72)] p-3.5">

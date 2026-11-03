@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, Copy, FileText, LockKeyhole, Package, ShoppingCart, UserRound, WalletCards, X, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import useMediaStore from '../../store/useMediaStore';
 import useOrderStore from '../../store/useOrderStore';
 import useSystemStore from '../../store/useSystemStore';
 import apiClient from '../../services/client';
+import { isCoinRechargeProduct, isCoinTargetVerified } from '../../utils/coinRecharge';
 import { useToast } from '../ui/Toast';
 import { useLanguage } from '../../context/LanguageContext';
 import { resolveImageUrl } from '../../utils/imageUrl';
@@ -224,6 +225,11 @@ const ProductPurchaseDialog = ({
   const [verifiedData, setVerifiedData] = useState({});
   const [verificationLoading, setVerificationLoading] = useState({});
   const [verificationErrors, setVerificationErrors] = useState({});
+  const verificationSequence = useRef(0);
+  const verificationRequests = useRef({});
+  const purchaseAttempt = useRef(null);
+  const purchaseInFlight = useRef(false);
+  const isCoinRecharge = isCoinRechargeProduct(product || {});
   const [formError, setFormError] = useState('');
   const [serverError, setServerError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -234,10 +240,13 @@ const ProductPurchaseDialog = ({
   const [topupMethodId, setTopupMethodId] = useState('');
 
   useBodyScrollLock(isOpen);
+  useEffect(() => () => { verificationRequests.current = {}; }, [isOpen, productId]);
 
   useEffect(() => {
     if (!isOpen) return;
     setProduct(initialProduct || null);
+    verificationRequests.current = {};
+    purchaseAttempt.current = null;
     setQuantityInput('');
     setUserId('');
     setOrderFieldValues({});
@@ -402,9 +411,13 @@ const ProductPurchaseDialog = ({
   const validateForm = () => {
     const identifier = sanitizeOrderFieldValue(userId).trim();
     if (!quantityInput || !Number.isFinite(quantity)) return copy.emptyQuantity;
+    if (isCoinRecharge && !Number.isSafeInteger(quantity)) return language === 'en' ? 'Enter a safe whole coin quantity.' : 'أدخل عدد عملات صحيحًا ضمن الحد المسموح.';
     if (quantity < quantityMeta.minQty) return copy.belowMin;
     if (quantity > quantityMeta.maxQty) return copy.aboveMax;
     if (hasPrimaryOrderField && !identifier) return copy.emptyUserId;
+    if (isCoinRecharge && !isCoinTargetVerified(identifier, verifiedData[primaryOrderFieldKey], verificationLoading[primaryOrderFieldKey])) {
+      return language === 'en' ? 'Verify this user ID before buying.' : 'تحقق من معرّف المستخدم قبل الشراء.';
+    }
     for (const field of additionalOrderFields) {
       if (field?.required === false) continue;
       const key = String(field?.key || '').trim();
@@ -423,6 +436,8 @@ const ProductPurchaseDialog = ({
   };
 
   const clearVerificationForField = (key) => {
+    delete verificationRequests.current[key];
+    setVerificationLoading((prev) => ({ ...prev, [key]: false }));
     setVerifiedData((prev) => {
       const next = { ...prev };
       delete next[key];
@@ -441,6 +456,8 @@ const ProductPurchaseDialog = ({
     const key = String(field?.key || '').trim();
     const fieldValue = sanitizeOrderFieldValue(value).trim();
     if (!key) return;
+    const requestId = ++verificationSequence.current;
+    verificationRequests.current[key] = requestId;
 
     if (!fieldValue) {
       setVerificationErrors((prev) => ({
@@ -464,8 +481,10 @@ const ProductPurchaseDialog = ({
 
     try {
       const result = await apiClient.products.verifyField(product.id, fieldValue);
-      setVerifiedData((prev) => ({ ...prev, [key]: result }));
+      if (verificationRequests.current[key] !== requestId) return;
+      setVerifiedData((prev) => ({ ...prev, [key]: { ...result, _verifiedValue: fieldValue } }));
     } catch (error) {
+      if (verificationRequests.current[key] !== requestId) return;
       setVerifiedData((prev) => {
         const next = { ...prev };
         delete next[key];
@@ -476,7 +495,7 @@ const ProductPurchaseDialog = ({
         [key]: error?.response?.data?.message || error?.message || (language === 'en' ? 'Verification failed.' : 'فشل التحقق.'),
       }));
     } finally {
-      setVerificationLoading((prev) => ({ ...prev, [key]: false }));
+      if (verificationRequests.current[key] === requestId) setVerificationLoading((prev) => ({ ...prev, [key]: false }));
     }
   };
 
@@ -525,6 +544,7 @@ const ProductPurchaseDialog = ({
   };
 
   const handlePurchase = async () => {
+    if (purchaseInFlight.current) return;
     if (!product || !quantityMeta) return;
     if (shouldRequireAuth) {
       onRequireAuth?.();
@@ -541,6 +561,11 @@ const ProductPurchaseDialog = ({
     }
 
     const identifier = sanitizeOrderFieldValue(userId).trim();
+    purchaseInFlight.current = true;
+    const fingerprint = JSON.stringify([product.id, quantity, identifier, orderFieldValues]);
+    if (purchaseAttempt.current?.fingerprint !== fingerprint) {
+      purchaseAttempt.current = { fingerprint, key: `${user?.id || 'user'}-${product.id}-${Date.now()}-${Math.random().toString(36).slice(2)}` };
+    }
     const orderId = `#${product?.name?.replace(/\s+/g, '').toUpperCase() || 'ORD'}-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`;
 
     // The demo checkout is intentionally instant: never show a transient
@@ -617,8 +642,9 @@ const ProductPurchaseDialog = ({
         priceCoins: totalPrice,
         currencyCode: userCurrencyCode,
         exchangeRateAtExecution: getCurrencyMeta(userCurrencyCode, currencies).rate,
-        idempotencyKey: `${user?.id || 'user'}-${product.id}-${identifier || 'fields'}-${Date.now()}`,
-        preferLegacyOrderEndpoint: true,
+        idempotencyKey: purchaseAttempt.current.key,
+        providerCode: isCoinRecharge ? 'coin-recharge' : undefined,
+        preferLegacyOrderEndpoint: !isCoinRecharge,
       };
 
       const result = await addOrder(payload);
@@ -689,6 +715,7 @@ const ProductPurchaseDialog = ({
         { language }
       ));
     } finally {
+      purchaseInFlight.current = false;
       setIsSubmitting(false);
     }
   };

@@ -14,6 +14,8 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import apiClient from '../../services/client';
+import CoinRechargePricingModal from '../../components/admin/CoinRechargePricingModal';
+import CoinRechargeHistory from '../../components/admin/CoinRechargeHistory';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
@@ -23,6 +25,8 @@ import { useToast } from '../../components/ui/Toast';
 import useAuthStore from '../../store/useAuthStore';
 import { formatDateTime, formatNumber } from '../../utils/intl';
 import { useLanguage } from '../../context/LanguageContext';
+
+const isCoinRechargeSupplier = (row) => String(row.adapterType || row.supplierCode || row.slug || '').toLowerCase() === 'coin-recharge';
 
 const defaultForm = {
   supplierName: '',
@@ -202,6 +206,7 @@ const AdminSuppliers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(defaultForm);
+  const [coinPricingSupplier, setCoinPricingSupplier] = useState(null);
   const [isProductsOpen, setIsProductsOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [supplierProducts, setSupplierProducts] = useState([]);
@@ -677,6 +682,7 @@ const AdminSuppliers = () => {
                   <Bug className="h-3.5 w-3.5" />
                   أدوات الفحص
                 </Button>
+                {isCoinRechargeSupplier(row) ? <Button size="sm" className={compactActionBtnClass} variant="outline" onClick={() => setCoinPricingSupplier(row)}>إعداد شحن العملات</Button> : null}
                 <Button size="sm" className={compactActionBtnClass} variant="outline" onClick={() => openEdit(row)}>
                   <Pencil className="h-3.5 w-3.5" />
                   تعديل
@@ -741,6 +747,7 @@ const AdminSuppliers = () => {
                         <Bug className="h-4 w-4" />
                         أدوات الفحص
                       </Button>
+                      {isCoinRechargeSupplier(row) ? <Button size="sm" variant="outline" onClick={() => setCoinPricingSupplier(row)}>إعداد شحن العملات</Button> : null}
                       <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
                         <Pencil className="h-4 w-4" />
                         تعديل
@@ -764,6 +771,7 @@ const AdminSuppliers = () => {
         </Table>
       </div>
 
+      <CoinRechargePricingModal isOpen={Boolean(coinPricingSupplier)} supplier={coinPricingSupplier} onClose={() => setCoinPricingSupplier(null)} onSaved={load} />
       <Modal isOpen={isProductsOpen} onClose={() => setIsProductsOpen(false)} title={selectedSupplier ? `منتجات المورد ${selectedSupplier.supplierName}` : 'منتجات المورد'} size="xl" footer={productsModalFooter}>
         {selectedSupplier ? (
           <div className="space-y-4">
@@ -846,6 +854,7 @@ const AdminSuppliers = () => {
               <select className={glowSelectClass} value={form.adapterType || ''} onChange={(event) => setForm({ ...form, adapterType: event.target.value })}>
                 <option value="">التكامل الافتراضي</option>
                 <option value="canonical-b2b">Canonical B2B</option>
+                <option value="coin-recharge">Coin Recharge</option>
               </select>
             </label>
             <select className={glowSelectClass} value={form.authType} onChange={(event) => setForm({ ...form, authType: event.target.value })}>
@@ -901,7 +910,8 @@ const AdminSuppliers = () => {
             </div>
 
             {/* Check Order Status */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/60">
+            {isCoinRechargeSupplier(debugSupplier) ? <CoinRechargeHistory key={debugSupplier.id} supplierId={debugSupplier.id} /> : null}
+            {!isCoinRechargeSupplier(debugSupplier) && <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/60">
               <p className="mb-3 text-sm font-bold text-gray-950 dark:text-white">فحص حالة طلب</p>
               <div className="flex items-center gap-2">
                 <Input
@@ -916,7 +926,7 @@ const AdminSuppliers = () => {
                   فحص
                 </Button>
               </div>
-            </div>
+            </div>}
 
             {/* Result Display */}
             {debugResult && (
@@ -928,7 +938,7 @@ const AdminSuppliers = () => {
                   const innerData = (typeof balObj === 'object' && balObj !== null) ? balObj : {};
                   const deepData = (typeof innerData?.data === 'object' && innerData.data !== null) ? innerData.data : {};
 
-                  const balance = deepData?.user_balance ?? innerData?.balance ?? innerData?.user_balance ?? innerData?.remains ?? innerData?.credits ?? raw?.user_balance ?? 'N/A';
+                  const balance = deepData?.user_balance ?? innerData?.balance ?? innerData?.user_balance ?? innerData?.remains ?? innerData?.credits ?? raw?.user_balance ?? (typeof balObj !== 'object' ? balObj : null) ?? 'N/A';
                   const parsedBalance = Number(balance);
                   const formattedBalance = Number.isFinite(parsedBalance)
                     ? new Intl.NumberFormat('en-US', {
@@ -937,7 +947,7 @@ const AdminSuppliers = () => {
                         useGrouping: true,
                       }).format(parsedBalance)
                     : balance ?? 'N/A';
-                  const currency = deepData?.user_currency ?? innerData?.currency ?? innerData?.user_currency ?? raw?.currency ?? '';
+                  const currency = deepData?.user_currency ?? innerData?.currency ?? innerData?.user_currency ?? raw?.currency ?? raw?.unit ?? '';
                   const email = deepData?.user_email ?? innerData?.email ?? innerData?.user_email ?? raw?.email ?? '';
                   const userId = deepData?.user_id ?? deepData?.userId ?? innerData?.user_id ?? innerData?.userId ?? innerData?.username ?? raw?.user_id ?? '';
                   const plan = deepData?.plan ?? innerData?.plan ?? innerData?.plan_name ?? raw?.plan ?? '';

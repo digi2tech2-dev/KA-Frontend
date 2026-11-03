@@ -74,6 +74,7 @@ const VISUAL_STATUS_ALIASES = {
  * Add a new entry here whenever a new provider is configured in the backend.
  */
 export const PROVIDER_DISPLAY_NAMES = {
+  'coin-recharge': { ar: 'شحن العملات', en: 'Coin Recharge' },
   'alkasr-vip':   { ar: 'الكاسر VIP',   en: 'Alkasr VIP' },
   'royal-crown':  { ar: 'رويال كراون', en: 'Royal Crown' },
   'torosfon':  { ar:'توروس فون', en: 'Torosfon' },

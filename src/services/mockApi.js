@@ -1137,6 +1137,17 @@ const mockApi = {
 
   // --- Suppliers ---
   suppliers: {
+    getCoinRechargeHistory: async (_id, page = 1) => ({ evidenceOnly: true, rows: [], total: 0, currentPage: page, lastPage: 0, pageSize: 0 }),
+
+    updateCoinRechargeProductConfig: async (id, payload) => {
+      const db = getSuppliersDb();
+      const supplier = db.state.suppliers.find((item) => item.id === id);
+      if (!supplier) throw new Error('Supplier not found');
+      supplier.coinRechargeConfig = { product: { externalProductId: 'coin-recharge-dynamic', ...payload } };
+      supplier.syncedProductsSnapshot = [{ externalProductId: 'coin-recharge-dynamic', rawName: payload.name, rawPrice: payload.unitPrice, minQty: payload.minCoins, maxQty: payload.maxCoins, isActive: payload.isActive }];
+      saveDB('suppliers-storage', db);
+      return supplier.coinRechargeConfig.product;
+    },
     list: async () => {
       await new Promise(resolve => setTimeout(resolve, DELAY));
       const db = getSuppliersDb();
@@ -1261,6 +1272,10 @@ const mockApi = {
       const db = getSuppliersDb();
       const supplier = (db.state.suppliers || []).find((s) => s.id === id);
       if (!supplier) throw new Error('Supplier not found');
+      if (String(supplier.adapterType || supplier.supplierCode || '').toLowerCase() === 'coin-recharge') {
+        return supplier.syncedProductsSnapshot || [];
+      }
+
       const provider = mockProviderCatalog.find((p) => String(p.id || '').toLowerCase().includes(String(supplier.supplierCode || '').toLowerCase()));
       if (!provider) {
         supplier.lastProductSyncAt = new Date().toISOString();
@@ -1292,6 +1307,10 @@ const mockApi = {
       const db = getSuppliersDb();
       const supplier = (db.state.suppliers || []).find((s) => s.id === id);
       if (!supplier) throw new Error('Supplier not found');
+      if (String(supplier.adapterType || supplier.supplierCode || '').toLowerCase() === 'coin-recharge') {
+        return supplier.syncedProductsSnapshot || [];
+      }
+
 
       const provider = mockProviderCatalog.find((p) => String(p.id || '').toLowerCase().includes(String(supplier.supplierCode || '').toLowerCase()));
       if (!provider) return [];

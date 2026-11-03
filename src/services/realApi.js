@@ -11,6 +11,7 @@
  */
 
 import axios from 'axios';
+import { getCoinResolution, isCoinRechargeProduct } from '../utils/coinRecharge';
 import { devLogger } from '../utils/devLogger';
 import { getWalletBalanceSummary } from '../utils/money';
 import { isSiteWalletPaymentMethod, normalizePaymentGroups } from '../utils/paymentSettings';
@@ -1196,6 +1197,9 @@ const providerToBE = (fe) => {
     body.supportedFeatures = fe.supportedFeatures;
   }
 
+  if (String(fe.adapterType || fe.supplierCode || '').toLowerCase() === 'coin-recharge') {
+    body.supportedFeatures = ['placeOrder', 'fetchProducts', 'getBalance', 'verifyTargetUser', 'getTransactionHistory'];
+  }
   return body;
 };
 
@@ -2680,6 +2684,14 @@ const realApi = {
 
   // ── Suppliers (BE calls them "providers") ────────────────────────────────
   suppliers: {
+    updateCoinRechargeProductConfig: async (id, payload) => {
+      const res = await http.patch(`/admin/providers/${id}/coin-recharge/product-config`, payload);
+      return unwrap(res)?.product || unwrap(res);
+    },
+    getCoinRechargeHistory: async (id, page = 1) => {
+      const res = await http.get(`/admin/providers/${id}/coin-recharge/history`, { params: { page } });
+      return unwrap(res);
+    },
     /**
      * GET /admin/providers → sendSuccess(res, { providers }, ...)
      */
@@ -3663,7 +3675,9 @@ const realApi = {
       });
 
       const preferLegacy = Boolean(orderData?.preferLegacyOrderEndpoint);
-      const requestPlan = preferLegacy
+      const requestPlan = isCoinRechargeProduct(orderData)
+        ? [{ endpoint: '/me/orders', body }]
+        : preferLegacy
         ? [
             { endpoint: '/orders', body: legacyBody },
             { endpoint: '/me/orders', body },
@@ -3737,6 +3751,12 @@ const realApi = {
         body.rejectionReason = String(orderContext.rejectionReason).trim();
       }
 
+      if (String(orderContext?.providerCode || '').toLowerCase() === 'coin-recharge'
+          && String(orderContext?.status || '').toLowerCase() === 'manual_review') {
+        const resolution = getCoinResolution(status);
+        const res = await http.post(`/admin/orders/${normalizedOrderId}/coin-recharge/resolve`, { resolution, reason: body.rejectionReason });
+        return normaliseOrder(unwrap(res)?.order || unwrap(res));
+      }
       const res = await http.patch(`/admin/orders/${normalizedOrderId}/status`, body);
       return normaliseOrder(unwrap(res)?.order || unwrap(res));
     },
