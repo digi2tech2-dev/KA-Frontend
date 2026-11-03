@@ -643,6 +643,9 @@ const ProductPurchaseDialog = ({
         currencyCode: userCurrencyCode,
         exchangeRateAtExecution: getCurrencyMeta(userCurrencyCode, currencies).rate,
         idempotencyKey: purchaseAttempt.current.key,
+        // This is client-side routing metadata only. realApi deliberately does
+        // not serialize it; the backend resolves the provider from productId.
+        isCoinRecharge,
         providerCode: isCoinRecharge ? 'coin-recharge' : undefined,
         preferLegacyOrderEndpoint: !isCoinRecharge,
       };

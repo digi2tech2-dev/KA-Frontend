@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isCoinRechargeProduct, isCoinTargetVerified, getCoinResolution } from './coinRecharge.js';
+import { isCoinRechargeOrder, isCoinRechargeProduct, isCoinTargetVerified, getCoinResolution } from './coinRecharge.js';
 import { resolveProductOrderFields } from './productPurchase.js';
 
 const product = { orderFields: [{ id: 'target_uid', key: 'target_uid', label: 'User ID', type: 'text', required: true, isVerifiable: true }], providerMapping: { target_uid: 'toUserId' } };
@@ -10,6 +10,15 @@ test('customer product response without providerProduct still identifies coin re
   assert.equal(isCoinRechargeProduct({ externalProductId: 'coin-recharge-dynamic' }), true);
   assert.equal(isCoinRechargeProduct({ providerCode: 'coin-recharge' }), true);
   assert.equal(isCoinRechargeProduct({ orderFields: [{ key: 'playerId' }] }), false);
+});
+
+test('submitted field values are not treated as product field definitions', () => {
+  // Production order payload shape after the legacy checkout compatibility
+  // alias has been applied. It is values, not Product.orderFields.
+  const submittedValues = { target_uid: '123456' };
+  assert.equal(isCoinRechargeProduct({ orderFields: submittedValues }), false);
+  assert.equal(isCoinRechargeOrder({ orderFields: submittedValues }), false);
+  assert.equal(isCoinRechargeOrder({ isCoinRecharge: true, orderFields: submittedValues }), true);
 });
 
 test('coin checkout renders only its declared target and keeps verification enabled', () => {

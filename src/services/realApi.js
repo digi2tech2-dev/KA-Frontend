@@ -11,7 +11,7 @@
  */
 
 import axios from 'axios';
-import { getCoinResolution, isCoinRechargeProduct } from '../utils/coinRecharge';
+import { getCoinResolution, isCoinRechargeOrder } from '../utils/coinRecharge';
 import { devLogger } from '../utils/devLogger';
 import { getWalletBalanceSummary } from '../utils/money';
 import { isSiteWalletPaymentMethod, normalizePaymentGroups } from '../utils/paymentSettings';
@@ -3675,7 +3675,9 @@ const realApi = {
       });
 
       const preferLegacy = Boolean(orderData?.preferLegacyOrderEndpoint);
-      const requestPlan = isCoinRechargeProduct(orderData)
+      // `orderData.orderFields` can be a legacy submitted-values map. Routing
+      // must use only explicit order metadata, never Product field definitions.
+      const requestPlan = isCoinRechargeOrder(orderData)
         ? [{ endpoint: '/me/orders', body }]
         : preferLegacy
         ? [

@@ -47,6 +47,45 @@ test('coin checkout sends target_uid once to /me/orders with an idempotency key'
   assert.equal(requests[0].body.quantity, 100);
 });
 
+test('coin routing accepts the production-shaped legacy orderFields values map without serializing routing metadata', async () => {
+  requests.length = 0;
+  response = { order: { _id: 'test-order', status: 'PROCESSING' } };
+  const submittedValues = { target_uid: '123' };
+  await api.orders.create({
+    productId: 'product',
+    isCoinRecharge: true,
+    quantity: 100,
+    customInputs: submittedValues,
+    orderFields: submittedValues,
+    orderFieldsValues: submittedValues,
+    customerInput: { fieldsSnapshot: [{ key: 'target_uid' }] },
+    idempotencyKey: 'legacy-values-key',
+    preferLegacyOrderEndpoint: true,
+  });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, '/me/orders');
+  assert.deepEqual(requests[0].body, {
+    productId: 'product', quantity: 100, customInputs: submittedValues, orderFieldsValues: submittedValues,
+  });
+  assert.equal(Object.hasOwn(requests[0].body, 'isCoinRecharge'), false);
+});
+
+test('traditional supplier request plans and provider-mapped values remain unchanged', async () => {
+  requests.length = 0;
+  response = { order: { _id: 'traditional-order', status: 'PROCESSING' } };
+  const submittedValues = { player_id: '10026', server: 'EU' };
+  await api.orders.create({
+    productId: 'traditional-product', quantity: 1, customInputs: submittedValues,
+    orderFields: submittedValues, orderFieldsValues: submittedValues,
+    customerInput: { fieldsSnapshot: [{ key: 'player_id' }, { key: 'server' }] },
+    preferLegacyOrderEndpoint: true,
+  });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, '/orders');
+  assert.deepEqual(requests[0].body.orderFields, submittedValues);
+  assert.deepEqual(requests[0].body.orderFieldsValues, submittedValues);
+});
+
 test('a timeout never resends a coin checkout through another route', async () => {
   requests.length = 0;
   failure = Object.assign(new Error('timeout'), { code: 'ECONNABORTED' });
