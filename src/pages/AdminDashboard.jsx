@@ -32,7 +32,7 @@ import RecentOrdersSection from '../components/admin-dashboard/RecentOrdersSecti
 import ManualTopupsSection from '../components/admin-dashboard/ManualTopupsSection';
 import TargetRequestsReviewSection from '../components/admin-dashboard/TargetRequestsReviewSection';
 import RejectionReasonModal from '../components/target/RejectionReasonModal';
-import QuickActionsSection from '../components/admin-dashboard/QuickActionsSection';
+import OrderCandlestickChart from '../components/admin-dashboard/OrderCandlestickChart';
 import ActivityFeedSection from '../components/admin-dashboard/ActivityFeedSection';
 import SupplierBalancesSection from '../components/admin-dashboard/SupplierBalancesSection';
 import DashboardDateRangeFilter from '../components/admin-dashboard/DashboardDateRangeFilter';
@@ -604,65 +604,6 @@ const AdminDashboard = () => {
     [isArabic, locale, supplierBalances]
   );
 
-  const quickActions = useMemo(
-    () => [
-      {
-        label: isArabic ? 'الرئيسية' : 'Home',
-        description: isArabic
-          ? 'الرجوع إلى الصفحة الرئيسية للوحة الأدمن'
-          : 'Return to the main admin dashboard.',
-        to: '/admin/dashboard',
-      },
-      {
-        label: isArabic ? 'إدارة المستخدمين' : 'Manage Users',
-        description: isArabic
-          ? 'إدارة العملاء والأرصدة وإجراءات الحساب'
-          : 'Manage customers, balances, and account actions.',
-        to: '/admin/users',
-      },
-      {
-        label: isArabic ? 'طرق الدفع' : 'Payment Methods',
-        description: isArabic
-          ? 'إدارة مجموعات الدفع ووسائل التحويل'
-          : 'Manage payment groups and transfer methods.',
-        to: '/admin/payment-methods',
-      },
-      {
-        label: isArabic ? 'طلبات الدفع' : 'Payment Requests',
-        description: isArabic
-          ? 'مراجعة تأكيدات التحويل وطلبات الشحن'
-          : 'Review transfer confirmations and topup requests.',
-        to: '/admin/payments',
-      },
-      {
-        label: isArabic ? 'العملات' : 'Currencies',
-        description: isArabic
-          ? 'إدارة العملات المفعلة والافتراضية'
-          : 'Manage enabled and default currencies.',
-        to: '/admin/currencies',
-      },
-      {
-        label: isArabic ? 'حسابي' : 'My Account',
-        description: isArabic
-          ? 'عرض وتعديل بيانات حسابك'
-          : 'View and edit your account details.',
-        to: '/account',
-      },
-    ].filter((action) => {
-      const permissionByRoute = {
-        '/admin/users': PERMISSIONS.ADMIN_USERS,
-        '/admin/payment-methods': PERMISSIONS.ADMIN_PAYMENT_METHODS,
-        '/admin/payments': PERMISSIONS.ADMIN_PAYMENTS,
-        '/admin/currencies': PERMISSIONS.ADMIN_CURRENCIES,
-      };
-
-      const requiredPermission = permissionByRoute[action.to];
-      if (!requiredPermission) return true;
-      return hasPermission(user, requiredPermission);
-    }),
-    [isArabic, user]
-  );
-
   const statsOrders = dashboardStats?.orders || {};
   const statsFinancials = dashboardStats?.financials || {};
   const statsUsers = dashboardStats?.users || {};
@@ -1097,7 +1038,14 @@ const AdminDashboard = () => {
         </div>
 
         <div className="w-full space-y-4 md:space-y-6">
-          <QuickActionsSection actions={quickActions} isArabic={isArabic} variant="tiny" />
+          {canViewOrders ? (
+            <OrderCandlestickChart
+              orders={filteredOrders}
+              startDate={startDate}
+              endDate={endDate}
+              isArabic={isArabic}
+            />
+          ) : null}
           {canViewSuppliers ? (
             <SupplierBalancesSection
               items={supplierBalanceItems}

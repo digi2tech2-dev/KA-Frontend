@@ -94,6 +94,11 @@ const Auth = () => {
   const { currencies: systemCurrencies, loadCurrencies } = useSystemStore();
 
   const [isLogin, setIsLogin] = useState(true);
+  const [showEmailForm, setShowEmailForm] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.has('completionToken') || params.has('token');
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -168,12 +173,14 @@ const countryOptions = useMemo(() => {
     if (mode === 'signup') {
       setIsLogin(false);
       setRegisterStep(1);
+      setShowEmailForm(false);
       return;
     }
 
     if (mode === 'login') {
       setIsLogin(true);
       setRegisterStep(1);
+      setShowEmailForm(false);
     }
   }, [location.search]);
 
@@ -238,6 +245,7 @@ const countryOptions = useMemo(() => {
         setGoogleSetupPending(true);
         setIsLogin(false);
         setRegisterStep(2);
+        setShowEmailForm(true);
         return;
       }
 
@@ -246,6 +254,7 @@ const countryOptions = useMemo(() => {
         setGoogleSetupPending(true);
         setIsLogin(false);
         setRegisterStep(2);
+        setShowEmailForm(true);
         setName(result.user.name || '');
         setEmail(result.user.email || '');
         setCountry(result.user.country || 'US');
@@ -591,6 +600,7 @@ const countryOptions = useMemo(() => {
 
   const toggleMode = () => {
     setIsLogin((previous) => !previous);
+    setShowEmailForm(false);
     setRegisterStep(1);
     setTwoFactorChallenge(null);
     setTwoFactorCode('');
@@ -602,22 +612,6 @@ const countryOptions = useMemo(() => {
   const authSelectClassName =
     'h-11 w-full rounded-[var(--radius-md)] px-4 text-sm outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-55';
   const authLinkClassName = 'font-semibold text-[var(--color-primary)] transition hover:text-[var(--color-primary-hover)]';
-  const modeConfig = isLogin
-    ? {
-        heading: t('auth.login', {
-          defaultValue: dir === 'rtl' ? 'تسجيل الدخول' : 'Sign in',
-        }),
-        description: dir === 'rtl'
-          ? 'سجّل الدخول للوصول إلى حسابك ومتابعة طلباتك'
-          : 'Sign in to access your account and track your orders.',
-        pills: [],
-      }
-    : {
-        heading: t('auth.register'),
-        description: t('auth.joinToday'),
-        pills: [],
-      };
-
   const handleBack = () => {
     navigate('/');
   };
@@ -660,44 +654,46 @@ const countryOptions = useMemo(() => {
           transition={{ duration: 0.45, ease: 'easeOut' }}
           className={styles.formPane}
         >
-          <div className={styles.brandBlock}>
-            <div className={styles.brandIcon}>
-              <img
-                src={brandIconImage}
-                alt="AD CARD"
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
-              />
-            </div>
-            <h1 className={styles.brandName}><span>AD</span> CARD</h1>
-            <div className={styles.brandDivider}><span /></div>
-          </div>
-
           <section className={styles.formCard} data-auth-no-sparkle>
             <div className={styles.formIntro}>
-              <div className={styles.formLogo}><img src={brandIconImage} alt="" /></div>
-              <span className={styles.eyebrow}>{isLogin ? t('auth.login') : t('auth.register')}</span>
+              <div className={styles.formLogo}><img src={brandIconImage} alt="AD CARD" loading="eager" decoding="async" fetchPriority="high" /></div>
+              <span className={styles.brandLabel}>AD CARD</span>
               <h2 className={styles.formTitle}>
                 {isLogin
-                  ? (dir === 'rtl' ? <>مرحبًا بك <span>مجددًا</span></> : <>Welcome <span>back</span></>)
-                  : modeConfig.heading}
+                  ? (dir === 'rtl' ? 'مرحبًا بك مجددًا' : 'Welcome back')
+                  : (dir === 'rtl' ? 'أنشئ حسابك الجديد' : 'Create your account')}
               </h2>
-              <p className={styles.formSubtitle}>{modeConfig.description}</p>
+              <p className={styles.formSubtitle}>{showEmailForm
+                ? (isLogin
+                  ? (dir === 'rtl' ? 'سجّل الدخول باستخدام بريدك الإلكتروني' : 'Sign in with your email')
+                  : (dir === 'rtl' ? 'أكمل بيانات حسابك باستخدام البريد الإلكتروني' : 'Complete your account with email'))
+                : (isLogin
+                  ? (dir === 'rtl' ? 'اختر طريقة الدخول إلى حسابك' : 'Choose how to sign in')
+                  : (dir === 'rtl' ? 'اختر الطريقة المناسبة لإنشاء حسابك' : 'Choose how to create your account'))}</p>
             </div>
 
-            <div className={styles.modeToggle} data-auth-no-sparkle>
-              {[
-                { key: 'login', active: isLogin, label: t('auth.login'), onClick: () => !isLogin && toggleMode() },
-                { key: 'register', active: !isLogin, label: t('auth.register'), onClick: () => isLogin && toggleMode() },
-              ].map((item) => (
-                <button key={item.key} type="button" onClick={item.onClick} className={cn(styles.modeButton, item.active && styles.modeButtonActive)}>
-                  {item.label}
+            {!showEmailForm && !googleSetupPending && !twoFactorChallenge ? (
+              <div className={styles.choiceStack}>
+                <motion.button type="button" whileHover={reduceMotion ? undefined : { y: -2 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.99 }} onClick={handleGoogleAuth}
+                  disabled={isLoading} className={styles.googleButton}>
+                  <GoogleMark />
+                  <span>{dir === 'rtl' ? (isLogin ? 'الدخول عبر Google' : 'إنشاء حساب عبر Google') : (isLogin ? 'Continue with Google' : 'Sign up with Google')}</span>
+                </motion.button>
+                <div className={styles.choiceDivider}><span>{dir === 'rtl' ? 'أو' : 'or'}</span></div>
+                <button type="button" className={styles.emailChoiceButton} onClick={() => setShowEmailForm(true)}>
+                  <Mail className="h-5 w-5" />
+                  <span>{dir === 'rtl' ? (isLogin ? 'الدخول بالبريد الإلكتروني' : 'إنشاء حساب بالبريد الإلكتروني') : (isLogin ? 'Continue with email' : 'Sign up with email')}</span>
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : !googleSetupPending && !twoFactorChallenge ? (
+              <button type="button" className={styles.backToChoices} onClick={() => setShowEmailForm(false)}>
+                <ArrowLeft className="h-4 w-4" />
+                {dir === 'rtl' ? 'العودة لاختيار طريقة التسجيل' : 'Back to sign-in options'}
+              </button>
+            ) : null}
 
-            <form onSubmit={handleSubmit} onKeyDown={handleAuthFormKeyDown} className={styles.formStack}>
+            {(showEmailForm || googleSetupPending || twoFactorChallenge) && <form onSubmit={handleSubmit} onKeyDown={handleAuthFormKeyDown} className={styles.formStack}>
               {!isLogin && (
                 <div className={styles.stepProgress} aria-label="تقدم التسجيل">
                   {[
@@ -994,61 +990,26 @@ const countryOptions = useMemo(() => {
                 </div>
               )}
 
-              {!twoFactorChallenge && !googleSetupPending && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(212,175,55,0.3)] to-transparent" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                    {t('auth.orContinueWith', {
-                      defaultValue: dir === 'rtl' ? 'أو تابع باستخدام' : 'Or continue with',
-                    })}
-                  </span>
-                  <div className="h-px flex-1 bg-gradient-to-l from-transparent via-[rgba(212,175,55,0.3)] to-transparent" />
-                </div>
+            </form>}
 
-                <motion.button
-                  type="button"
-                  whileHover={reduceMotion ? undefined : { y: -2, scale: 1.01 }}
-                  whileTap={reduceMotion ? undefined : { scale: 0.99 }}
-                  onClick={handleGoogleAuth}
-                  disabled={isLoading}
-                  className={styles.googleButton}
-                >
-                  <span className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/80 bg-white shadow-[0_10px_22px_-14px_rgba(66,133,244,0.75)]">
-                    <GoogleMark />
-                  </span>
-                  <span className="relative">
-                    {t('auth.continueWithGoogle', {
-                      defaultValue: dir === 'rtl' ? 'المتابعة عبر Google' : 'Continue with Google',
-                    })}
-                  </span>
-                </motion.button>
-              </div>
-              )}
-
-              <div className="mt-6 space-y-2 text-center">
-                <span className="block text-sm text-[var(--color-text-secondary)]">
+            {!googleSetupPending && !twoFactorChallenge && (
+              <div className={styles.choiceFoot}>
+                <span>
                   {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}{' '}
-                  <button
-                    type="button"
-                    onClick={toggleMode}
-                    className={authLinkClassName}
-                  >
-                    {isLogin ? t('auth.signUp') : t('auth.signIn')}
+                  <button type="button" onClick={toggleMode} className={authLinkClassName}>
+                    {isLogin
+                      ? (dir === 'rtl' ? 'إنشاء حساب جديد' : 'Create a new account')
+                      : t('auth.signIn')}
                   </button>
                 </span>
-                <p className="pt-1 text-[0.7rem] font-semibold leading-5 text-[var(--color-text-secondary)] sm:text-xs">
-                  {dir === 'rtl' ? 'بمجرد التسجيل، فإنك توافق على ' : 'By registering, you agree to the '}
-                  <button
-                    type="button"
-                    onClick={() => setPrivacyModalOpen(true)}
-                    className="font-black text-[var(--color-primary)] underline decoration-[color:rgb(var(--color-primary-rgb)/0.38)] underline-offset-4 transition-colors hover:text-[var(--color-primary-hover)]"
-                  >
+                <p>
+                  {dir === 'rtl' ? 'بالمتابعة، توافق على ' : 'By continuing, you agree to the '}
+                  <button type="button" onClick={() => setPrivacyModalOpen(true)} className={authLinkClassName}>
                     {dir === 'rtl' ? 'الشروط والأحكام' : 'Terms and Conditions'}
                   </button>
                 </p>
               </div>
-            </form>
+            )}
           </section>
         </motion.div>
       </main>

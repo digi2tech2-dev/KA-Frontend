@@ -200,3 +200,98 @@
 @media (prefers-reduced-motion: reduce) {
   .primaryButton, .backButton, .modeButton { transition: none; }
 }
+
+/* One calm entry point for Google and email, shared by sign-in and sign-up. */
+.authPage {
+  background: #f5f6f8;
+}
+
+:global(.dark) .authPage {
+  background: #101217;
+}
+
+.authPage::before,
+.authPage::after,
+.formCard::before { display: none; }
+
+.authShell { width: min(100%, 30rem); }
+.formPane { width: 100%; }
+
+.formCard {
+  border: 1px solid #e4e6eb;
+  border-radius: 1.5rem;
+  padding: clamp(1.4rem, 5vw, 2.25rem);
+  background: #fff;
+  box-shadow: 0 18px 55px -34px rgb(18 28 44 / 0.26);
+  backdrop-filter: none;
+}
+
+:global(.dark) .formCard {
+  border-color: #30343d;
+  background: #1a1e26;
+  box-shadow: 0 20px 55px -32px rgb(0 0 0 / 0.72);
+}
+
+.formIntro { margin-bottom: 1.75rem; }
+.formLogo {
+  width: 4.5rem;
+  height: 4.5rem;
+  margin-bottom: 0.65rem;
+  border: 1px solid #e5e7eb;
+  background: #f8f9fb;
+  box-shadow: none;
+}
+.formLogo img { width: 3.7rem; height: 3.7rem; }
+:global(.dark) .formLogo { border-color: #363b46; background: #222831; }
+.brandLabel { color: var(--color-text-secondary); font-size: 0.7rem; font-weight: 850; letter-spacing: 0.2em; }
+.formTitle { margin-top: 0.65rem; font-size: clamp(1.45rem, 5vw, 1.85rem); }
+.formSubtitle { max-width: 22rem; margin-top: 0.55rem; font-size: 0.84rem; }
+
+.choiceStack { display: grid; gap: 0.75rem; }
+.googleButton,
+.emailChoiceButton {
+  display: flex;
+  width: 100%;
+  min-height: 3.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  border: 1px solid #dfe3e9;
+  border-radius: 0.8rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  color: #1f2937;
+  font-size: 0.9rem;
+  font-weight: 750;
+  box-shadow: none;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+.googleButton:hover,
+.emailChoiceButton:hover { border-color: #b48b51; background: #fbf9f5; box-shadow: none; }
+.emailChoiceButton { background: #f4f5f7; }
+.emailChoiceButton svg { color: #a17036; }
+.choiceDivider { display: flex; align-items: center; gap: 0.85rem; color: var(--color-muted); font-size: 0.78rem; }
+.choiceDivider::before,
+.choiceDivider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+:global(.dark) .choiceDivider::before,
+:global(.dark) .choiceDivider::after { background: #353a44; }
+:global(.dark) .googleButton,
+:global(.dark) .emailChoiceButton { border-color: #39404c; background: #252a34; color: #f3f4f6; }
+:global(.dark) .emailChoiceButton { background: #20252e; }
+:global(.dark) .googleButton:hover,
+:global(.dark) .emailChoiceButton:hover { border-color: #b48b51; background: #2d323b; }
+
+.backToChoices { display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1.2rem; color: var(--color-text-secondary); font-size: 0.78rem; font-weight: 700; }
+.backToChoices:hover { color: var(--color-primary); }
+.choiceFoot { margin-top: 1.8rem; text-align: center; color: var(--color-text-secondary); font-size: 0.83rem; }
+.choiceFoot p { margin-top: 1rem; font-size: 0.7rem; line-height: 1.7; }
+
+.primaryButton { border-color: #a8793f; background: #b78a50 !important; color: #fff !important; box-shadow: none; }
+.primaryButton:hover { box-shadow: 0 8px 22px -14px rgb(123 83 39 / 0.7); }
+
+@media (max-width: 600px) {
+  .authShell { padding-top: 4.8rem; padding-bottom: 1.3rem; }
+  .formCard { padding: 1.4rem 1.1rem; }
+  .formLogo { width: 4.25rem; height: 4.25rem; }
+  .formLogo img { width: 3.5rem; height: 3.5rem; }
+}

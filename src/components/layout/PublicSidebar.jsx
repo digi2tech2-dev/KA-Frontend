@@ -49,24 +49,28 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
   const navItems = [
     {
       icon: House,
+      accent: '#38bdf8',
       label: isArabic ? 'الرئيسية' : 'Home',
       onClick: onHome,
       isActive: pathname === '/',
     },
     {
       icon: InfoIcon,
+      accent: '#a78bfa',
       label: isArabic ? 'من نحن' : 'About us',
       onClick: onAbout,
       isActive: pathname === '/about-us',
     },
     {
       icon: Code2,
+      accent: '#22d3ee',
       label: isArabic ? 'تم الإنشاء بواسطة' : 'Created By',
       onClick: () => navigate('/created-by'),
       isActive: pathname === '/created-by',
     },
     {
       icon: Headset,
+      accent: '#34d399',
       label: isArabic ? 'مشاكل الحساب' : 'Account issues',
       onClick: onContact,
       isActive: pathname === '/public-contact-us',
@@ -76,6 +80,7 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
   if (!isNativeApp()) {
     navItems.splice(2, 0, {
       icon: Download,
+      accent: '#fbbf24',
       label: isArabic ? 'تحميل التطبيق' : 'Download app',
       onClick: () => navigate('/download-app'),
       isActive: pathname === '/download-app',
@@ -177,6 +182,7 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
                 key={item.label}
                 type="button"
                 onClick={item.onClick}
+                style={{ '--sidebar-item-accent': item.accent }}
                 className={cn(
                   'ka-sidebar-nav-item group relative flex w-full items-center gap-2.5 overflow-hidden px-3 py-1.5 transition-all',
                   item.isActive
@@ -195,6 +201,9 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
             ))}
 
             <div className="mt-auto" />
+          </div>
+          <div className="relative z-10 border-t border-[var(--color-border)] px-3 py-2 text-center text-[0.62rem] font-bold tracking-wide text-[var(--color-text-secondary)]" dir="ltr">
+            © 2026 AD CARD
           </div>
         </div>
       </aside>

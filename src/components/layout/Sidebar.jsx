@@ -49,6 +49,21 @@ import { resolveUserAvatar } from '../../utils/avatar';
 
 const ADMIN_NAV_ROLES = ['admin', 'super_admin', ...SUPERVISOR_ROLES];
 
+const NAV_ICON_COLORS = {
+  '/dashboard': '#38bdf8', '/favorites': '#fb7185', '/account': '#a78bfa',
+  '/account-security': '#34d399', '/referral': '#fbbf24', '/orders': '#f59e0b',
+  '/buy-target': '#f97316', '/developers/api': '#22d3ee', '/created-by': '#c084fc',
+  '/wallet/transactions': '#2dd4bf', '/contact-us': '#60a5fa', '/settings': '#94a3b8',
+  '/admin/dashboard': '#38bdf8', '/admin/wallet': '#34d399', '/admin/themes': '#e879f9',
+  '/admin/users': '#818cf8', '/admin/referrals': '#fbbf24', '/admin/supervisors': '#a78bfa',
+  '/admin/supervisor-monitoring': '#fb7185', '/admin/groups': '#60a5fa',
+  '/admin/products': '#f97316', '/admin/product-recovery': '#2dd4bf',
+  '/admin/orders': '#f59e0b', '/admin/target-requests': '#fb923c',
+  '/admin/suppliers': '#c084fc', '/admin/topups': '#34d399',
+  '/admin/payment-methods': '#22d3ee', '/admin/whatsapp': '#4ade80',
+  '/admin/currencies': '#facc15',
+};
+
 const copyToClipboard = async (value) => {
   const text = String(value || '').trim();
   if (!text) return false;
@@ -281,6 +296,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       <NavLink
         key={item.path}
         to={item.path}
+        style={{ '--sidebar-item-accent': NAV_ICON_COLORS[item.path] || '#60a5fa' }}
         title={item.count !== undefined ? `${item.label}: ${item.count}` : item.label}
         onClick={closeSidebarOnMobile}
         className={({ isActive }) =>
@@ -396,20 +412,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
 
                 <div className="ka-sidebar-user-card mt-2 px-2.5 py-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="relative flex shrink-0 flex-col items-center">
-                      {userId ? (
-                        <button
-                          type="button"
-                          onClick={handleCopyUserId}
-                          className="ka-sidebar-id-chip absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2"
-                          title={copiedUserId ? 'تم نسخ ID المستخدم' : 'اضغط لنسخ ID المستخدم'}
-                          aria-label={copiedUserId ? 'تم نسخ ID المستخدم' : 'نسخ ID المستخدم'}
-                        >
-                          {copiedUserId ? <Check className="h-3 w-3 shrink-0" /> : <Copy className="h-3 w-3 shrink-0" />}
-                          <span className="truncate">{copiedUserId ? 'تم النسخ' : `...${userId.slice(-8)}`}</span>
-                        </button>
-                      ) : null}
-
+                    <div className="relative shrink-0">
                       <div className="relative">
                         <button
                           type="button"
@@ -433,9 +436,22 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
 
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[0.74rem] font-semibold leading-tight text-[var(--color-text)]">{userDisplayName}</div>
-                      <div className="mt-0.5 truncate text-[0.62rem] font-bold text-[var(--color-primary-hover)]">{userRoleLabel}</div>
+                      {userId ? (
+                        <button type="button" onClick={handleCopyUserId}
+                          className="ka-sidebar-id-chip mt-1 inline-flex max-w-full items-center gap-1"
+                          title={copiedUserId ? 'تم نسخ ID المستخدم' : 'اضغط لنسخ ID المستخدم'}
+                          aria-label={copiedUserId ? 'تم نسخ ID المستخدم' : 'نسخ ID المستخدم'}>
+                          {copiedUserId ? <Check className="h-3 w-3 shrink-0" /> : <Copy className="h-3 w-3 shrink-0" />}
+                          <span className="truncate">{copiedUserId ? 'تم النسخ' : userId}</span>
+                        </button>
+                      ) : <div className="mt-0.5 truncate text-[0.62rem] font-bold text-[var(--color-primary-hover)]">{userRoleLabel}</div>}
                     </div>
-
+                    <button type="button" onClick={handleLogoutClick}
+                      className="ka-sidebar-logout-pill is-icon-only shrink-0"
+                      aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
+                      title={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}>
+                      <LogOut className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </>
@@ -484,7 +500,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             </div>
           </div>
 
-          <div className={cn('relative z-10 px-4 pb-5 pt-1', !isExpanded && 'px-3')}>
+          {!isExpanded && <div className="relative z-10 px-3 pb-5 pt-1">
             <button
               type="button"
               onClick={handleLogoutClick}
@@ -492,8 +508,10 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
               aria-label={dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}
             >
               <LogOut className="h-5 w-5" />
-              {isExpanded && <span>{dir === 'rtl' ? 'تسجيل الخروج' : 'Logout'}</span>}
             </button>
+          </div>}
+          <div className="relative z-10 border-t border-[var(--color-border)] px-3 py-2 text-center text-[0.62rem] font-bold tracking-wide text-[var(--color-text-secondary)]" dir="ltr">
+            {isExpanded ? '© 2026 AD CARD' : <span className="block text-[0.52rem] leading-tight">© 2026<br />AD CARD</span>}
           </div>
         </div>
       </motion.aside>

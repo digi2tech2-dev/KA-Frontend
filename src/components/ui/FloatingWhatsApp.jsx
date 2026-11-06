@@ -6,6 +6,7 @@ import { isAdminRole } from '../../utils/authRoles';
 import WhatsAppContactChooser from './WhatsAppContactChooser';
 import floatingPromoTwo from '../../assets/floating-promo.webp';
 import { isLitePerformanceMode } from '../../utils/performanceMode';
+import { Bot } from 'lucide-react';
 
 const FloatingWhatsApp = () => {
   const [showContactChooser, setShowContactChooser] = useState(false);
@@ -73,7 +74,7 @@ const FloatingWhatsApp = () => {
         <span className="floating-whatsapp-tooltip" aria-hidden="true">{tooltipText}</span>
         <span className="floating-whatsapp-button">
           <span className="floating-whatsapp-headset" aria-hidden="true" />
-          <span className="floating-whatsapp-monogram" aria-hidden="true"><b>AD</b><small>WHATSAPP</small></span>
+          <span className="floating-whatsapp-bot" aria-hidden="true"><Bot strokeWidth={2.2} /><small>AD</small></span>
         </span>
       </button>
       <WhatsAppContactChooser

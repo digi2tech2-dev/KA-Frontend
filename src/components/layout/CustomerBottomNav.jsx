@@ -34,8 +34,12 @@ const CustomerBottomNav = () => {
 
   useEffect(() => {
     document.body.dataset.mobileBottomNav = shouldShow ? 'true' : 'false';
-    return () => delete document.body.dataset.mobileBottomNav;
-  }, [shouldShow]);
+    if (shouldShow) document.body.style.setProperty('--ad-mobile-nav-clearance', `${Math.max(Number(navTheme?.height) || 66, 66)}px`);
+    return () => {
+      delete document.body.dataset.mobileBottomNav;
+      document.body.style.removeProperty('--ad-mobile-nav-clearance');
+    };
+  }, [shouldShow, navTheme?.height]);
 
   if (!shouldShow) return null;
 

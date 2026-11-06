@@ -4543,3 +4543,101 @@ html.performance-lite :where(button, a, [role="button"], .transition, [class*="t
   animation: neon-edge-orbit var(--platform-neon-speed, 5s) linear infinite;
 }
 @media (prefers-reduced-motion: reduce) { :root.platform-theme-active .ad-category-neon::before { animation: none; } }
+
+/* Keep the sidebar to two theme surfaces while giving each destination its own icon cue. */
+:root .ka-sidebar-panel,
+:root.dark .ka-sidebar-panel,
+:root:not(.dark) .ka-sidebar-panel {
+  background: linear-gradient(160deg, var(--color-surface), var(--color-card)) !important;
+}
+
+:root .ka-sidebar-panel::before,
+:root .ka-sidebar-panel::after {
+  display: none !important;
+}
+
+:root .ka-sidebar-nav-item,
+:root:not(.dark) .ka-sidebar-nav-item,
+:root .ka-sidebar-user-card,
+:root:not(.dark) .ka-sidebar-user-card {
+  background: linear-gradient(135deg, var(--color-card), var(--color-surface)) !important;
+}
+
+:root .ka-sidebar-nav-item:is(:hover, .is-active),
+:root:not(.dark) .ka-sidebar-nav-item:is(:hover, .is-active) {
+  background: linear-gradient(135deg, var(--color-surface), var(--color-card)) !important;
+}
+
+:root .ka-sidebar-nav-item .ka-sidebar-icon-bubble,
+:root.dark .ka-sidebar-nav-item .ka-sidebar-icon-bubble,
+:root:not(.dark) .ka-sidebar-nav-item .ka-sidebar-icon-bubble,
+:root .ka-sidebar-nav-item:hover .ka-sidebar-icon-bubble,
+:root .ka-sidebar-nav-item .ka-sidebar-icon-bubble.is-active {
+  color: var(--sidebar-item-accent, var(--color-primary)) !important;
+  border-color: color-mix(in srgb, var(--sidebar-item-accent, var(--color-primary)) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--sidebar-item-accent, var(--color-primary)) 13%, var(--color-card)) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+:root .ka-sidebar-nav-item:is(:hover, .is-active) .ka-sidebar-icon-bubble {
+  background: color-mix(in srgb, var(--sidebar-item-accent, var(--color-primary)) 24%, var(--color-card)) !important;
+}
+
+.ka-sidebar-user-card .ka-sidebar-id-chip {
+  position: static;
+  max-width: 100%;
+  margin: 0;
+}
+
+.ka-sidebar-user-card .ka-sidebar-logout-pill {
+  width: 2.35rem;
+  min-height: 2.35rem;
+}
+
+.floating-whatsapp-bot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.4));
+}
+
+.floating-whatsapp-bot svg { width: 2rem; height: 2rem; }
+.floating-whatsapp-bot small { font-size: 0.55rem; font-weight: 900; letter-spacing: 0.07em; }
+
+@media (max-width: 767px) {
+  body[data-mobile-bottom-nav="true"] .floating-whatsapp,
+  body[data-customer-bottom-nav="true"] .floating-whatsapp {
+    left: max(0.9rem, env(safe-area-inset-left));
+    right: auto;
+    bottom: calc(var(--ad-mobile-nav-clearance, 66px) + 1.1rem + env(safe-area-inset-bottom)) !important;
+  }
+  body[data-mobile-bottom-nav="true"] .floating-whatsapp-bot svg,
+  body[data-customer-bottom-nav="true"] .floating-whatsapp-bot svg { width: 1.55rem; height: 1.55rem; }
+  body[data-mobile-bottom-nav="true"] .floating-whatsapp-bot small,
+  body[data-customer-bottom-nav="true"] .floating-whatsapp-bot small { font-size: 0.42rem; }
+}
+
+/* Hide only the mobile viewport scrollbar; touch and wheel scrolling remain available. */
+@media (max-width: 767px) {
+  html,
+  body {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none;
+  }
+
+  html {
+    scrollbar-gutter: auto;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
