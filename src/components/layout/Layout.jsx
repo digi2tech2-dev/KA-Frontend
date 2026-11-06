@@ -1,3 +1,4 @@
+import { getThemeChrome } from '../../theme/platformTheme';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MotionConfig } from 'framer-motion';
@@ -7,6 +8,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import AmbientBackground from './AmbientBackground';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import useAuthStore from '../../store/useAuthStore';
 import { isAdminRole } from '../../utils/authRoles';
 import BackToTopButton from '../ui/BackToTopButton';
@@ -27,6 +29,8 @@ const Layout = ({ children = null }) => {
   const [isMobile, setIsMobile] = useState(getInitialMobileState);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => !getInitialMobileState());
   const { dir, language } = useLanguage();
+  const { publishedPlatformTheme, theme } = useTheme();
+  const headerTheme = getThemeChrome(publishedPlatformTheme, 'header', theme);
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
   const navigate = useNavigate();
@@ -87,7 +91,7 @@ const Layout = ({ children = null }) => {
       <div
         className="fixed z-40 max-w-full transition-all duration-300"
         style={{
-          top: isMobile ? 'max(0.75rem, env(safe-area-inset-top))' : '1rem',
+          top: headerTheme?.template === 'bar' ? '0' : (isMobile ? 'max(0.75rem, env(safe-area-inset-top))' : '1rem'),
           [dir === 'rtl' ? 'right' : 'left']: isMobile ? '12px' : shellOffset,
           [dir === 'rtl' ? 'left' : 'right']: isMobile ? '12px' : '16px',
         }}
@@ -121,7 +125,7 @@ const Layout = ({ children = null }) => {
         className="min-h-screen min-w-0 max-w-full transition-all duration-300"
         style={{ [dir === 'rtl' ? 'marginRight' : 'marginLeft']: shellOffset }}
       >
-        <div className="h-[4.9rem] sm:h-[6.5rem]" aria-hidden="true" />
+        <div className={!headerTheme ? 'h-[4.9rem] sm:h-[6.5rem]' : ''} style={headerTheme ? { height: `calc(${headerTheme.height}px + ${headerTheme.template === 'bar' ? 0 : 16}px)` } : undefined} aria-hidden="true" />
 
         {!isHomePage && (
           <div className="mx-auto mt-4 max-w-[var(--shell-max-width)] px-4 md:px-6 lg:px-8">

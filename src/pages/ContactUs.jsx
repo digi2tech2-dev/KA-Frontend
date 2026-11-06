@@ -8,7 +8,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { textareaClassName } from '../components/ui/Input';
 import { cn } from '../components/ui/Button';
-import { buildWhatsAppLink, getAdminWhatsAppNumber } from '../utils/whatsapp';
+import WhatsAppContactChooser from '../components/ui/WhatsAppContactChooser';
 import { useLanguage } from '../context/LanguageContext';
 import useAuthStore from '../store/useAuthStore';
 import ThemeToggle from '../components/ui/ThemeToggle';
@@ -28,6 +28,7 @@ const ContactUs = ({ accountOnly = false }) => {
   const [messageError, setMessageError] = useState('');
   const [selectedComplaint, setSelectedComplaint] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [choosingContact, setChoosingContact] = useState(false);
 
   useBodyScrollLock(accountOnly && isMenuOpen);
 
@@ -209,18 +210,7 @@ const ContactUs = ({ accountOnly = false }) => {
       return;
     }
 
-    const href = buildWhatsAppLink({
-      number: getAdminWhatsAppNumber(),
-      message: trimmedMessage,
-    });
-
-    if (!href) {
-      setMessageError(isArabic ? 'قناة واتساب الرسمية غير مفعلة حالياً.' : 'The official WhatsApp channel is not active yet.');
-      return;
-    }
-
-    window.open(href, '_blank', 'noopener,noreferrer');
-    setSubmitted(true);
+    setChoosingContact(true);
   };
 
   const handleLogin = useCallback(() => {
@@ -457,6 +447,7 @@ const ContactUs = ({ accountOnly = false }) => {
         </motion.section>
       </div>
       </div>
+      <WhatsAppContactChooser isOpen={choosingContact} onClose={() => setChoosingContact(false)} onSelected={() => setSubmitted(true)} message={message.trim()} isArabic={isArabic} />
       {accountOnly ? (
         <SiteCopyrightFooter isArabic={isArabic} />
       ) : null}

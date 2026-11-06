@@ -15,6 +15,7 @@ import { cn } from '../ui/Button';
 import HeaderBrand from './HeaderBrand';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
 import { isNativeApp } from '../../utils/platform';
+import { useTheme } from '../../context/ThemeContext';
 
 const GoogleMark = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4.5 w-4.5 shrink-0">
@@ -29,6 +30,11 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
   const [isMobile, setIsMobile] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { publishedPlatformTheme, theme } = useTheme();
+  const sidebarNeon = publishedPlatformTheme?.modes?.[theme]?.neon?.sidebar;
+  const sidebarTheme = publishedPlatformTheme?.schemaVersion === 2 ? publishedPlatformTheme.brand : null;
+  const metrics = sidebarTheme?.sidebarMetrics;
+  const drawerWidth = isMobile ? `min(${Math.min(metrics?.width || 292, 360)}px, calc(100vw - 1.5rem))` : `${metrics?.width || 282}px`;
 
   useEffect(() => {
     const handleResize = () => {
@@ -91,14 +97,18 @@ const PublicSidebar = ({ isOpen, onClose, onLogin, onHome, onAbout, onContact, o
 
       <aside
         style={{
-          width: isMobile ? 'min(292px, calc(100vw - 1.5rem))' : 282,
-          transform: `translateX(${isOpen ? 0 : 332}px)`,
+          width: drawerWidth,
+          height: metrics ? `calc(${metrics.height}vh - 1.5rem)` : undefined,
+          '--platform-sidebar-radius': metrics ? `${metrics.radius}px` : undefined,
+          transform: `translateX(${isOpen ? 0 : `calc(${drawerWidth} + 3rem)`})`,
         }}
-        className="fixed right-3 top-3 z-[110] block h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-hidden transition-[transform,width] duration-200 ease-out sm:right-4 sm:top-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] motion-reduce:transition-none"
+        data-ad-sidebar-neon={sidebarNeon?.enabled ? 'true' : undefined}
+        data-platform-sidebar-template={sidebarTheme?.sidebarTemplate || 'default'}
+        className="ka-platform-sidebar fixed right-3 top-3 z-[110] block h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-hidden transition-[transform,width] duration-200 ease-out sm:right-4 sm:top-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] motion-reduce:transition-none"
       >
         <div className={cn(
-          'app-shell-sidebar-panel ka-sidebar-panel relative flex h-full flex-col overflow-hidden rounded-[32px] border backdrop-blur-[24px]'
-        )}>
+          `app-shell-sidebar-panel ka-sidebar-panel ka-sidebar-template-${sidebarTheme?.sidebarTemplate || 'default'} relative flex h-full flex-col overflow-hidden rounded-[32px] border backdrop-blur-[24px]`
+        )} style={metrics ? { borderRadius: `var(--platform-sidebar-radius, ${metrics.radius}px)` } : undefined}>
           <div className="relative z-10 px-4 pb-4 pt-5">
             <div className="flex items-center justify-center gap-3">
               <button

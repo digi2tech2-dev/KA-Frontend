@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Headphones, MessageCircle, UserRound, Venus } from 'lucide-react';
 import Modal from './Modal';
-import { buildWhatsAppLink, getSupportContacts } from '../../utils/whatsapp';
+import { buildWhatsAppLink, resolveSupportContacts } from '../../utils/whatsapp';
+import useSystemStore from '../../store/useSystemStore';
 
-const WhatsAppContactChooser = ({ isOpen, onClose, message = '', isArabic = true }) => {
-  const contacts = getSupportContacts();
+const WhatsAppContactChooser = ({ isOpen, onClose, onSelected, message = '', isArabic = true }) => {
+  const paymentSettings = useSystemStore((state) => state.paymentSettings);
+  const loadPaymentSettings = useSystemStore((state) => state.loadPaymentSettings);
+  useEffect(() => { if (isOpen) void loadPaymentSettings({ force: true }); }, [isOpen, loadPaymentSettings]);
+  const savedContacts = paymentSettings?.supportContacts;
+  const contacts = resolveSupportContacts(savedContacts, isArabic);
 
   const openWhatsApp = (contact) => {
     const whatsappLink = buildWhatsAppLink({ number: contact.number, message });
     if (!whatsappLink) return;
     window.open(whatsappLink, '_blank', 'noopener,noreferrer');
+    onSelected?.();
     onClose?.();
   };
 
@@ -32,10 +38,10 @@ const WhatsAppContactChooser = ({ isOpen, onClose, message = '', isArabic = true
           </p>
           <div className="mt-4 grid gap-2 text-start">
             {contacts.map((contact) => {
-              const ContactIcon = contact.icon === 'support' ? Headphones : (contact.icon === 'female' ? Venus : UserRound);
+              const ContactIcon = contact.icon === 'female' ? Venus : contact.icon === 'support' ? Headphones : UserRound;
               return (
                 <button
-                  key={contact.number}
+                  key={contact.id}
                   type="button"
                   onClick={() => openWhatsApp(contact)}
                   className="group flex w-full items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.08] p-3 transition hover:-translate-y-0.5 hover:border-cyan-200/50 hover:bg-white/[0.14]"
@@ -45,12 +51,14 @@ const WhatsAppContactChooser = ({ isOpen, onClose, message = '', isArabic = true
                   </span>
                   <span className="min-w-0 flex-1">
                     <strong className="block text-sm font-black tracking-wide text-white">{contact.name}</strong>
+                    {contact.role && <span className="block text-xs text-cyan-100">{contact.role}</span>}
                     <span dir="ltr" className="mt-0.5 block text-xs font-bold text-slate-300">{contact.number}</span>
                   </span>
                   <MessageCircle className="h-4 w-4 shrink-0 text-emerald-300 transition group-hover:scale-110" />
                 </button>
               );
             })}
+            {contacts.length === 0 && <p className="text-center text-sm text-slate-300">{isArabic ? 'لا توجد جهات تواصل متاحة حاليًا.' : 'No contacts are available right now.'}</p>}
           </div>
         </div>
       </div>

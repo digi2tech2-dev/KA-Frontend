@@ -1,3 +1,4 @@
+import { getThemeChrome } from '../theme/platformTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ import HeaderBrand from '../components/layout/HeaderBrand';
 import PublicSidebar from '../components/layout/PublicSidebar';
 import SiteCopyrightFooter from '../components/layout/SiteCopyrightFooter';
 import HeroSlider from '../components/home/HeroSlider';
+import { useTheme } from '../context/ThemeContext';
 import CategoryCard from '../components/home/CategoryCard';
 import BestSellingSection from '../components/home/BestSellingSection';
 import ProductSearchBar from '../components/products/ProductSearchBar';
@@ -133,6 +135,11 @@ const getProductCategoryKeys = (product) => {
 };
 
 const PublicCatalog = () => {
+  const { theme, publishedPlatformTheme } = useTheme();
+  const headerTheme = getThemeChrome(publishedPlatformTheme, 'header', theme);
+  const publishedAppearance = publishedPlatformTheme?.schemaVersion === 2 ? publishedPlatformTheme.modes?.[theme] : null;
+  const neonCategories = publishedAppearance?.neon?.categories;
+  const neonBestSellers = publishedAppearance?.neon?.bestSellers;
   const navigate = useNavigate();
   const location = useLocation();
   const { i18n } = useTranslation();
@@ -607,7 +614,7 @@ const PublicCatalog = () => {
   if (isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen pb-5 pt-[4.75rem]">
+    <div className="min-h-screen pb-5 pt-[4.75rem]" style={headerTheme ? { paddingTop: `calc(${headerTheme.height}px + ${headerTheme.template === 'bar' ? 0 : 24}px)` } : undefined}>
       <Seo
         title={seoData.title}
         description={seoData.description}
@@ -619,9 +626,9 @@ const PublicCatalog = () => {
       />
 
       {typeof document !== 'undefined' && createPortal(
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-[90]">
-        <div className="mx-auto max-w-[var(--shell-max-width)] px-3 py-2 sm:px-4 lg:px-6">
-          <div dir="ltr" className="ka-card-panel pointer-events-auto grid min-h-[2.95rem] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-[20px] border px-2.5 py-1 sm:min-h-[3.25rem] sm:gap-5 sm:rounded-[28px] sm:px-5 sm:py-1.5">
+      <header data-platform-header-template={headerTheme?.template || 'bar'} style={headerTheme ? { top: headerTheme.template === 'bar' ? 0 : '1rem', width: `${headerTheme.width}vw`, maxWidth: '100vw', marginInline: 'auto' } : undefined} className="platform-theme-header pointer-events-none fixed inset-x-0 top-0 z-[90]">
+        <div className="mx-auto max-w-[var(--shell-max-width)] px-3 py-2 sm:px-4 lg:px-6" style={headerTheme?.template === 'bar' ? { padding: 0 } : undefined}>
+          <div dir="ltr" style={headerTheme ? { height: `${headerTheme.height}px`, minHeight: 0, background: headerTheme.background, color: headerTheme.foreground, borderColor: headerTheme.accent, borderRadius: `${headerTheme.radius}px` } : undefined} className="ka-card-panel platform-theme-header-panel pointer-events-auto grid min-h-[2.95rem] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-[20px] border px-2.5 py-1 sm:min-h-[3.25rem] sm:gap-5 sm:rounded-[28px] sm:px-5 sm:py-1.5">
             <div className="col-start-1 row-start-1 flex items-center gap-1 justify-self-start sm:gap-2">
               <ThemeToggle variant="glass" compact className="h-9 w-9 sm:h-10 sm:w-10" />
             </div>
@@ -830,11 +837,11 @@ const PublicCatalog = () => {
 
       <main className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-[var(--shell-max-width)] space-y-5 sm:space-y-6">
-          <section aria-label={isArabic ? 'العروض الرئيسية' : 'Featured offers'}>
+          <section data-platform-neon="hero" className={publishedAppearance?.neon?.hero?.enabled ? 'platform-neon-hero' : ''} style={publishedAppearance?.neon?.hero?.enabled ? { '--platform-neon-color': publishedAppearance.neon.hero.color, '--platform-neon-speed': `${publishedAppearance.neon.hero.speed}s` } : undefined} aria-label={isArabic ? 'العروض الرئيسية' : 'Featured offers'}>
             <HeroSlider slides={heroSlides} />
           </section>
 
-          <section id="categories" className="scroll-mt-28 space-y-3 sm:space-y-3.5">
+          <section id="categories" data-platform-neon="categories" style={neonCategories?.enabled ? { '--platform-neon-color': neonCategories.color, '--platform-neon-speed': `${neonCategories.speed}s` } : undefined} className="scroll-mt-28 space-y-3 sm:space-y-3.5">
             <div className="relative z-10 mx-auto flex w-full max-w-5xl justify-center px-0.5 sm:px-2">
               <ProductSearchBar
                 products={storefrontProducts}
@@ -879,11 +886,12 @@ const PublicCatalog = () => {
             {!showInitialLoading && (
               <>
                 {!isInsideCategory && currentCategories.length > 0 && (
-                  <div className="relative z-0 grid grid-cols-2 gap-2 sm:gap-2.5 md:grid-cols-3 xl:grid-cols-4">
+                  <div className="ad-categories-grid relative z-0 grid grid-cols-2 gap-2 sm:gap-2.5 md:grid-cols-3 xl:grid-cols-4">
                     {currentCategories.map((category, index) => (
                       <CategoryCard
                         key={category.id}
                         category={category}
+                        neon={publishedAppearance?.neon?.categoryCards?.[category.id] ?? neonCategories}
                         active={false}
                         index={index}
                         onSelect={handleCategorySelect}
@@ -893,7 +901,7 @@ const PublicCatalog = () => {
                 )}
 
                 {shouldMergeProductsWithSubcategories && (
-                  <div className="grid grid-cols-3 gap-3 p-1 sm:gap-4">
+                  <div className={`ad-products-grid grid grid-cols-3 gap-3 p-1 sm:gap-4 ${neonCategories?.enabled ? 'platform-neon-section' : ''}`}>
                     {currentCategories.map((category, index) => (
                       <CategoryCard
                         key={category.id}
@@ -917,7 +925,7 @@ const PublicCatalog = () => {
                 )}
 
                 {isInsideCategory && currentProducts.length > 0 && !shouldMergeProductsWithSubcategories && (
-                  <div className="grid grid-cols-3 gap-3 p-1 sm:gap-4">
+                  <div className={`ad-products-grid grid grid-cols-3 gap-3 p-1 sm:gap-4 ${neonCategories?.enabled ? 'platform-neon-section' : ''}`}>
                     {currentProducts.map((product) => (
                       <ProductCardSimple
                         key={product.id}
@@ -978,6 +986,7 @@ const PublicCatalog = () => {
           )}
 
           {!isInsideCategory && homepageProducts.length ? (
+            <div data-platform-neon="bestSellers" className={neonBestSellers?.enabled ? 'platform-neon-section' : ''} style={neonBestSellers?.enabled ? { '--platform-neon-color': neonBestSellers.color, '--platform-neon-speed': `${neonBestSellers.speed}s` } : undefined}>
             <BestSellingSection
               id="public-best-selling-title"
               title={copy.topSellingTitle}
@@ -988,6 +997,7 @@ const PublicCatalog = () => {
               onViewAll={handleLogin}
               onProductSelect={handleProductSelect}
             />
+            </div>
           ) : null}
         </div>
       </main>

@@ -1,5 +1,8 @@
 import React from 'react';
 import { cn } from '../ui/Button';
+import { useTheme } from '../../context/ThemeContext';
+import { isSafeThemeMediaPath } from '../../theme/platformTheme';
+import { resolveImageUrl } from '../../utils/imageUrl';
 import brandIconImage from '../../assets/LOGO.PNG';
 
 const stylesBySize = {
@@ -38,18 +41,22 @@ const BrandMark = ({
   titleClassName,
   captionClassName,
 }) => {
+  const { publishedPlatformTheme } = useTheme();
+  const brand = publishedPlatformTheme?.schemaVersion === 2 ? publishedPlatformTheme.brand : null;
+  const themeLogo = isSafeThemeMediaPath(brand?.logoPath) ? resolveImageUrl(brand.logoPath) : null;
   const styles = stylesBySize[size] || stylesBySize.md;
   const isIconEnd = iconPosition === 'end';
 
   return (
     <div className={cn('flex items-center', isIconEnd && 'flex-row-reverse', styles.wrapper, className)}>
-      <div className={cn('relative overflow-hidden', styles.iconShell)}>
+      <div className={cn('relative overflow-hidden', styles.iconShell)} style={themeLogo && Number.isInteger(brand?.logoWidth) ? { width: `${Math.max(48, Math.min(brand.logoWidth, 220))}px`, height: `${Math.min(76, Math.max(48, Math.round(brand.logoWidth * 0.42)))}px`, minHeight: '48px', maxHeight: '76px' } : undefined}>
         <img
-          src={brandIconImage}
+          src={themeLogo || brandIconImage}
           alt="AD CARD"
           loading="eager"
           decoding="async"
           className="relative h-full w-full object-contain"
+          style={themeLogo ? { width: '100%', height: '100%', marginInline: 'auto' } : undefined}
         />
       </div>
 

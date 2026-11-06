@@ -32,7 +32,7 @@ import {
 } from '../../utils/orders';
 import { resolveUserAvatar } from '../../utils/avatar';
 import { resolveImageUrl } from '../../utils/imageUrl';
-import { buildWhatsAppLink, getAdminWhatsAppNumber } from '../../utils/whatsapp';
+import WhatsAppContactChooser from '../ui/WhatsAppContactChooser';
 import { useBodyScrollLock } from '../../utils/bodyScrollLock';
 
 const DetailTile = ({ label, value, valueNode = null, hint = '', onClick, copyable = false, copyTone = 'primary', icon: Icon = ClipboardList }) => {
@@ -162,6 +162,8 @@ const OrderDetailsDrawer = ({
   const [complaintOpen, setComplaintOpen] = useState(false);
   const [complaintText, setComplaintText] = useState('');
   const [complaintError, setComplaintError] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  useEffect(() => { if (!isOpen) setContactMessage(''); }, [isOpen]);
   const isDrawerVisible = Boolean(isOpen && order);
   const primaryIdentifierField = order?.primaryIdentifierField || null;
   const rawRequestFields = Array.isArray(order?.requestDetails?.fields) ? order.requestDetails.fields : [];
@@ -285,14 +287,7 @@ const OrderDetailsDrawer = ({
         `Issue: ${issue}`,
       ].join('\n');
 
-    const href = buildWhatsAppLink({
-      number: getAdminWhatsAppNumber(),
-      message,
-    });
-
-    if (!href) return;
-
-    window.open(href, '_blank', 'noopener,noreferrer');
+    setContactMessage(message);
   };
   const detailItems = [
     {
@@ -346,6 +341,7 @@ const OrderDetailsDrawer = ({
   useBodyScrollLock(isDrawerVisible);
 
   const drawer = (
+    <>
     <AnimatePresence>
       {isOpen && order ? (
         <>
@@ -690,6 +686,8 @@ const OrderDetailsDrawer = ({
         </>
       ) : null}
     </AnimatePresence>
+    <WhatsAppContactChooser isOpen={Boolean(isOpen && contactMessage)} onClose={() => setContactMessage('')} message={contactMessage} isArabic={isArabic} />
+    </>
   );
 
   if (typeof document === 'undefined') return drawer;

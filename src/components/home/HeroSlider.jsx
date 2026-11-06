@@ -1,12 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isLitePerformanceMode } from '../../utils/performanceMode';
+import { useTheme } from '../../context/ThemeContext';
+import { isSafeThemeMediaPath } from '../../theme/platformTheme';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const HeroSlider = ({ slides }) => {
+  const { publishedPlatformTheme } = useTheme();
+  const brandTheme = publishedPlatformTheme?.schemaVersion === 2 ? publishedPlatformTheme.brand : null;
+  const customSlides = Array.isArray(brandTheme?.slides)
+    ? brandTheme.slides.map((image, index) => (isSafeThemeMediaPath(image) && slides?.[index]
+      ? { ...slides[index], id: `platform-${index}`, image: resolveImageUrl(image) }
+      : slides?.[index])).filter(Boolean)
+    : [];
+  const activeSlides = customSlides.length && customSlides.some((slide, index) => slide !== slides?.[index]) ? customSlides : slides;
   const [currentSlide, setCurrentSlide] = useState(0);
   const dragStartX = useRef(null);
   const { i18n } = useTranslation();
-  const hasMultipleSlides = (slides?.length || 0) > 1;
+  const hasMultipleSlides = (activeSlides?.length || 0) > 1;
   const performanceLite = isLitePerformanceMode();
   const isArabic = (i18n.resolvedLanguage || i18n.language || 'ar').toLowerCase().startsWith('ar');
   const verseText = isArabic
@@ -14,19 +25,23 @@ const HeroSlider = ({ slides }) => {
     : 'In the name of Allah, the Most Gracious, the Most Merciful. Do not consume one another’s wealth unjustly, but only through trade by mutual consent.';
 
   useEffect(() => {
+    setCurrentSlide((current) => (activeSlides.length ? current % activeSlides.length : 0));
+  }, [activeSlides.length]);
+
+  useEffect(() => {
     if (!hasMultipleSlides || performanceLite) return undefined;
 
     const timer = window.setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
     }, 5200);
 
     return () => window.clearInterval(timer);
-  }, [hasMultipleSlides, performanceLite, slides]);
+  }, [hasMultipleSlides, performanceLite, activeSlides.length]);
 
   const changeSlide = useCallback((direction) => {
-    if (!slides?.length) return;
-    setCurrentSlide((current) => (current + direction + slides.length) % slides.length);
-  }, [slides]);
+    if (!activeSlides?.length) return;
+    setCurrentSlide((current) => (current + direction + activeSlides.length) % activeSlides.length);
+  }, [activeSlides.length]);
 
   const handlePointerDown = (event) => {
     if (!hasMultipleSlides || event.button !== 0) return;
@@ -42,9 +57,9 @@ const HeroSlider = ({ slides }) => {
     changeSlide(distance < 0 ? 1 : -1);
   };
 
-  if (!slides?.length) return null;
+  if (!activeSlides?.length) return null;
 
-  const slide = slides[currentSlide];
+  const slide = activeSlides[currentSlide];
   const SlideFrame = slide.href ? 'a' : 'div';
   const slideFrameProps = slide.href
     ? {
@@ -85,7 +100,7 @@ const HeroSlider = ({ slides }) => {
         <div className="marquee-wrap" dir={isArabic ? 'rtl' : 'ltr'}>
           <div className={`marquee-track-smooth ${isArabic ? 'marquee-track-smooth--rtl' : 'marquee-track-smooth--ltr'}`}>
             <span className="marquee-chunk text-[11px] font-semibold tracking-[0.02em] text-[var(--color-text)] sm:text-[12px]">
-              {verseText}
+              {brandTheme?.marqueeTextArabic || verseText}
             </span>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { getThemeChrome } from '../../theme/platformTheme';
 import React, { useEffect, useMemo } from 'react';
 import { CirclePlus, House, Search, ShoppingCart, WalletCards } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -6,6 +7,7 @@ import useHideOnScroll from '../../hooks/useHideOnScroll';
 import useAuthStore from '../../store/useAuthStore';
 import { isAdminRole, isSupervisorRole } from '../../utils/authRoles';
 import { preloadRoute } from '../../transitions/routeModules';
+import { useTheme } from '../../context/ThemeContext';
 
 const HIDDEN_PATHS = ['/auth', '/login', '/email-verified', '/verify-account', '/account-pending', '/account-rejected'];
 const isPathActive = (pathname, matches) => matches.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -15,6 +17,8 @@ const CustomerBottomNav = () => {
   const { language, dir } = useLanguage();
   const user = useAuthStore((state) => state.user);
   const isArabic = language === 'ar' || dir === 'rtl';
+  const { publishedPlatformTheme, theme } = useTheme();
+  const navTheme = getThemeChrome(publishedPlatformTheme, 'bottomNav', theme);
   const isStaff = isAdminRole(user?.role) || isSupervisorRole(user?.role);
   const shouldShow = Boolean(user) && !isStaff && !location.pathname.startsWith('/admin')
     && !HIDDEN_PATHS.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`));
@@ -36,8 +40,8 @@ const CustomerBottomNav = () => {
   if (!shouldShow) return null;
 
   return (
-    <nav className={`mobile-bottom-nav mobile-auto-hide-bar fixed inset-x-0 bottom-0 z-[65] px-2 pb-[max(0.45rem,env(safe-area-inset-bottom))] md:hidden ${isHidden ? 'is-hidden' : 'is-visible'} ${isScrolled ? 'is-scrolled' : 'is-at-top'}`} aria-label={isArabic ? 'التنقل الرئيسي' : 'Main navigation'} dir={dir}>
-      <div className="mobile-bottom-nav__panel relative mx-auto grid h-[4.15rem] max-w-md grid-cols-5 items-stretch overflow-visible rounded-[1.65rem] border border-violet-300/25 bg-[radial-gradient(ellipse_at_16%_-8%,rgb(139_92_246/0.25),transparent_38%),radial-gradient(ellipse_at_84%_112%,rgb(14_165_233/0.18),transparent_42%),linear-gradient(118deg,rgb(7_12_28),rgb(17_24_58)_52%,rgb(30_20_66))] px-1.5 pb-1 pt-0.5 shadow-[0_-18px_54px_-34px_rgb(109_40_217/0.9),0_16px_38px_-28px_rgb(2_6_23/0.92),inset_0_1px_rgb(255_255_255/0.18),inset_0_-12px_30px_rgb(2_6_23/0.28)]">
+    <nav data-platform-bottom-nav={navTheme?.template || 'bar'} style={navTheme ? { width: `${navTheme.width}vw`, maxWidth: '100vw', marginInline: 'auto', left: 0, right: 0 } : undefined} className={`mobile-bottom-nav mobile-auto-hide-bar fixed inset-x-0 bottom-0 z-[65] px-2 pb-[max(0.45rem,env(safe-area-inset-bottom))] md:hidden ${isHidden ? 'is-hidden' : 'is-visible'} ${isScrolled ? 'is-scrolled' : 'is-at-top'}`} aria-label={isArabic ? 'التنقل الرئيسي' : 'Main navigation'} dir={dir}>
+      <div style={navTheme ? { height: `${navTheme.height}px`, borderRadius: `${navTheme.radius}px`, background: navTheme.background, color: navTheme.foreground, borderColor: navTheme.accent } : undefined} className="mobile-bottom-nav__panel relative mx-auto grid h-[4.15rem] max-w-md grid-cols-5 items-stretch overflow-visible rounded-[1.65rem] border border-violet-300/25 bg-[radial-gradient(ellipse_at_16%_-8%,rgb(139_92_246/0.25),transparent_38%),radial-gradient(ellipse_at_84%_112%,rgb(14_165_233/0.18),transparent_42%),linear-gradient(118deg,rgb(7_12_28),rgb(17_24_58)_52%,rgb(30_20_66))] px-1.5 pb-1 pt-0.5 shadow-[0_-18px_54px_-34px_rgb(109_40_217/0.9),0_16px_38px_-28px_rgb(2_6_23/0.92),inset_0_1px_rgb(255_255_255/0.18),inset_0_-12px_30px_rgb(2_6_23/0.28)]">
         <span className="mobile-bottom-nav__surface pointer-events-none absolute inset-0 overflow-hidden rounded-[1.65rem]" aria-hidden="true">
           <span className="absolute inset-1 rounded-[1.35rem] border border-white/10" />
           <span className="absolute inset-x-9 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.72),transparent)]" />

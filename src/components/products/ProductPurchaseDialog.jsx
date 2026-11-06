@@ -11,6 +11,7 @@ import apiClient from '../../services/client';
 import { isCoinRechargeProduct, isCoinTargetVerified } from '../../utils/coinRecharge';
 import { useToast } from '../ui/Toast';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { resolveImageUrl } from '../../utils/imageUrl';
 import brandLogoDark from '../../assets/LOGO.PNG';
 import brandLogoLight from '../../assets/LOGO.PNG';
@@ -206,6 +207,8 @@ const ProductPurchaseDialog = ({
 }) => {
   const navigate = useNavigate();
   const { language, dir } = useLanguage();
+  const { theme, publishedPlatformTheme } = useTheme();
+  const purchaseNeon = publishedPlatformTheme?.schemaVersion === 2 ? publishedPlatformTheme.modes?.[theme]?.neon?.purchase : null;
   const { addToast } = useToast();
   const copy = useMemo(() => getCopy(language), [language]);
 
@@ -866,7 +869,8 @@ const ProductPurchaseDialog = ({
         initial={{ opacity: 0, y: 28, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.18 }}
-        className={`purchase-dialog-card ${showBalanceTopup && topupStep !== 'summary' ? 'is-wallet-flow' : ''}`}
+        className={`purchase-dialog-card ${showBalanceTopup && topupStep !== 'summary' ? 'is-wallet-flow' : ''} ${purchaseNeon?.enabled ? 'platform-neon-purchase' : ''}`}
+        style={purchaseNeon?.enabled ? { '--platform-neon-color': purchaseNeon.color, '--platform-neon-speed': `${purchaseNeon.speed}s` } : undefined}
       >
         <div className="purchase-dialog-grid" />
         <button type="button" className="purchase-dialog-close" onClick={onClose} aria-label="Close">

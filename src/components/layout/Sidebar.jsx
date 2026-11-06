@@ -20,6 +20,7 @@ import {
   IdCard,
   Landmark,
   LockKeyhole,
+  Palette,
   LogOut,
   MessageCircle,
   Share2,
@@ -38,6 +39,7 @@ import useAuthStore from '../../store/useAuthStore';
 import useFavoritesStore, { favoriteUserKey } from '../../store/useFavoritesStore';
 import { cn } from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
 import WalletSidebarCard from './WalletSidebarCard';
 import HeaderBrand from './HeaderBrand';
@@ -86,6 +88,10 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const favoriteCount = useFavoritesStore((state) => (state.favoritesByUser[favoriteUserKey(user)] || []).length);
   const navigate = useNavigate();
   const { dir } = useLanguage();
+  const { publishedPlatformTheme, theme } = useTheme();
+  const sidebarNeon = publishedPlatformTheme?.modes?.[theme]?.neon?.sidebar;
+  const sidebarTheme = publishedPlatformTheme?.schemaVersion === 2 ? publishedPlatformTheme.brand : null;
+  const sidebarMetrics = sidebarTheme?.sidebarMetrics;
   const { t } = useTranslation();
 
   const isExpanded = isOpen || isMobile || isPreviewExpanded;
@@ -188,12 +194,14 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       visible: (currentUser) => currentUser?.isApiEnabled === true,
     },
     { icon: Code2, label: dir === 'rtl' ? 'تم الإنشاء بواسطة' : 'Created By', path: '/created-by', roles: ['customer'] },
+    { icon: Palette, label: dir === 'rtl' ? 'مظهر المنصة' : 'Platform theme', path: '/admin/themes', roles: ['admin'], section: 'admin' },
     { icon: UsersRound, label: t('sidebar.users'), path: '/admin/users', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_USERS, section: 'admin' },
     { icon: Share2, label: dir === 'rtl' ? 'أرباح كود الإحالة' : 'Referral Earnings', path: '/admin/referrals', roles: ADMIN_NAV_ROLES, section: 'admin' },
     { icon: UserCog, label: t('sidebar.supervisors'), path: '/admin/supervisors', roles: ['admin'], section: 'admin' },
     { icon: Activity, label: 'مراقبة المشرفين', path: '/admin/supervisor-monitoring', roles: ['admin'], section: 'admin' },
     { icon: FolderKanban, label: t('sidebar.groupsManager'), path: '/admin/groups', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_GROUPS, section: 'admin' },
     { icon: Boxes, label: t('sidebar.productsManager'), path: '/admin/products', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_PRODUCTS, section: 'admin' },
+    { icon: Boxes, label: dir === 'rtl' ? 'استرداد المنتجات' : 'Product recovery', path: '/admin/product-recovery', roles: ADMIN_NAV_ROLES, permission: PERMISSIONS.ADMIN_PRODUCTS, section: 'admin' },
     {
       icon: ClipboardCheck,
       label: t('sidebar.ordersManager', { defaultValue: dir === 'rtl' ? 'إدارة الطلبات' : 'Orders Manager' }),
@@ -311,7 +319,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       <motion.aside
         initial={false}
         animate={{
-          width: isMobile ? 274 : isExpanded ? 264 : 84,
+          width: isMobile ? 274 : isExpanded ? (sidebarMetrics?.width || 264) : 84,
           x: isMobile && !isOpen ? (dir === 'rtl' ? 320 : -320) : 0
         }}
         transition={isMobile
@@ -327,18 +335,21 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             setIsPreviewExpanded(false);
           }
         }}
+        data-ad-sidebar-neon={sidebarNeon?.enabled ? 'true' : undefined}
+        data-platform-sidebar-template={sidebarTheme?.sidebarTemplate || 'default'}
+        style={sidebarMetrics && !isMobile ? { height: `calc(${sidebarMetrics.height}vh - 2rem)`, '--platform-sidebar-radius': `${sidebarMetrics.radius}px` } : undefined}
         className={cn(
-          'fixed top-4 z-[70] h-[calc(100vh-4rem)] overflow-hidden will-change-transform',
+          'ka-platform-sidebar fixed top-4 z-[70] h-[calc(100vh-4rem)] overflow-hidden will-change-transform',
           dir === 'rtl' ? 'right-4' : 'left-4',
           isMobile && 'ka-sidebar-mobile',
           isMobile && !isOpen && 'pointer-events-none'
         )}
       >
         <div className={cn(
-          'app-shell-sidebar-panel ka-sidebar-panel relative flex h-full flex-col rounded-[32px] border',
+          `app-shell-sidebar-panel ka-sidebar-panel ka-sidebar-template-${sidebarTheme?.sidebarTemplate || 'default'} relative flex h-full flex-col rounded-[32px] border`,
           !isMobile && 'backdrop-blur-[24px]',
           isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
-        )}>
+        )} style={sidebarMetrics ? { borderRadius: `var(--platform-sidebar-radius, ${sidebarMetrics.radius}px)` } : undefined}>
           <div className="relative z-10 px-4 pb-4 pt-5">
             <div className={cn('relative flex items-center', isExpanded ? 'justify-center' : 'justify-center')}>
               <button

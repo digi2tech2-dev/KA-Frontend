@@ -7,6 +7,8 @@ import Button from '../components/ui/Button';
 import useAuthStore from '../store/useAuthStore';
 import useTargetStore from '../store/useTargetStore';
 import useSystemStore from '../store/useSystemStore';
+import { useTheme } from '../context/ThemeContext';
+import { isSafeThemeMediaPath } from '../theme/platformTheme';
 import { useToast } from '../components/ui/Toast';
 import { resolveImageUrl } from '../utils/imageUrl';
 import {
@@ -24,6 +26,9 @@ const BuyTarget = () => {
   const { user } = useAuthStore();
   const { products, loadApps, submitRequest } = useTargetStore();
   const { paymentSettings, loadPaymentSettings } = useSystemStore();
+  const { publishedPlatformTheme } = useTheme();
+  const targetBannerPath = publishedPlatformTheme?.schemaVersion === 2 && isSafeThemeMediaPath(publishedPlatformTheme.brand?.targetBannerPath)
+    ? resolveImageUrl(publishedPlatformTheme.brand.targetBannerPath) : null;
   const { addToast } = useToast();
   const [submittedOrder, setSubmittedOrder] = useState(null);
   const [selectedTargetApp, setSelectedTargetApp] = useState(null);
@@ -130,6 +135,7 @@ const BuyTarget = () => {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 text-[var(--color-text)] sm:space-y-5">
+      {targetBannerPath ? <img src={targetBannerPath} alt="" className="mb-3 block max-h-60 w-full rounded-2xl border border-[color:rgb(var(--color-border-rgb)/0.5)] object-cover shadow-[var(--shadow-subtle)]" /> : null}
       <header className="relative overflow-hidden rounded-2xl border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[radial-gradient(24rem_circle_at_10%_-50%,rgb(var(--color-primary-rgb)/0.2),transparent_58%),linear-gradient(135deg,rgb(var(--color-card-rgb)/0.98),rgb(var(--color-surface-rgb)/0.86))] px-4 py-4 shadow-[0_20px_55px_-46px_rgb(var(--color-primary-rgb)/0.8)] sm:px-5">
         <div className="pointer-events-none absolute inset-y-0 right-0 w-1 bg-[linear-gradient(180deg,var(--color-primary),#b37a18)]" />
         <div className="flex items-center gap-4">

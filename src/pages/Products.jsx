@@ -454,7 +454,7 @@ const Products = () => {
         <>
           {/* Root categories — wide banners (currentParentId is null) */}
           {currentCategories.length > 0 && currentParentId === null && !activeCategoryParam && (
-            <section className="products-grid products-grid--categories grid grid-cols-2 gap-3 p-1 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+            <section className="ad-categories-grid products-grid products-grid--categories grid grid-cols-2 gap-3 p-1 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
               {currentCategories.map((catalog, index) => (
                 <CategoryCard
                   key={catalog.id}
@@ -469,7 +469,7 @@ const Products = () => {
 
           {/* Sub-categories — tight square cards (drilled into a parent) */}
           {shouldMergeProductsWithSubcategories && (
-            <section className="products-grid products-grid--mixed grid grid-cols-3 gap-2 p-1 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+            <section className="ad-products-grid products-grid products-grid--mixed grid grid-cols-3 gap-2 p-1 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
               {currentCategories.map((catalog, index) => (
                 <CategoryCard
                   key={catalog.id}
@@ -521,7 +521,7 @@ const Products = () => {
 
           {/* Products — from leaf category or parent drill-down */}
           {displayProducts.length > 0 && !shouldMergeProductsWithSubcategories && (
-            <section className="products-grid products-grid--items grid grid-cols-3 gap-2 p-1 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+            <section className="ad-products-grid products-grid products-grid--items grid grid-cols-3 gap-2 p-1 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
               {displayProducts.map((product) => (
                 <ProductCardSimple
                   key={product.id}

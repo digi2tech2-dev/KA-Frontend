@@ -48,6 +48,8 @@ const createInitialPaymentSettings = () => ({
   instructions: '',
   whatsappNumber: isRealProvider ? '' : getDefaultWhatsAppNumber(),
   paymentGroups: isRealProvider ? [] : createDefaultPaymentGroups(),
+  supportContacts: null,
+  adminNotificationWhatsApp: '',
 });
 
 const normalizeStorePaymentSettings = (settings = {}) => ({
@@ -55,6 +57,9 @@ const normalizeStorePaymentSettings = (settings = {}) => ({
   instructions: settings?.instructions || '',
   whatsappNumber: settings?.whatsappNumber || (isRealProvider ? '' : getDefaultWhatsAppNumber()),
   paymentGroups: normalizePaymentGroups(settings?.paymentGroups, { fallbackToDefault: !isRealProvider }),
+  supportContacts: { owner: String(settings?.supportContacts?.owner || '').trim(), support: String(settings?.supportContacts?.support || '').trim(),
+    revision: Number(settings?.supportContacts?.revision || 0), ...(Array.isArray(settings?.supportContacts?.entries) ? { entries: settings.supportContacts.entries } : {}) },
+  adminNotificationWhatsApp: String(settings?.adminNotificationWhatsApp || '').trim(),
 });
 
 const notifyPaymentSettingsChanged = () => {
@@ -198,11 +203,6 @@ const useSystemStore = create((set, get) => ({
       .catch(() => {
         // On error, keep current state but return a safe default
         if (!isRealProvider) return get().paymentSettings;
-        const emptyPaymentSettings = createInitialPaymentSettings();
-        if (requestId === paymentSettingsRequestId) {
-          set({ paymentSettings: emptyPaymentSettings });
-          return emptyPaymentSettings;
-        }
         return get().paymentSettings;
       })
       .finally(() => {

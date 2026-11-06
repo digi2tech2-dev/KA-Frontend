@@ -1,3 +1,4 @@
+import { getThemeChrome } from '../../theme/platformTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bell, CheckCircle2, Clock3, CreditCard, ShoppingBag, UserCheck, Wallet, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/useAuthStore';
 import useNotificationStore from '../../store/useNotificationStore';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import ThemeToggle from '../ui/ThemeToggle';
 import HeaderBrand from './HeaderBrand';
 import SidebarToggleIcon from './SidebarToggleIcon';
@@ -21,6 +23,8 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef(null);
   const { dir } = useLanguage();
+  const { publishedPlatformTheme, theme } = useTheme();
+  const headerTheme = getThemeChrome(publishedPlatformTheme, 'header', theme);
 
   const language = String(i18n.resolvedLanguage || i18n.language || 'ar').toLowerCase().startsWith('ar') ? 'ar' : 'en';
   const isRTL = dir === 'rtl';
@@ -217,12 +221,12 @@ const Header = ({ toggleSidebar }) => {
   };
 
   return (
-    <header dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-full">
+    <header dir={isRTL ? 'rtl' : 'ltr'} data-platform-header-template={headerTheme?.template || 'bar'} className="platform-theme-header w-full max-w-full" style={headerTheme ? { height: `${headerTheme.height}px`, width: `${headerTheme.width}%`, marginInline: 'auto', color: headerTheme.foreground, '--platform-header-radius': `${headerTheme.radius}px` } : undefined}>
       <div className={cn(
-        'app-shell-header-panel ka-card-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-0',
+        'app-shell-header-panel ka-card-panel w-full max-w-full overflow-visible rounded-[18px] border px-2 py-0 backdrop-blur-[22px] sm:rounded-[24px] sm:px-4 sm:py-0 platform-theme-header-panel',
         isAdmin && 'border-[color:rgb(var(--color-primary-rgb)/0.26)]'
-      )}>
-        <div dir="ltr" className="grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:gap-4">
+      )} style={headerTheme ? { height: '100%', minHeight: 0, borderRadius: `${headerTheme.radius}px`, background: headerTheme.background, color: headerTheme.foreground, borderColor: headerTheme.accent } : undefined}>
+        <div dir="ltr" className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:gap-4">
           <div className="col-start-2 row-start-1 min-w-0 justify-self-center">
             <button
               type="button"
