@@ -3,12 +3,15 @@ import './pages/admin/PlatformThemeEditor.css';
 import { MotionConfig } from 'framer-motion';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminScreenGuard from './components/auth/AdminScreenGuard';
+import './components/auth/AdminScreenGuard.css';
 import FloatingWhatsApp from './components/ui/FloatingWhatsApp';
 import CustomerBottomNav from './components/layout/CustomerBottomNav';
 import AdminBottomNav from './components/layout/AdminBottomNav';
 import PageTransition from './components/app/PageTransition';
 import SessionBootstrap from './components/app/SessionBootstrap';
 import GuestIntro from './components/app/GuestIntro';
+import PullToRefresh from './components/app/PullToRefresh';
 import NativePlatformBootstrap from './components/app/NativePlatformBootstrap';
 import NativeAppUpdateGate from './components/native/NativeAppUpdateGate';
 import RouteErrorBoundary from './components/app/RouteErrorBoundary';
@@ -52,6 +55,7 @@ const Account = lazy(routeLoaders.Account);
 const AccountSecurity = lazy(routeLoaders.AccountSecurity);
 const Referral = lazy(routeLoaders.Referral);
 const AdminUsers = lazy(routeLoaders.AdminUsers);
+const AdminUserProducts = lazy(routeLoaders.AdminUserProducts);
 const AdminGroups = lazy(routeLoaders.AdminGroups);
 const AdminProducts = lazy(routeLoaders.AdminProducts);
 const ProductRecovery = lazy(routeLoaders.ProductRecovery);
@@ -355,6 +359,14 @@ const AnimatedAppRoutes = ({ location }) => {
           )}
         />
         <Route
+          path="/admin/users/:userId/products"
+          element={(
+            <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_USERS}>
+              {renderSuspended(<AdminUserProducts />)}
+            </ProtectedRoute>
+          )}
+        />
+        <Route
           path="/admin/groups"
           element={(
             <ProtectedRoute roles={ADMIN_PANEL_ROLES} permission={PERMISSIONS.ADMIN_GROUPS}>
@@ -511,6 +523,8 @@ function App() {
             <AdminBottomNav />
             <FloatingWhatsApp />
             <GuestIntro />
+            <AdminScreenGuard />
+            <PullToRefresh />
             </MaintenanceBoundary>
           </BrowserRouter>
         </ToastProvider>

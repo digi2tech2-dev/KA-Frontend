@@ -1639,6 +1639,7 @@ const productToBE = (fe) => {
   if (fe.category !== undefined) body.category = fe.category;
   if (fe.category !== undefined) body.categoryId = fe.category;
   if (fe.displayOrder !== undefined) body.displayOrder = fe.displayOrder;
+  if (fe.hideFromApi !== undefined) body.hideFromApi = Boolean(fe.hideFromApi);
   if (fe.orderFields !== undefined) body.orderFields = fe.orderFields;
   if (fe.dynamicFields !== undefined) {
     body.dynamicFields = (Array.isArray(fe.dynamicFields) ? fe.dynamicFields : [])
@@ -2875,17 +2876,20 @@ const realApi = {
       role,
       status,
       email,
+      isApiEnabled,
     } = {}) => {
       const query = new URLSearchParams();
       query.set('page', String(page));
       query.set('limit', String(limit));
-      // Sorting is performed in the store. Only send parameters documented by
-      // the API because strict deployments reject unknown query fields.
-      void sortBy;
-      void sortOrder;
+      query.set('sortBy', String(sortBy));
+      query.set('sortOrder', String(sortOrder));
       if (String(search || '').trim()) query.set('search', String(search).trim());
       if (role) query.set('role', String(role).toUpperCase());
-      if (status) query.set('status', String(status).toUpperCase());
+      if (status) {
+        const normalizedStatus = String(status).trim().toLowerCase();
+        query.set('status', normalizedStatus === 'approved' ? 'ACTIVE' : normalizedStatus.toUpperCase());
+      }
+      if (isApiEnabled !== undefined && isApiEnabled !== null) query.set('isApiEnabled', String(Boolean(isApiEnabled)));
       if (email) query.set('email', String(email).trim());
       const res = await http.get(`/admin/users?${query}`);
       const body = res.data || {};
@@ -2953,6 +2957,19 @@ const realApi = {
       const res = await http.get(`/admin/users/${normalizedUserId}`);
       const data = unwrap(res);
       return normaliseUser(data?.user || data);
+    },
+
+    listProductsForUser: async (userId) => {
+      const normalizedUserId = String(userId || '').trim();
+      if (!normalizedUserId) return null;
+      const data = unwrap(await http.get(`/admin/users/${normalizedUserId}/products`));
+      return { user: data?.user || null, products: Array.isArray(data?.products) ? data.products : [] };
+    },
+
+    updateProductOverride: async (userId, productId, updates) => {
+      const normalizedUserId = String(userId || '').trim();
+      const normalizedProductId = String(productId || '').trim();
+      return unwrap(await http.patch(`/admin/users/${normalizedUserId}/products/${normalizedProductId}`, updates));
     },
 
     /**

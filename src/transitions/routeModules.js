@@ -22,6 +22,7 @@ export const routeLoaders = {
   AccountSecurity: () => import('../pages/AccountSecurity'),
   Referral: () => import('../pages/Referral'),
   AdminUsers: () => import('../pages/admin/AdminUsers'),
+  AdminUserProducts: () => import('../pages/admin/AdminUserProducts'),
   AdminGroups: () => import('../pages/admin/AdminGroups'),
   AdminProducts: () => import('../pages/admin/AdminProducts'),
   ProductRecovery: () => import('../pages/admin/ProductRecovery'),
