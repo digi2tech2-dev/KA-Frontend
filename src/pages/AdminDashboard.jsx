@@ -980,7 +980,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="admin-dashboard-shell min-w-0 space-y-4 pb-3 md:space-y-8 md:pb-4">
+    <div className="admin-dashboard-shell min-w-0 space-y-4 pb-28 md:space-y-8 md:pb-4">
       <DashboardHeader
         isArabic={isArabic}
         userName={user?.name}

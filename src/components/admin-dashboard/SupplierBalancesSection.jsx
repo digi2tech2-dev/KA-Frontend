@@ -9,7 +9,7 @@ const SupplierBalancesSection = ({ items, isArabic, isLoading }) => {
   const loadingRows = Array.from({ length: 4 }, (_, index) => `supplier-loading-${index}`);
 
   return (
-    <Card variant="elevated" className="mx-auto flex max-h-[23rem] w-[calc(100vw-1.5rem)] max-w-[24rem] flex-col overflow-hidden p-3 sm:w-full sm:max-w-[42rem] sm:p-4 xl:max-w-none">
+    <Card variant="elevated" className="mx-auto flex max-h-none w-[calc(100vw-1.5rem)] max-w-[24rem] flex-col overflow-visible p-3 sm:max-h-[23rem] sm:overflow-hidden sm:w-full sm:max-w-[42rem] sm:p-4 xl:max-w-none">
       <div className={cn(
         'mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between',
         isArabic ? 'items-end text-right sm:flex-row-reverse' : 'items-start text-left'
@@ -30,7 +30,7 @@ const SupplierBalancesSection = ({ items, isArabic, isLoading }) => {
       </div>
 
       {isLoading ? (
-        <div className="flex-1 overflow-y-auto pe-1">
+        <div className="flex-1 overflow-visible pe-1 sm:overflow-y-auto">
           <div className="space-y-2">
             {loadingRows.map((rowId) => (
               <div
@@ -57,7 +57,7 @@ const SupplierBalancesSection = ({ items, isArabic, isLoading }) => {
             : 'Supplier balances will appear here once supplier integrations are available.'}
         />
       ) : (
-        <div className="flex-1 overflow-y-auto pe-1">
+        <div className="flex-1 overflow-visible pe-1 sm:overflow-y-auto">
           <div className="space-y-2">
             {items.map((item) => (
               <article
