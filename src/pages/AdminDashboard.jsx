@@ -980,14 +980,14 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="admin-dashboard-shell min-w-0 space-y-4 pb-28 md:space-y-8 md:pb-4">
+    <div className="admin-dashboard-shell min-w-0 space-y-3 pb-28 sm:space-y-4 md:pb-4">
       <DashboardHeader
         isArabic={isArabic}
         userName={user?.name}
         currentDateLabel={currentDateLabel}
       />
 
-      <Card variant="premium" className="admin-dashboard-filter-card overflow-visible p-4 sm:p-6">
+      <Card variant="premium" className="admin-dashboard-filter-card overflow-visible p-3 sm:p-4">
         <DashboardDateRangeFilter
           isArabic={isArabic}
           formatRangeDate={formatRangeDate}
@@ -1000,8 +1000,8 @@ const AdminDashboard = () => {
 
       <StatsGrid stats={stats} isLoading={isLoadingDashboardStats} />
 
-      <div className="grid place-items-center gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)] xl:place-items-stretch xl:gap-6">
-        <div className="w-full space-y-4 md:space-y-6">
+      <div className="grid place-items-center gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)] xl:place-items-stretch xl:gap-5">
+        <div className="w-full space-y-3 md:space-y-4">
           {canViewOrders ? (
             <RecentOrdersSection
               orders={recentOrders}
@@ -1037,7 +1037,7 @@ const AdminDashboard = () => {
           ) : null}
         </div>
 
-        <div className="w-full space-y-4 md:space-y-6">
+        <div className="w-full space-y-3 md:space-y-4">
           {canViewOrders ? (
             <OrderCandlestickChart
               orders={filteredOrders}

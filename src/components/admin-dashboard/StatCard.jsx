@@ -10,40 +10,36 @@ const StatCard = ({ title, value, note, icon: Icon, progress = 40, wide = false 
     <Card
       variant="elevated"
       className={cn(
-        'admin-stat-card relative w-full max-w-[24rem] p-0 transition-colors sm:max-w-none',
+        'admin-stat-card relative w-full p-0 transition-colors',
         wide && 'col-span-2'
       )}
     >
       <span className="admin-stat-card-shimmer" aria-hidden="true" />
-      <div className="relative flex min-h-[8.25rem] flex-col justify-between overflow-hidden rounded-[inherit] p-3.5 text-start sm:min-h-[9.25rem] sm:p-4">
-        <div className="pointer-events-none absolute -end-4 -top-4 flex h-20 w-20 items-center justify-center rounded-full border border-[color:rgb(var(--color-primary-rgb)/0.1)] bg-[color:rgb(var(--color-primary-rgb)/0.045)] text-[var(--color-primary)] opacity-40 sm:h-24 sm:w-24">
-          <Icon className="h-8 w-8 sm:h-9 sm:w-9" />
-        </div>
-
+      <div className="relative flex min-h-[7rem] flex-col justify-between overflow-hidden rounded-[inherit] p-3 text-start sm:p-3.5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="max-w-[9.5rem] text-[10px] font-bold uppercase leading-4 tracking-[0.12em] text-[var(--color-muted)] sm:max-w-[11rem] sm:text-[11px]">
+            <p className="max-w-[12rem] text-[11px] font-semibold leading-4 text-[var(--color-text-secondary)] sm:text-xs">
               {title}
             </p>
           </div>
 
-          <div className="admin-icon-glow flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.65rem] border border-[color:rgb(var(--color-primary-rgb)/0.2)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] text-[var(--color-primary)] sm:h-8 sm:w-8">
+          <div className="admin-icon-glow flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[color:rgb(var(--color-primary-rgb)/0.08)] text-[var(--color-primary)]">
             <Icon className="relative z-10 h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
         </div>
 
-        <div className="relative mt-4">
-          <p className="whitespace-nowrap text-[clamp(0.95rem,5.2vw,1.35rem)] font-black leading-none tracking-tight text-[var(--color-text)] sm:text-[2.15rem]">
+        <div className="relative mt-2">
+          <p className="whitespace-nowrap text-[clamp(1rem,4vw,1.45rem)] font-bold leading-tight tracking-tight text-[var(--color-text)] sm:text-2xl">
             {value}
           </p>
           {note && (
-            <p className="mt-2 line-clamp-2 text-[11px] leading-5 text-[var(--color-text-secondary)] sm:text-xs">
+            <p className="mt-1 line-clamp-1 text-[11px] leading-4 text-[var(--color-text-secondary)] sm:text-xs">
               {note}
             </p>
           )}
         </div>
 
-        <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-[color:rgb(var(--color-border-rgb)/0.42)]">
+        <div className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-[color:rgb(var(--color-border-rgb)/0.42)]">
           <div
             className="h-full rounded-full bg-[linear-gradient(90deg,var(--color-primary),var(--color-primary-hover))]"
             style={{ width: `${progressValue}%` }}
