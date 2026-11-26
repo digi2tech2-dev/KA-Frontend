@@ -10,6 +10,7 @@
  * (_id → id, uppercase roles/statuses → lowercase, etc.)
  */
 
+import { createClientIdempotencyKey, attachOperationIdentity } from '../utils/operationIdentity';
 import axios from 'axios';
 import { createOAuthProof, exchangeOAuthProof } from '../utils/oauthProof';
 import { getCoinResolution, isCoinRechargeOrder } from '../utils/coinRecharge';
@@ -342,11 +343,7 @@ const flushRefreshQueue = (error, token) => {
 // ─── Request interceptor: attach JWT ─────────────────────────────────────────
 
 http.interceptors.request.use((config) => {
-  // Stable per-request identity is retained if this request is retried.
-  if (['post', 'put', 'patch', 'delete'].includes(String(config.method || '').toLowerCase())) {
-    config.headers = config.headers || {};
-    if (!config.headers['Idempotency-Key']) config.headers['Idempotency-Key'] = crypto.randomUUID();
-  } // hotfix operation identity
+  attachOperationIdentity(config);
   const token = getStoredToken();
   if (token) {
     config.headers = {
@@ -1375,13 +1372,6 @@ const buildTargetOrderFormData = (payload = {}) => {
   const file = payload.screenshotProof || payload.proofImage || payload.receipt || null;
   if (file) formData.append('screenshotProof', file);
   return formData;
-};
-
-const createClientIdempotencyKey = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `target-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
 const normalizeReferralCurrency = (value, fallback = 'USD') =>
