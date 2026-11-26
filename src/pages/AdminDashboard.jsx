@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../components/ui/PrivateAsset';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeftRight,
@@ -1099,7 +1100,7 @@ const AdminDashboard = () => {
         className="z-[250]"
       >
         {selectedTopupReceipt?.receiptUrl ? (
-          <img
+          <PrivateImage
             src={selectedTopupReceipt.receiptUrl}
             alt={isArabic ? 'إيصال الإيداع' : 'Deposit receipt'}
             className="mx-auto max-h-[68vh] w-full rounded-xl object-contain"

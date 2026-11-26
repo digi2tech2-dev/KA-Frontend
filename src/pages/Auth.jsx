@@ -239,6 +239,9 @@ const countryOptions = useMemo(() => {
 
     const handleGoogleCallback = async () => {
       const result = await loginWithGoogle();
+      if (result?.requires2FA) { setIsLogin(true);
+        setTwoFactorChallenge(result); setTwoFactorCode(''); setShowEmailForm(true); return;
+      }
 
       if (result?.status === 'profile_completion_required' || result?.completionToken) {
         setGoogleCompletionToken(result?.completionToken || params.get('completionToken') || '');
@@ -290,7 +293,10 @@ const countryOptions = useMemo(() => {
       oauthHandledRef.current = false;
     };
 
-    handleGoogleCallback();
+    handleGoogleCallback().catch(error => {
+      addToast(error?.message || 'Google login failed. Please restart login.', 'error');
+      window.history.replaceState({}, '', window.location.pathname);
+    });
   }, [addToast, dir, location.search, loginWithGoogle, navigate, t]);
 
   const validateForm = () => {
@@ -376,6 +382,9 @@ const countryOptions = useMemo(() => {
   };
 
   const consumeAuthResult = (result, { source = 'email', mode = 'login' } = {}) => {
+    // oauthProofOutcome: web and native Google use identical access gates.
+    if (result?.requires2FA) { setIsLogin(true); setTwoFactorChallenge(result); setTwoFactorCode(''); setShowEmailForm(true); return; }
+    if (result?.completionToken) { setGoogleCompletionToken(result.completionToken); setGoogleSetupPending(true); setIsLogin(false); setRegisterStep(2); setShowEmailForm(true); return; }
     if (!result) return;
 
     if (result.redirectTo) {
@@ -466,6 +475,10 @@ const countryOptions = useMemo(() => {
           country,
           currency,
         });
+        if (result?.requires2FA) { setIsLogin(true);
+          setGoogleSetupPending(false); setIsLogin(true);
+          setTwoFactorChallenge(result); setTwoFactorCode(''); return;
+        }
         window.sessionStorage.removeItem('auth:google-signup-intent');
         clearReferralBridge();
         setGoogleSetupPending(false);

@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../ui/PrivateAsset';
 import React from 'react';
 import { CircleDollarSign, Eye, ReceiptText, UserRound, WalletCards } from 'lucide-react';
 import Badge from '../ui/Badge';
@@ -80,10 +81,10 @@ const MobileRequestCard = ({ request, onStatusChange, onViewDetails, canConfirm 
 
         <div className="grid grid-cols-2 gap-2">
           {proofUrl ? (
-            <a href={proofUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/[0.07] text-xs font-bold text-sky-500">
+            <PrivateAssetLink href={proofUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/[0.07] text-xs font-bold text-sky-500">
               <Eye className="h-4 w-4" />
               عرض الإثبات
-            </a>
+            </PrivateAssetLink>
           ) : (
             <span className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[color:rgb(var(--color-border-rgb)/0.68)] text-xs text-[var(--color-text-secondary)]">
               <ReceiptText className="h-4 w-4" />
@@ -218,7 +219,7 @@ const AdminOrdersTable = ({ requests = [], onStatusChange, onViewDetails, canCon
             </TableCell>
             <TableCell>
               {request.screenshotProof || request.proofImage ? (
-                <a
+                <PrivateAssetLink
                   href={request.screenshotProof || request.proofImage}
                   target="_blank"
                   rel="noreferrer"
@@ -226,7 +227,7 @@ const AdminOrdersTable = ({ requests = [], onStatusChange, onViewDetails, canCon
                 >
                   <Eye className="h-3.5 w-3.5" />
                   عرض
-                </a>
+                </PrivateAssetLink>
               ) : (
                 <span className="inline-flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
                   <ReceiptText className="h-4 w-4" />

@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../components/ui/PrivateAsset';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
@@ -512,7 +513,7 @@ const PaymentDetails = ({
           className="flex items-center gap-3 border-b border-[color:rgb(var(--color-border-rgb)/0.68)] px-1 pb-4"
         >
           {method.image ? (
-            <img
+            <PrivateImage
               src={resolveImageUrl(method.image)}
               alt={method.name}
               loading="lazy"

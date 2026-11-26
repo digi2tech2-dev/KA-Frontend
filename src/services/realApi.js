@@ -11,6 +11,7 @@
  */
 
 import axios from 'axios';
+import { createOAuthProof, exchangeOAuthProof } from '../utils/oauthProof';
 import { getCoinResolution, isCoinRechargeOrder } from '../utils/coinRecharge';
 import { devLogger } from '../utils/devLogger';
 import { getWalletBalanceSummary } from '../utils/money';
@@ -341,6 +342,11 @@ const flushRefreshQueue = (error, token) => {
 // ─── Request interceptor: attach JWT ─────────────────────────────────────────
 
 http.interceptors.request.use((config) => {
+  // Stable per-request identity is retained if this request is retried.
+  if (['post', 'put', 'patch', 'delete'].includes(String(config.method || '').toLowerCase())) {
+    config.headers = config.headers || {};
+    if (!config.headers['Idempotency-Key']) config.headers['Idempotency-Key'] = crypto.randomUUID();
+  } // hotfix operation identity
   const token = getStoredToken();
   if (token) {
     config.headers = {
@@ -1948,6 +1954,9 @@ const realApi = {
       return unwrap(res);
     },
 
+    requestGoogleMfaDisable: async () => unwrap(await http.post('/auth/2fa/disable-google/request',{})),
+    disableGoogleTwoFactor: async ({requestId,otp}) => unwrap(await http.post('/auth/2fa/disable-google/confirm',{requestId,otp})),
+
     disableTwoFactor: async ({ token, code, password }) => {
       const body = {};
       const twoFactorCode = token || code;
@@ -1958,6 +1967,20 @@ const realApi = {
     },
 
     loginWithGoogle: async () => {
+      const callback = new URLSearchParams(window.location.search);
+      if (callback.get('status') === 'OAUTH_HANDOFF' && callback.get('code')) {
+        const response = await exchangeOAuthProof(callback.get('code'), body => http.post('/auth/google/exchange',body));
+        const data = unwrap(response);
+        if (data?.requires2FA) return data;
+        if (data?.completionToken) return { ...data, status:'profile_completion_required', canAccessApp:false };
+        if (!data?.token) throw new Error(data?.message || 'Google login did not return an active session.');
+        setStoredAuthTokens(data.token,null);
+        return { ...data, user:normaliseUser(data.user), status:'login_complete' };
+      }
+      if (callback.has('token') || callback.has('completionToken') || callback.get('status') === 'OAUTH_ERROR') {
+        window.history.replaceState({},'',window.location.pathname);
+        throw new Error('Restart Google login in this browser tab.');
+      }
       if (isAndroidNativeApp() && isNativeGoogleAuthAvailable()) {
         const nativeIdentity = await signInWithNativeGoogle();
         const referralCode = readReferralCodeFromSearch(window.location.search) || readReferralBridge();
@@ -1968,6 +1991,7 @@ const realApi = {
           ...(referralCode ? { referralCode } : {}),
         });
         const data = unwrap(res);
+        if (data?.requires2FA) return data;
         if (String(data?.status || '').toUpperCase() === 'PROFILE_COMPLETION_REQUIRED') {
           return {
             user: data?.user ? normaliseUser(data.user) : null,
@@ -1994,57 +2018,12 @@ const realApi = {
         return { user, token, status: normalizeAccountStatus(data?.status || 'LOGIN_COMPLETE') };
       }
 
-      // Google OAuth uses redirect flow — open the BE endpoint in the browser.
-      // The BE redirects back either with ?token= or ?status=pending.
-      // This method is called from FE after capturing the token from the redirect.
-      // We keep it compatible by parsing the token from the current URL if present.
-      const params = new URLSearchParams(window.location.search);
-      const rawCallbackStatus = String(params.get('status') || '').trim().toUpperCase();
-      const callbackStatus = normalizeAccountStatus(rawCallbackStatus);
-      const completionToken = params.get('completionToken') || params.get('completion_token');
-      if (rawCallbackStatus === 'OAUTH_ERROR') {
-        throw new Error('Google authentication failed. Please try again.');
-      }
-
-      if (callbackStatus === 'profile_completion_required' && completionToken) {
-        return {
-          user: null,
-          token: null,
-          completionToken,
-          status: 'profile_completion_required',
-          callbackStatus: 'PROFILE_COMPLETION_REQUIRED',
-          redirectTo: '/auth?status=PROFILE_COMPLETION_REQUIRED',
-          canAccessApp: false,
-        };
-      }
-
-      if (callbackStatus && callbackStatus !== 'approved' && !params.get('token')) {
-        return {
-          user: null,
-          token: null,
-          status: callbackStatus,
-          redirectTo: getAccountAccessRoute(callbackStatus),
-          canAccessApp: false,
-        };
-      }
-
-      const token = params.get('token');
-      if (!token) {
-        // Initiate the redirect
-        const referralCode = readReferralCodeFromSearch(window.location.search) || readReferralBridge();
-        const signupIntent = window.sessionStorage?.getItem('auth:google-signup-intent') === '1';
-        const googleParams = new URLSearchParams();
-        googleParams.set('intent', signupIntent ? 'signup' : 'login');
-        if (referralCode) googleParams.set('referralCode', referralCode);
-        window.location.href = `${API_BASE}/auth/google?${googleParams.toString()}`;
-        // Return a promise that never resolves (page will redirect)
-        return new Promise(() => { });
-      }
-      // Token captured from callback redirect — fetch profile
-      setStoredAuthTokens(token, null);
-      const res = await http.get('/users/me');
-      const user = normaliseUser(unwrap(res));
-      return { user, token, status: 'login_complete', callbackStatus: rawCallbackStatus || 'LOGIN_COMPLETE' };
+      const referralCode = readReferralCodeFromSearch(window.location.search) || readReferralBridge();
+      const signupIntent = window.sessionStorage?.getItem('auth:google-signup-intent') === '1';
+      const params = new URLSearchParams({ intent: signupIntent ? 'signup' : 'login', code_challenge: await createOAuthProof() });
+      if (referralCode) params.set('referralCode',referralCode);
+      window.location.assign(`${API_BASE}/auth/google?${params.toString()}`);
+      return new Promise(() => {});
     },
 
     completeGoogleProfile: async ({ completionToken, country, currency }) => {
@@ -2054,6 +2033,7 @@ const realApi = {
         currency,
       });
       const data = unwrap(res);
+      if (data?.requires2FA) return data;
       const user = normaliseUser(data.user);
       const token = data.token || data.accessToken || null;
       const refreshToken = data.refreshToken ?? data.refresh_token ?? null;
@@ -3167,6 +3147,7 @@ const realApi = {
       if (updates.phone !== undefined) body.phone = updates.phone;
       if (updates.username !== undefined) body.username = updates.username;
       if (updates.password !== undefined) body.password = updates.password;
+      if (updates.currentPassword !== undefined) body.currentPassword = updates.currentPassword;
       if (updates.country !== undefined) body.country = updates.country;
       if (updates.currency !== undefined) body.currency = updates.currency;
       if (updates.referralCode !== undefined) body.referralCode = updates.referralCode;

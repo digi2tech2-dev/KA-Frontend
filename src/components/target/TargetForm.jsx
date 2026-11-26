@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../ui/PrivateAsset';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2,
@@ -308,7 +309,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(135deg,var(--color-primary),#b37a18)] text-white shadow-[0_12px_28px_-16px_rgb(var(--color-primary-rgb)/0.95)]">
                 {selectedApp.image ? (
-                  <img src={resolveImageUrl(selectedApp.image)} alt="" className="h-full w-full rounded-2xl object-cover" />
+                  <PrivateImage src={resolveImageUrl(selectedApp.image)} alt="" className="h-full w-full rounded-2xl object-cover" />
                 ) : (
                   <Target className="h-5 w-5" />
                 )}
@@ -402,7 +403,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
               >
                 <div className="aspect-square w-full overflow-hidden rounded-[1.25rem] border-4 border-[color:rgb(var(--color-border-rgb)/0.72)] bg-[color:rgb(var(--color-primary-rgb)/0.08)] p-0.5 shadow-[0_14px_28px_-20px_rgb(var(--color-primary-rgb)/0.95)] transition-all group-hover:border-[color:rgb(var(--color-primary-rgb)/0.58)] group-hover:shadow-[0_18px_34px_-18px_rgb(var(--color-primary-rgb)/0.75)]">
                   {app.image ? (
-                    <img src={resolveImageUrl(app.image)} alt="" className="h-full w-full rounded-[0.95rem] object-cover" />
+                    <PrivateImage src={resolveImageUrl(app.image)} alt="" className="h-full w-full rounded-[0.95rem] object-cover" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center rounded-[0.95rem] text-[var(--color-primary)]"><Target className="h-7 w-7" /></span>
                   )}
@@ -519,7 +520,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                 <div className="absolute inset-y-0 right-0 w-1 bg-current opacity-80" />
                 <span className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-xl shadow-[0_10px_24px_-14px_rgb(0_0_0/0.8)]', selectedPaymentTheme.icon)}>
                   {selectedPaymentMethod?.image ? (
-                    <img src={resolveImageUrl(selectedPaymentMethod.image)} alt="" className="h-full w-full rounded-xl object-cover" />
+                    <PrivateImage src={resolveImageUrl(selectedPaymentMethod.image)} alt="" className="h-full w-full rounded-xl object-cover" />
                   ) : (
                     <CreditCard className="h-4 w-4" />
                   )}
@@ -555,7 +556,7 @@ const TargetForm = ({ products = [], paymentMethods = [], onSubmit, onSelectedAp
                         )}
                       >
                         <span className={cn('grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[10px] font-black', theme.icon)}>
-                          {method.image ? <img src={resolveImageUrl(method.image)} alt="" className="h-full w-full rounded-lg object-cover" /> : <CreditCard className="h-3.5 w-3.5" />}
+                          {method.image ? <PrivateImage src={resolveImageUrl(method.image)} alt="" className="h-full w-full rounded-lg object-cover" /> : <CreditCard className="h-3.5 w-3.5" />}
                         </span>
                         <span className="flex-1 text-xs font-black">{getPaymentMethodLabel(method.name)}</span>
                         {isSelected ? <CheckCircle2 className="h-4 w-4" /> : null}

@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../../components/ui/PrivateAsset';
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Check, CheckCircle2, Clock3, Eye, Pencil, Search, Wallet, X } from 'lucide-react';
 import useTopupStore from '../../store/useTopupStore';
@@ -664,19 +665,19 @@ const AdminPayments = () => {
             <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">الإيصال المرفوع</p>
             {selectedRequest?.proofImage ? (
               <>
-                <img
+                <PrivateImage
                   src={selectedRequest.proofImage}
                   alt="Payment proof"
                   className="mx-auto max-h-40 w-auto max-w-full rounded-lg object-contain bg-gray-50 dark:bg-gray-900"
                 />
-                <a
+                <PrivateAssetLink
                   href={selectedRequest.proofImage}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex mt-2 text-sm text-indigo-600 hover:text-indigo-700"
                 >
                   فتح الصورة بحجم كامل
-                </a>
+                </PrivateAssetLink>
               </>
             ) : (
               <p className="text-xs text-gray-500">لم يرفع العميل صورة إيصال.</p>
@@ -725,15 +726,15 @@ const AdminPayments = () => {
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => { setIsReceiptModalOpen(false); setReceiptPreviewUrl(null); }}>إغلاق</Button>
             {receiptPreviewUrl && (
-              <a href={receiptPreviewUrl} target="_blank" rel="noreferrer">
+              <PrivateAssetLink href={receiptPreviewUrl} target="_blank" rel="noreferrer">
                 <Button>فتح بحجم كامل</Button>
-              </a>
+              </PrivateAssetLink>
             )}
           </div>
         }
       >
         {receiptPreviewUrl ? (
-          <img
+          <PrivateImage
             src={receiptPreviewUrl}
             alt="Payment receipt"
             className="mx-auto max-h-[56vh] w-auto max-w-full rounded-lg object-contain bg-gray-50 dark:bg-gray-900"

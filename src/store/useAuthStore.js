@@ -197,6 +197,7 @@ const useAuthStore = create((set, get) => ({
         try {
           const response = await apiClient.auth.login(email, password);
           if (response?.requires2FA) {
+            writeStoredAuthState({token:null,user:null,isAuthenticated:false});
             set({
               user: null,
               token: null,
@@ -311,6 +312,11 @@ const useAuthStore = create((set, get) => ({
         });
         try {
           const response = await apiClient.auth.loginWithGoogle();
+          if (response?.requires2FA) {
+            writeStoredAuthState({token:null,user:null,isAuthenticated:false});
+            set({ isLoading: false, isAuthenticated: false, token: null, user: null });
+            return { ...response, ok: false };
+          }
           if (response?.status === 'profile_completion_required' || response?.completionToken) {
             set({
               user: null,
@@ -410,6 +416,11 @@ const useAuthStore = create((set, get) => ({
         set({ isLoading: true, error: null });
         try {
           const response = await apiClient.auth.completeGoogleProfile({ completionToken, country, currency });
+          if (response?.requires2FA) {
+            writeStoredAuthState({token:null,user:null,isAuthenticated:false});
+            set({ isLoading: false, isAuthenticated: false, token: null, user: null });
+            return { ...response, ok: false };
+          }
           const outcome = buildAuthOutcome(response.user);
 
           set({

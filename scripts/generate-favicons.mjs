@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import toIco from 'to-ico';
+import { packPngIcons } from './ico.mjs';
 
 const repoRoot = process.cwd();
 const inputPath = path.join(repoRoot, 'src', 'assets', 'LOGO.PNG');
@@ -39,7 +39,7 @@ const main = async () => {
     fs.writeFile(path.join(outDir, 'apple-touch-icon.png'), png180),
   ]);
 
-  const ico = await toIco([png16, png32]);
+  const ico = packPngIcons([{ size: 16, png: png16 }, { size: 32, png: png32 }]);
   await fs.writeFile(path.join(outDir, 'favicon.ico'), ico);
 
   // Optional: also keep a higher-res PNG for Android/desktop shortcuts.

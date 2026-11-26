@@ -82,6 +82,8 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
   const [feedback, setFeedback] = useState({ type: 'info', message: '' });
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
   const [disablePassword, setDisablePassword] = useState('');
+  const [disableRequestId, setDisableRequestId] = useState('');
+  const [disableOtp, setDisableOtp] = useState('');
   const [isDisabling, setIsDisabling] = useState(false);
 
   const maskedEmail = useMemo(() => maskEmailForDisplay(email), [email]);
@@ -170,6 +172,7 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
   const handleToggle = () => {
     if (isEnabled) {
       setDisablePassword('');
+      setDisableRequestId(''); setDisableOtp('');
       setIsDisableDialogOpen(true);
       return;
     }
@@ -178,14 +181,15 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
   };
 
   const disableTwoFactor = async () => {
-    if (!disablePassword.trim()) {
+    if ((!disableRequestId && !disablePassword.trim()) || (disableRequestId && !/^\d{6}$/.test(disableOtp))) {
       setFeedback({ type: 'error', message: text.passwordRequired });
       return;
     }
 
     setIsDisabling(true);
     try {
-      await apiClient.auth.disableTwoFactor({ password: disablePassword });
+      if (disableRequestId) await apiClient.auth.disableGoogleTwoFactor({requestId:disableRequestId,otp:disableOtp});
+      else await apiClient.auth.disableTwoFactor({ password: disablePassword });
       setIsEnabled(false);
       setStatus(STATUS.DISABLED);
       setIsDisableDialogOpen(false);
@@ -193,6 +197,7 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
       updateUserSession({ twoFactorEnabled: false, isTwoFactorEnabled: false });
       setFeedback({ type: 'success', message: text.deactivated });
       addToast(text.deactivated, 'success');
+      if (disableRequestId) { await useAuthStore.getState().logout(); window.location.assign('/auth'); }
     } catch (error) {
       const message = getReadableErrorMessage(error, text.disableError, { language });
       setFeedback({ type: 'error', message });
@@ -380,6 +385,13 @@ const TwoFactorCard = ({ email, twoFactorEnabled = false, emailChangedPending = 
         onConfirm={disableTwoFactor}
         onCancel={() => !isDisabling && setIsDisableDialogOpen(false)}
       >
+        <button type="button" disabled={isDisabling} className="my-3 rounded border px-3 py-2" onClick={async () => {
+          setIsDisabling(true);
+          try { const result=await apiClient.auth.requestGoogleMfaDisable(); setDisableRequestId(result.requestId); setDisableOtp(''); addToast('Confirmation code sent to your verified email.', 'success'); }
+          catch(error) { addToast(getReadableErrorMessage(error, 'Use your password, or retry the email confirmation for a Google account without a password.', {language}), 'error'); }
+          finally { setIsDisabling(false); }
+        }}>Google account without password: send confirmation code</button>
+        {disableRequestId && <Input label="Email code to disable MFA" value={disableOtp} onChange={event=>setDisableOtp(event.target.value.replace(/\D/g,'').slice(0,6))} inputMode="numeric" autoComplete="one-time-code" />}
         <Input
           type="password"
           value={disablePassword}

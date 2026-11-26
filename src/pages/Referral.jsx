@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../components/ui/PrivateAsset';
 import React, { useEffect, useState } from 'react';
 import {
   Check,
@@ -608,7 +609,7 @@ const Referral = () => {
       </div>
 
       <section className="group relative aspect-[2048/752] overflow-hidden rounded-[1.35rem] border border-cyan-300/35 bg-[var(--color-card)] shadow-[0_28px_80px_-38px_rgb(0_0_0/0.95),0_0_55px_-20px_rgb(139_92_246/0.8),0_0_28px_-18px_rgb(34_211_238/0.7)] sm:rounded-[1.65rem]">
-        <img
+        <PrivateImage
           src={referralHeroImage}
           alt={isArabic ? 'الوكيل الفرعي والإحالة' : 'Sub-agent & Referral'}
           loading="eager"
@@ -696,7 +697,7 @@ const Referral = () => {
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-2">
-          <a
+          <PrivateAssetLink
             href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
             target="_blank"
             rel="noreferrer"
@@ -704,8 +705,8 @@ const Referral = () => {
           >
             <MessageCircle className="h-4.5 w-4.5" />
             <span>{isArabic ? 'واتساب' : 'WhatsApp'}</span>
-          </a>
-          <a
+          </PrivateAssetLink>
+          <PrivateAssetLink
             href={`https://t.me/share/url?url=&text=${encodeURIComponent(shareText)}`}
             target="_blank"
             rel="noreferrer"
@@ -713,7 +714,7 @@ const Referral = () => {
           >
             <Send className="h-4.5 w-4.5" />
             <span>{isArabic ? 'تيليجرام' : 'Telegram'}</span>
-          </a>
+          </PrivateAssetLink>
           <button
             type="button"
             onClick={handleNativeShare}
@@ -756,7 +757,7 @@ const Referral = () => {
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0">
                     <span className="absolute -inset-1 rounded-full bg-[linear-gradient(135deg,var(--color-primary),#ec4899)] opacity-55 blur-[3px]" />
-                    <img
+                    <PrivateImage
                       src={customer.avatar}
                       alt={customer.name}
                       className="relative h-12 w-12 rounded-full border-2 border-[color:rgb(var(--color-card-rgb)/0.92)] bg-[var(--color-card)] object-cover shadow-md sm:h-14 sm:w-14"
@@ -952,7 +953,7 @@ const Referral = () => {
             <label className="block"><span className="mb-2 block text-xs font-black text-[var(--color-text)]">{isArabic ? 'رسالتك إلى الإدارة' : 'Message to admin'}</span><textarea value={agentForm.message} onChange={(event) => setAgentForm((current) => ({ ...current, message: event.target.value }))} rows={4} placeholder={isArabic ? 'اكتب عدد العملاء وطبيعة نشاطك...' : 'Describe your customers and activity...'} className="w-full resize-none border-2 border-[#0b1f33]/25 border-b-[#f59e0b] bg-white/70 p-4 text-sm font-semibold text-[#13283b] outline-none transition focus:border-[#f59e0b] dark:bg-[#071522]/70 dark:text-white" /></label>
             <label className="block cursor-pointer border-2 border-dashed border-[#f59e0b]/70 bg-[#f59e0b]/5 p-4 transition hover:bg-[#f59e0b]/10">
               <input type="file" accept="image/*" onChange={handleAgentProofUpload} className="hidden" />
-              {agentForm.proofImage ? <img src={agentForm.proofImage} alt={isArabic ? 'صورة الإثبات' : 'Proof'} className="mx-auto max-h-52 w-full object-contain" /> : <div className="py-7 text-center"><UserRoundPlus className="mx-auto h-8 w-8 text-[#d97706]" /><p className="mt-2 text-xs font-black text-[var(--color-text)]">{isArabic ? 'ارفع صورة إثبات وجود عملاء' : 'Upload customer proof'}</p><p className="mt-1 text-[0.65rem] text-[var(--color-text-secondary)]">{isArabic ? 'اضغط لاختيار الصورة' : 'Tap to choose an image'}</p></div>}
+              {agentForm.proofImage ? <PrivateImage src={agentForm.proofImage} alt={isArabic ? 'صورة الإثبات' : 'Proof'} className="mx-auto max-h-52 w-full object-contain" /> : <div className="py-7 text-center"><UserRoundPlus className="mx-auto h-8 w-8 text-[#d97706]" /><p className="mt-2 text-xs font-black text-[var(--color-text)]">{isArabic ? 'ارفع صورة إثبات وجود عملاء' : 'Upload customer proof'}</p><p className="mt-1 text-[0.65rem] text-[var(--color-text-secondary)]">{isArabic ? 'اضغط لاختيار الصورة' : 'Tap to choose an image'}</p></div>}
             </label>
             <Button type="submit" className="h-12 w-full rounded-none bg-[#0b1f33] text-[#fbbf24] shadow-[6px_6px_0_#f59e0b] hover:bg-[#17364f]">{isArabic ? 'إرسال طلب الوكيل الفرعي' : 'Send sub-agent request'}</Button>
           </form>
@@ -1221,9 +1222,9 @@ const Referral = () => {
                     <p className="text-sm font-black text-[var(--color-text)]">{isArabic ? 'صورة تحويل فودافون كاش' : 'Vodafone Cash receipt'}</p>
                   </div>
                   {selectedWithdrawal.receiptImage ? (
-                    <a href={selectedWithdrawal.receiptImage} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-[1.2rem] border border-emerald-400/20 bg-emerald-500/5 p-2 shadow-[0_18px_42px_-30px_rgb(16_185_129/0.65)]">
-                      <img src={selectedWithdrawal.receiptImage} alt={isArabic ? 'إيصال تحويل فودافون كاش' : 'Vodafone Cash transfer receipt'} className="h-auto w-full rounded-[0.9rem] object-cover transition-transform duration-300 group-hover:scale-[1.01]" />
-                    </a>
+                    <PrivateAssetLink href={selectedWithdrawal.receiptImage} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-[1.2rem] border border-emerald-400/20 bg-emerald-500/5 p-2 shadow-[0_18px_42px_-30px_rgb(16_185_129/0.65)]">
+                      <PrivateImage src={selectedWithdrawal.receiptImage} alt={isArabic ? 'إيصال تحويل فودافون كاش' : 'Vodafone Cash transfer receipt'} className="h-auto w-full rounded-[0.9rem] object-cover transition-transform duration-300 group-hover:scale-[1.01]" />
+                    </PrivateAssetLink>
                   ) : (
                     <div className="rounded-xl border border-dashed border-[color:rgb(var(--color-border-rgb)/0.7)] p-5 text-center text-xs font-bold text-[var(--color-text-secondary)]">{isArabic ? 'لم يتم إرفاق صورة التحويل.' : 'No transfer receipt attached.'}</div>
                   )}

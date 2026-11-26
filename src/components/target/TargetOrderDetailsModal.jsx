@@ -1,3 +1,4 @@
+import { PrivateImage, PrivateAssetLink } from '../ui/PrivateAsset';
 import React from 'react';
 import { CalendarClock, CheckCircle2, Coins, Copy, CreditCard, Hash, Image as ImageIcon, Mail, Target, User, XCircle } from 'lucide-react';
 import Badge from '../ui/Badge';
@@ -161,16 +162,16 @@ const TargetOrderDetailsModal = ({
           <div className="rounded-[1.35rem] border border-[color:rgb(var(--color-border-rgb)/0.78)] bg-[color:rgb(var(--color-surface-rgb)/0.55)] p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-sm font-bold text-[var(--color-text)]">إثبات التحويل</p>
-              <a
+              <PrivateAssetLink
                 href={proofUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs font-bold text-[var(--color-primary)] hover:underline"
               >
                 فتح الصورة
-              </a>
+              </PrivateAssetLink>
             </div>
-            <img
+            <PrivateImage
               src={proofUrl}
               alt="إثبات التحويل"
               className="max-h-[28rem] w-full rounded-[1rem] border border-[color:rgb(var(--color-border-rgb)/0.72)] object-contain"
